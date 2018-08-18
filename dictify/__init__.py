@@ -86,6 +86,7 @@ class Dictify(dict):
                 dict_[k] = v._verify(k, dict_.get(k))
         return super().__new__(cls, dict_)
 
+
     def __setitem__(self, k, v):
         v = self._field[k]._verify(k, v)
         return super().__setitem__(k, v)
