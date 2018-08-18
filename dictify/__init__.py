@@ -3,11 +3,20 @@ import math
 
 
 class Field:
+    """Class contain function to verify Dictify Field.
+
+    ## Example:
+    class Person(Dictify):
+        name = Field().required()
+    """
+
     def __init__(self):
+        """Initialize function for Field()."""
         self.queries = []
         self.value = None
 
     def verify(func):
+        """Decorate function to append function call to `self.queries`."""
         def wrapper(self, *args, **kw):
             def _():
                 func(self, *args, **kw)
@@ -27,26 +36,39 @@ class Field:
 
     @verify
     def required(self):
+        """Require value."""
         if (self.value is None) or (self.value == ''):
             raise ValueError('required')
 
     @verify
     def default(self, default):
+        """Set default value."""
         if self.value is None:
             self.value = default
 
     @verify
     def type(self, classinfo):
+        """Check value type."""
         if not(isinstance(self.value, classinfo)):
             raise ValueError('must be %s object' % classinfo)
 
     @verify
     def match(self, re_):
+        """Apply re.match to value."""
         if not re.match(re_, self.value):
             raise ValueError("value not match with '%s'" % re_)
 
     @verify
     def apply(self, func):
+        """Apply function to Field(). Receive `self` as first args.
+
+        ## Example use:
+        class Model(Dictify):
+        def check(self):
+            # Do something with self, like checking value or setting value.
+
+        Field().apply(check)
+        """
         func(self)
 
     @verify
