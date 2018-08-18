@@ -78,15 +78,19 @@ class Field:
 
 
 class Dictify(dict):
+    class dict(dict):
+        def __init__(self, dict_, field):
+            self._field = field
+            return super().__init__(dict_)
+
+        def __setitem__(self, k, v):
+            v = self._field[k]._verify(k, v)
+            return super().__setitem__(k, v)
+
     def __new__(cls, dict_):
         cls._field = dict()
         for k, v in vars(cls).items():
             if isinstance(v, Field):
                 cls._field[k] = v
                 dict_[k] = v._verify(k, dict_.get(k))
-        return super().__new__(cls, dict_)
-
-
-    def __setitem__(self, k, v):
-        v = self._field[k]._verify(k, v)
-        return super().__setitem__(k, v)
+        return cls.dict(dict_, cls._field)
