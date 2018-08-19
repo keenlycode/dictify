@@ -1,5 +1,14 @@
 import re
-import math
+
+
+class Query:
+    def __init__(self, field, verify):
+        self._field = field
+        self.verify = verify
+        self._field.queries.append(self)
+
+    def __call__(self, *args, **kw):
+        self.verify(self._field, *args, **kw)
 
 
 class Field:
@@ -16,11 +25,10 @@ class Field:
         self.value = None
 
     def verify(func):
-        """Decorate function to append function call to `self.queries`."""
+        """Decorate function to append verification to `self.queries`."""
         def wrapper(self, *args, **kw):
-            def _():
-                func(self, *args, **kw)
-            self.queries.append(_)
+            query = Query(self, func)
+            # self.queries.append(call)
             return self
         return wrapper
 
@@ -73,11 +81,6 @@ class Field:
         Field().apply(check)
         """
         func(self)
-
-    @verify
-    def size(self, min=0, max=math.inf):
-        if not (min <= len(self.value) <= max):
-            raise ValueError("len(%s) be %s to %s" % (self.key, min, max))
 
 
 class Model(dict):
