@@ -27,18 +27,21 @@ class Field:
     def _verify(self, key, value):
         self.key = key
         self.value = value
+        self.errors = list()
         for query in self.queries:
             try:
                 query()
             except ValueError as e:
-                raise ValueError("'%s' : %s" % (self.key, e.args[0]))
+                self.errors.append(e.args[0])
+        if self.errors:
+            raise ValueError("'%s' : %s" % (self.key, self.errors))
         return self.value
 
     @verify
     def required(self):
         """Require value."""
         if (self.value is None) or (self.value == ''):
-            raise ValueError('required')
+            raise ValueError('Required')
 
     @verify
     def default(self, default):
@@ -50,13 +53,13 @@ class Field:
     def type(self, classinfo):
         """Check value type."""
         if not(isinstance(self.value, classinfo)):
-            raise ValueError('must be %s object' % classinfo)
+            raise ValueError('Must be %s object' % classinfo)
 
     @verify
     def match(self, re_):
         """Apply re.match to value."""
         if not re.match(re_, self.value):
-            raise ValueError("value not match with '%s'" % re_)
+            raise ValueError("Value not match with '%s'" % re_)
 
     @verify
     def apply(self, func):
@@ -77,8 +80,8 @@ class Field:
             raise ValueError("len(%s) be %s to %s" % (self.key, min, max))
 
 
-class Dictify(dict):
-    class dict(dict):
+class Model(dict):
+    class Dict(dict):
         def __init__(self, dict_, field):
             self._field = field
             return super().__init__(dict_)
@@ -87,10 +90,10 @@ class Dictify(dict):
             v = self._field[k]._verify(k, v)
             return super().__setitem__(k, v)
 
-    def __new__(cls, dict_):
+    def __new__(cls, dict_=dict()):
         cls._field = dict()
         for k, v in vars(cls).items():
             if isinstance(v, Field):
                 cls._field[k] = v
                 dict_[k] = v._verify(k, dict_.get(k))
-        return cls.dict(dict_, cls._field)
+        return cls.Dict(dict_, cls._field)
