@@ -1,5 +1,6 @@
 import re
 from functools import wraps
+import inspect
 
 class Field:
     """Class contain function to verify Dictify Field.
@@ -33,10 +34,9 @@ class Field:
                     self.errors.append(e.args[0])
             if self.errors:
                 raise ValueError("'%s' : %s" % (key, self.errors))
-            return self.value
+            return self
 
     def __init__(self):
-        """Initialize function for Field()."""
         self.query = Field.Query()
         self.value = None
 
@@ -51,42 +51,42 @@ class Field:
 
     @field
     def required(value):
-        """Require value."""
+        """Required."""
         if (value is None) or (value == ''):
             raise ValueError('Required')
         return value
 
     @field
-    def default(value, default):
+    def default(value, default: 'default value'):
         """Set default value."""
         if value is None:
             return default
         return value
 
     @field
-    def type(value, classinfo):
-        """Check value type."""
+    def type(value, classinfo: 'class'):
+        """Check value's type."""
         if not(isinstance(value, classinfo)):
             raise ValueError('Must be %s object' % classinfo)
         return value
 
     @field
-    def match(value, re_):
-        """Apply re.match to value."""
+    def match(value, re_: 'regular expession string'):
+        """Check value matching with regular expression"""
         if not re.match(re_, value):
             raise ValueError("Value not match with '%s'" % re_)
         return value
 
     @field
-    def apply(value, func):
-        """Apply function to Field(). Receive `self` as first args.
+    def apply(value, func: 'function to apply'):
+        """Apply function to Field().
 
         ## Example use:
         class User(Model):
-        def check(self):
-            # Do something with self, like checking value or setting value.
+            def check(self):
+                # Do something with self, like checking value or setting value.
 
-        Field().apply(check)
+            name = Field().apply(check)
         """
         return func(value)
 
@@ -98,17 +98,13 @@ class Model(dict):
             return super().__init__(data)
 
         def __setitem__(self, k, v):
-            v = self._field[k]._verify(k, v)
+            self._field[k]._verify(k, v)
             return super().__setitem__(k, v)
 
-        @property
-        def field(self):
-            return self._field
-
-    def __new__(cls, data=dict()):
-        field = dict()
+    def __new__(cls, field=dict()):
+        data = dict()
         for k, v in vars(cls).items():
             if isinstance(v, Field):
-                field[k] = v.query
-                data[k] = field[k]._verify(k, data.get(k))
+                field[k] = v.query._verify(k, field.get(k))
+                data[k] = field[k].value
         return cls.Dict(data, field)
