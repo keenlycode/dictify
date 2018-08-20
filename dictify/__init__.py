@@ -1,16 +1,13 @@
 import re
-from functools import wraps
 import inspect
 
-class Field:
-    """Class contain function to verify Dictify Field.
 
-    ## Example:
-    class User(Model):
-        name = Field().required()
-    """
+class Field:
+    """Class contain function to verify Model's fields."""
 
     class Verify:
+        """Class contain verify function to be called later."""
+
         def __init__(self, func, *args, **kw):
             self.func = func
             self.args = args
@@ -19,15 +16,17 @@ class Field:
         def __call__(self, value):
             return self.func(value, *self.args, **self.kw)
 
-    class Query:
+    class Rule:
+        """Class to verify rules."""
+
         def __init__(self):
-            self.queries = []
+            self.rules = []
             self.errors = []
 
         def _verify(self, key, value):
             self.value = value
             self.errors = list()
-            for verify in self.queries:
+            for verify in self.rules:
                 try:
                     self.value = verify(self.value)
                 except ValueError as e:
@@ -37,15 +36,14 @@ class Field:
             return self
 
     def __init__(self):
-        self.query = Field.Query()
+        self.rule = Field.Rule()
         self.value = None
 
     def field(func):
-        """Decorate function to append verification to `self.queries`."""
-        @wraps(func)
+        """Decorate function to append function to `self.rule`."""
         def wrapper(self, *args, **kw):
             verify = Field.Verify(func, *args, **kw)
-            self.query.queries.append(verify)
+            self.rule.rules.append(verify)
             return self
         return wrapper
 
@@ -72,7 +70,7 @@ class Field:
 
     @field
     def match(value, re_: 'regular expession string'):
-        """Check value matching with regular expression"""
+        """Check value matching with regular expression."""
         if not re.match(re_, value):
             raise ValueError("Value not match with '%s'" % re_)
         return value
@@ -92,7 +90,18 @@ class Field:
 
 
 class Model(dict):
+    """Class to defined fields and rules.
+
+    ## Example:
+    Class User(Model):
+        name = Field().required().type(str)
+
+    user = User({'name': 'John'})
+    """
+
     class Dict(dict):
+        """Modified `dict` to strict with field's rules."""
+
         def __init__(self, data, field):
             self._field = field
             return super().__init__(data)
@@ -105,6 +114,6 @@ class Model(dict):
         data = dict()
         for k, v in vars(cls).items():
             if isinstance(v, Field):
-                field[k] = v.query._verify(k, field.get(k))
+                field[k] = v.rule._verify(k, field.get(k))
                 data[k] = field[k].value
         return cls.Dict(data, field)
