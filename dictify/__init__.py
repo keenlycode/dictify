@@ -1,5 +1,6 @@
 import re
 import inspect
+import math
 
 
 class Field:
@@ -23,6 +24,14 @@ class Field:
             self.rules = []
             self.errors = []
 
+        def set(func):
+            """Decorate function to append function to `self.rule`."""
+            def wrapper(self, *args, **kw):
+                verify = Field.Verify(func, *args, **kw)
+                self.rule.rules.append(verify)
+                return self
+            return wrapper
+
         def _verify(self, key, value):
             self.value = value
             self.errors = list()
@@ -39,43 +48,35 @@ class Field:
         self.rule = Field.Rule()
         self.value = None
 
-    def field(func):
-        """Decorate function to append function to `self.rule`."""
-        def wrapper(self, *args, **kw):
-            verify = Field.Verify(func, *args, **kw)
-            self.rule.rules.append(verify)
-            return self
-        return wrapper
-
-    @field
+    @Rule.set
     def required(value):
         """Required."""
         if (value is None) or (value == ''):
             raise ValueError('Required')
         return value
 
-    @field
+    @Rule.set
     def default(value, default: 'default value'):
         """Set default value."""
         if value is None:
             return default
         return value
 
-    @field
+    @Rule.set
     def type(value, classinfo: 'class'):
         """Check value's type."""
         if not(isinstance(value, classinfo)):
             raise ValueError('Must be %s object' % classinfo)
         return value
 
-    @field
+    @Rule.set
     def match(value, re_: 'regular expession string'):
         """Check value matching with regular expression."""
         if not re.match(re_, value):
             raise ValueError("Value not match with '%s'" % re_)
         return value
 
-    @field
+    @Rule.set
     def apply(value, func: 'function to apply'):
         """Apply function to Field().
 
@@ -87,6 +88,29 @@ class Field:
             name = Field().apply(check)
         """
         return func(value)
+
+    @Rule.set
+    def size(value, min=0, max=math.inf):
+        """Set min/max of value size"""
+        try:
+            size = len(value)
+        except TypeError:
+            raise ValueError('Can\'t find len(value)')
+        if not(min <= size <= max):
+            raise ValueError(
+                'Value size is %s, must be %s to %s'
+                % (size, min, max)
+            )
+        return value
+
+    @Rule.set
+    def range(value, min, max):
+        if not(min <= value <= max):
+            raise ValueError(
+                'Value is %s, must be %s to %s'
+                % (value, min, max)
+            )
+        return value
 
 
 class Model(dict):
