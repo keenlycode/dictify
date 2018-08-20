@@ -1,22 +1,5 @@
 import re
-
-
-class Verify:
-    def __init__(self, field, func):
-        self._field = field
-        self.func = func
-
-    def __call__(self, *args, **kw):
-        self.func(self._field)
-
-    def field(func):
-        """Decorate function to append verification to `self.queries`."""
-        def wrapper(self, *args, **kw):
-            verify = Verify(self, func)
-            self.verifies.append(verify)
-            return self
-        return wrapper
-
+from functools import wraps
 
 class Field:
     """Class contain function to verify Dictify Field.
@@ -26,48 +9,70 @@ class Field:
         name = Field().required()
     """
 
+    class Func:
+        def __init__(self, field, func, *args, **kw):
+            self.func = func
+            self.args = args
+            self.kw = kw
+
+        def __call__(self, field):
+            return self.func(field, *self.args, **self.kw)
+
+    class Verify:
+        def __init__(self):
+            self.verifies = []
+            self.errors = []
+
     def __init__(self):
         """Initialize function for Field()."""
-        self.verifies = []
+        self.verify = Field.Verify()
         self.value = None
+
+    def field(func):
+        """Decorate function to append verification to `self.queries`."""
+        def wrapper(self, *args, **kw):
+            f = Field.Func(self, func, *args, **kw)
+            self.verify.verifies.append(f)
+            return self
+        return wrapper
 
     def _verify(self, key, value):
         self.value = value
-        self.errors = list()
-        for verify in self.verifies:
+        self.verify.errors = list()
+        for v in self.verify.verifies:
             try:
-                verify()
+                v(self)
             except ValueError as e:
-                self.errors.append(e.args[0])
-        if self.errors:
-            raise ValueError("'%s' : %s" % (key, self.errors))
+                self.verify.errors.append(e.args[0])
+        if self.verify.errors:
+            raise ValueError("'%s' : %s" % (key, self.verify.errors))
         return self.value
 
-    @Verify.field
+    @field
     def required(self):
         """Require value."""
         if (self.value is None) or (self.value == ''):
             raise ValueError('Required')
 
-    @Verify.field
+    @field
     def default(self, default):
         """Set default value."""
         if self.value is None:
             self.value = default
 
-    @Verify.field
+    @field
     def type(self, classinfo):
         """Check value type."""
         if not(isinstance(self.value, classinfo)):
             raise ValueError('Must be %s object' % classinfo)
 
-    @Verify.field
+    @field
     def match(self, re_):
         """Apply re.match to value."""
         if not re.match(re_, self.value):
             raise ValueError("Value not match with '%s'" % re_)
 
-    @Verify.field
+    @field
     def apply(self, func):
         """Apply function to Field(). Receive `self` as first args.
 
@@ -99,6 +104,6 @@ class Model(dict):
         cls._field = dict()
         for k, v in vars(cls).items():
             if isinstance(v, Field):
-                cls._field[k] = v
+                cls._field[k] = v.verify
                 dict_[k] = v._verify(k, dict_.get(k))
         return cls.Dict(dict_, cls._field)
