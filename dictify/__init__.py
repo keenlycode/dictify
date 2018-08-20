@@ -15,14 +15,25 @@ class Field:
             self.args = args
             self.kw = kw
 
-        def __call__(self, field):
-            return self.func(field, *self.args, **self.kw)
+        def __call__(self, value):
+            return self.func(value, *self.args, **self.kw)
 
     class Query:
-        def __init__(self, value=None):
-            self.value  = value
+        def __init__(self):
             self.queries = []
             self.errors = []
+
+        def _verify(self, key, value):
+            self.value = value
+            self.errors = list()
+            for verify in self.queries:
+                try:
+                    self.value = verify(self.value)
+                except ValueError as e:
+                    self.errors.append(e.args[0])
+            if self.errors:
+                raise ValueError("'%s' : %s" % (key, self.errors))
+            return self.value
 
     def __init__(self):
         """Initialize function for Field()."""
@@ -31,6 +42,7 @@ class Field:
 
     def field(func):
         """Decorate function to append verification to `self.queries`."""
+        @wraps(func)
         def wrapper(self, *args, **kw):
             verify = Field.Verify(func, *args, **kw)
             self.query.queries.append(verify)
@@ -38,31 +50,35 @@ class Field:
         return wrapper
 
     @field
-    def required(field):
+    def required(value):
         """Require value."""
-        if (field.value is None) or (field.value == ''):
+        if (value is None) or (value == ''):
             raise ValueError('Required')
+        return value
 
     @field
-    def default(field, default):
+    def default(value, default):
         """Set default value."""
-        if field.value is None:
-            field.value = default
+        if value is None:
+            return default
+        return value
 
     @field
-    def type(field, classinfo):
+    def type(value, classinfo):
         """Check value type."""
-        if not(isinstance(field.value, classinfo)):
+        if not(isinstance(value, classinfo)):
             raise ValueError('Must be %s object' % classinfo)
+        return value
 
     @field
-    def match(field, re_):
+    def match(value, re_):
         """Apply re.match to value."""
-        if not re.match(re_, field.value):
+        if not re.match(re_, value):
             raise ValueError("Value not match with '%s'" % re_)
+        return value
 
     @field
-    def apply(field, func):
+    def apply(value, func):
         """Apply function to Field(). Receive `self` as first args.
 
         ## Example use:
@@ -72,7 +88,7 @@ class Field:
 
         Field().apply(check)
         """
-        func(field)
+        return func(value)
 
 
 class Model(dict):
@@ -89,26 +105,10 @@ class Model(dict):
         def field(self):
             return self._field
 
-    class Field:
-        def __init__(self, query):
-            self.query = query
-
-        def _verify(self, key, value):
-            self.query.value = value
-            self.query.errors = list()
-            for verify in self.query.queries:
-                try:
-                    verify(self.query)
-                except ValueError as e:
-                    self.query.errors.append(e.args[0])
-            if self.query.errors:
-                raise ValueError("'%s' : %s" % (key, self.query.errors))
-            return self.query.value
-
     def __new__(cls, data=dict()):
         field = dict()
         for k, v in vars(cls).items():
             if isinstance(v, Field):
-                field[k] = cls.Field(v.query)
+                field[k] = v.query
                 data[k] = field[k]._verify(k, data.get(k))
         return cls.Dict(data, field)
