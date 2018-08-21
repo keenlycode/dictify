@@ -24,14 +24,6 @@ class Field:
             self.rules = []
             self.errors = []
 
-        def set(func):
-            """Decorate function to append function to `self.rule`."""
-            def wrapper(self, *args, **kw):
-                verify = Field.Verify(func, *args, **kw)
-                self.rule.rules.append(verify)
-                return self
-            return wrapper
-
         def _verify(self, key, value):
             self.value = value
             self.errors = list()
@@ -48,35 +40,43 @@ class Field:
         self.rule = Field.Rule()
         self.value = None
 
-    @Rule.set
+    def rule(func):
+        """Decorate function to append function to `self.rule`."""
+        def wrapper(self, *args, **kw):
+            verify = Field.Verify(func, *args, **kw)
+            self.rule.rules.append(verify)
+            return self
+        return wrapper
+
+    @rule
     def required(value):
         """Required."""
         if (value is None) or (value == ''):
             raise ValueError('Required')
         return value
 
-    @Rule.set
+    @rule
     def default(value, default: 'default value'):
         """Set default value."""
         if value is None:
             return default
         return value
 
-    @Rule.set
+    @rule
     def type(value, classinfo: 'class'):
         """Check value's type."""
         if not(isinstance(value, classinfo)):
             raise ValueError('Must be %s object' % classinfo)
         return value
 
-    @Rule.set
+    @rule
     def match(value, re_: 'regular expession string'):
         """Check value matching with regular expression."""
         if not re.match(re_, value):
             raise ValueError("Value not match with '%s'" % re_)
         return value
 
-    @Rule.set
+    @rule
     def apply(value, func: 'function to apply'):
         """Apply function to Field().
 
@@ -89,13 +89,13 @@ class Field:
         """
         return func(value)
 
-    @Rule.set
+    @rule
     def size(value, min=0, max=math.inf):
         """Set min/max of value size"""
         try:
             size = len(value)
         except TypeError:
-            raise ValueError('Can\'t find len(value)')
+            raise ValueError('Can\'t find size by `len()``')
         if not(min <= size <= max):
             raise ValueError(
                 'Value size is %s, must be %s to %s'
@@ -103,8 +103,9 @@ class Field:
             )
         return value
 
-    @Rule.set
+    @rule
     def range(value, min, max):
+        """Set possible value length"""
         if not(min <= value <= max):
             raise ValueError(
                 'Value is %s, must be %s to %s'
