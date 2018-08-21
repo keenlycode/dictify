@@ -121,13 +121,23 @@ class Field:
             )
 
     @rule
-    def range(value, min, max):
-        """Set possible value length."""
+    def range(value, min=-math.inf, max=math.inf):
+        """Set possible value range."""
         if not(min <= value <= max):
             raise ValueError(
                 'Value is %s, must be %s to %s'
                 % (value, min, max)
             )
+
+    @rule
+    def any(value, members):
+        """Check if value is any of members"""
+        Field.test.assertIn(value, members)
+
+    @rule
+    def subset(values, members):
+        """Check if value is subset of defined members"""
+        Field.test.assertLessEqual(set(values), set(members))
 
 
 class Model(dict):
