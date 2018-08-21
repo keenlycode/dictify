@@ -41,13 +41,13 @@ class Field:
             self.errors = list()
             for verify in self.rules:
                 try:
-                    value = verify(value)
+                    value = verify(self.value)
                     if value:
                         self.value = value
                 except (ValueError, AssertionError) as e:
                     self.errors.append(e.args[0])
             if self.errors:
-                raise ValueError("'%s' : %s" % (key, self.errors))
+                raise ValueError(self.errors)
             return self
 
     def rule(func):
@@ -164,14 +164,31 @@ class Model(dict):
 
         def __setitem__(self, k, v):
             """Verify value before set value."""
-            self._field[k].verify(k, v)
-            return super().__setitem__(k, v)
+            value = self._field[k].verify(k, v).value
+            return super().__setitem__(k, value)
+
+        def update(self, data):
+            errors = dict()
+            for k, v in data.items():
+                try:
+                    data[k] = self._field[k].verify(k, v).value
+                except ValueError as e:
+                    errors[k] = e.args[0]
+            if errors:
+                raise ValueError(errors)
+            return super().update(data)
 
     def __new__(cls, data=dict()):
         """Create Model.Dict with field's rules."""
         rule = dict()
+        errors = dict()
         for k, v in vars(cls).items():
             if isinstance(v, Field):
-                rule[k] = v.rule.verify(k, data.get(k))
-                data[k] = rule[k].value
+                try:
+                    rule[k] = v.rule.verify(k, data.get(k))
+                    data[k] = rule[k].value
+                except (ValueError, AssertionError) as e:
+                    errors[k] = e.args[0]
+        if errors:
+            raise ValueError(errors)
         return cls.Dict(data, rule)

@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dictify",
-    version="0.0.1",
+    version="0.1.0",
     author="Nitipit Nontasuwan",
     author_email="nitipit@gmail.com",
-    description="Python dict verify",
+    description="Python dict verified :)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/nitipit/dictify",
