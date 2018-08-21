@@ -1,14 +1,54 @@
 import re
 import inspect
 import math
+import unittest
 
 
 class Field:
     """Class contain function to verify Model's fields."""
 
+    test = unittest.TestCase()
+
     def __init__(self):
         """Init object."""
         self.rule = Field.Rule()
+
+    class Verify:
+        """Class contain verify function to be called."""
+
+        def __init__(self, func, *args, **kw):
+            """Keep `func`, `*args` and `**kw` to be called."""
+            self.func = func
+            self.args = args
+            self.kw = kw
+
+        def __call__(self, value):
+            """Verify value with `self.func`."""
+            return self.func(value, *self.args, **self.kw)
+
+    class Rule:
+        """Class for verify rules. Store rules and errors information."""
+
+        def __init__(self):
+            """Init rule object."""
+            self.value = None
+            self.rules = []
+            self.errors = []
+
+        def verify(self, key, value):
+            """Verify value with rules."""
+            self.value = value
+            self.errors = list()
+            for verify in self.rules:
+                try:
+                    value = verify(value)
+                    if value:
+                        self.value = value
+                except (ValueError, AssertionError) as e:
+                    self.errors.append(e.args[0])
+            if self.errors:
+                raise ValueError("'%s' : %s" % (key, self.errors))
+            return self
 
     def rule(func):
         """Decorate function to add a rule. Bypassed if value is `None`."""
@@ -34,8 +74,8 @@ class Field:
     @rule_allow_none
     def required(value):
         """Required."""
-        if (value is None) or (value == ''):
-            raise ValueError('Required')
+        if value in [None, '']:
+            raise ValueError('Required.')
 
     @rule_allow_none
     def default(value, default: 'default value'):
@@ -46,16 +86,14 @@ class Field:
     @rule
     def type(value, classinfo: 'class'):
         """Check value's type."""
-        if not(isinstance(value, classinfo)):
-            raise ValueError('Must be %s object' % classinfo)
+        Field.test.assertIsInstance(value, classinfo)
 
     @rule
     def match(value, re_: 'regular expession string'):
         """Check value matching with regular expression."""
-        if not re.match(re_, value):
-            raise ValueError("Value not match with '%s'" % re_)
+        Field.test.assertRegex(value, re_)
 
-    @rule
+    @rule_allow_none
     def apply(value, func: 'function to apply'):
         """Apply function to Field().
 
@@ -78,7 +116,7 @@ class Field:
             raise ValueError('Can\'t find size by `len()``')
         if not(min <= size <= max):
             raise ValueError(
-                'Value size is %s, must be %s to %s'
+                'Value size is %s. Must be %s to %s'
                 % (size, min, max)
             )
 
@@ -90,42 +128,6 @@ class Field:
                 'Value is %s, must be %s to %s'
                 % (value, min, max)
             )
-
-    class Verify:
-        """Class contain verify function to be called."""
-
-        def __init__(self, func, *args, **kw):
-            """Keep `func`, `*args` and `**kw` to be called."""
-            self.func = func
-            self.args = args
-            self.kw = kw
-
-        def __call__(self, value):
-            """Verify value with `self.func`."""
-            return self.func(value, *self.args, **self.kw)
-
-    class Rule:
-        """Class for verify rules. Store rules and errors information."""
-
-        def __init__(self):
-            """Init rule object."""
-            self.rules = []
-            self.errors = []
-
-        def verify(self, key, value):
-            """Verify value with rules."""
-            self.value = value
-            self.errors = list()
-            for verify in self.rules:
-                try:
-                    value = verify(value)
-                    if value:
-                        self.value = value
-                except ValueError as e:
-                    self.errors.append(e.args[0])
-            if self.errors:
-                raise ValueError("'%s' : %s" % (key, self.errors))
-            return self
 
 
 class Model(dict):
