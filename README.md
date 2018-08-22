@@ -3,6 +3,11 @@
 
 `Dictify` is python library to verify dict object.
 
+## Install
+```bash
+pip install dictify
+```
+
 ## Example:
 ```python
 from dictify import *
