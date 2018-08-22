@@ -1,7 +1,6 @@
 <img src="./dictify.svg">
 
-# Dictify
-> Python `dict` and `json` verification for mankind :)
+# Dictify : Python `dict` and `json` verification for mankind :)
 
 `Dictify` is python library to verify dict object and `json` schema withe easy syntax and chainable rules.
 
