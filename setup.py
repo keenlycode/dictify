@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.1.0",
     author="Nitipit Nontasuwan",
     author_email="nitipit@gmail.com",
-    description="Python dict verified :)",
+    description="Python `dict` and `json` verification for mankind :)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/nitipit/dictify",

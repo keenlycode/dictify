@@ -1,7 +1,6 @@
 # Dictify
-## Python dict verified :)
-
-`Dictify` is python library to verify dict object.
+## Python `dict` and `json` verification for mankind :)
+`Dictify` is python library to verify dict object and `json` schema withe easy syntax and chainable rules.
 
 ## Install
 ```bash
@@ -19,8 +18,8 @@ class User(Model):
     email = Field().required().match('.+@.+')
     gender = Field().any(['m', 'f'])
     age = Field().range(min=0, max=150)
-
 ```
+
 ## Features
 ### Auto verify new dict object.
 ```python
@@ -38,8 +37,8 @@ ValueError: {'name': ['Required.'], 'email': ['Required.']}
  'email': 'user@example.com',
  'gender': None,
  'age': None}
-
 ```
+
 ### Verify dict object on the fly.
 ```python
 >>> user['age'] = 200 # user['age'] rule is range(min=0, max=150)
@@ -58,6 +57,20 @@ As you can see in `User(Model)` in example above, fields' rules is chainable.
 ```python
 name = Field().required().type(str).lenth(max=100)
 # `name` value required string type with max length = 100
+```
+
+## To use with `json`
+use `json` package to transform between `json` and `dict`
+```python
+from dictify import *
+import json
+
+user = json.loads('{"name": "test-user", "email": "user@example.com"}')
+class User(Model):
+    # to defined, see example.
+    pass
+
+user = User(user)
 ```
 
 ## Rules
