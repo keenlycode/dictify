@@ -28,7 +28,7 @@ class TestField(unittest.TestCase):
             type = Field().type(str)
             match = Field().match('[0-9]+')
             apply = Field().default(10).apply(add_10)
-            size = Field().size(min=2, max=10)
+            length = Field().length(min=2, max=10)
             range = Field().range(min=0, max=20)
             any = Field().any([1, 2, 3])
             subset = Field().subset([1, 2, 3])
@@ -60,10 +60,10 @@ class TestField(unittest.TestCase):
     def test_apply(self):
         self.assertEqual(self.model['apply'], 20)
 
-    def test_size(self):
-        self.model['size'] = 'hello'
+    def test_length(self):
+        self.model['length'] = 'hello'
         with self.assertRaises(ValueError):
-            self.model['size'] = 'test-with-size-more-than-10'
+            self.model['length'] = 'test-with-lenght-more-than-10'
 
     def test_any(self):
         self.model['any'] = 1

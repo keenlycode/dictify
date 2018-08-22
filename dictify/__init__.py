@@ -4,6 +4,14 @@ import math
 import unittest
 
 
+class RuleArgsError(Exception):
+    """Error exception for verify functoin arguments."""
+
+    def __init__(self, msg):
+        """Init."""
+        return super().__init__(msg)
+
+
 class Field:
     """Class contain function to verify Model's fields."""
 
@@ -78,15 +86,15 @@ class Field:
             raise ValueError('Required.')
 
     @rule_allow_none
-    def default(value, default: 'default value'):
+    def default(value, default_: 'default value'):
         """Set default value."""
         if value is None:
-            return default
+            return default_
 
     @rule
-    def type(value, classinfo: 'class'):
+    def type(value, type_: type):
         """Check value's type."""
-        Field.test.assertIsInstance(value, classinfo)
+        Field.test.assertIsInstance(value, type_)
 
     @rule
     def match(value, re_: 'regular expession string'):
@@ -108,20 +116,22 @@ class Field:
         return func(value)
 
     @rule
-    def size(value, min=0, max=math.inf):
-        """Set min/max of value size."""
+    def length(value: (str, list), min: int = 0, max: int = math.inf):
+        """Set min/max of value's length."""
         try:
-            size = len(value)
+            length_ = len(value)
         except TypeError:
-            raise ValueError('Can\'t find size by `len()``')
-        if not(min <= size <= max):
+            raise ValueError('Value must be `list, str` type')
+        if not(min <= length_ <= max):
             raise ValueError(
-                'Value size is %s. Must be %s to %s'
-                % (size, min, max)
+                'Value\'s length is %s. Must be %s to %s'
+                % (length_, min, max)
             )
 
     @rule
-    def range(value, min=-math.inf, max=math.inf):
+    def range(value: (int, float, complex),
+              min: (int, float, complex) = -math.inf,
+              max: (int, float, complex) = math.inf):
         """Set possible value range."""
         if not(min <= value <= max):
             raise ValueError(
@@ -130,13 +140,13 @@ class Field:
             )
 
     @rule
-    def any(value, members):
-        """Check if value is any of members"""
+    def any(value, members: list):
+        """Check if value is any of members."""
         Field.test.assertIn(value, members)
 
     @rule
-    def subset(values, members):
-        """Check if value is subset of defined members"""
+    def subset(values, members: list):
+        """Check if value is subset of defined members."""
         Field.test.assertLessEqual(set(values), set(members))
 
 
