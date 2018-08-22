@@ -1,4 +1,4 @@
-<img src="./dictify.svg">
+<img src="./dictify.png">
 
 ## Python `dict` and `json` verification for mankind :)
 
