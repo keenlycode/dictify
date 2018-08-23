@@ -6,15 +6,30 @@ class TestModel(unittest.TestCase):
     def setUp(self):
         class TestModel(Model):
             name = Field().type(str)
+            email = Field().type(str)
 
         self.model = TestModel({'name': 'initial name'})
 
-    def test_ModelDict(self):
+    def test_new(self):
+        # To be continue.
+        pass
+
+    def test_setitem(self):
+        """Test `__setitem__` for 3 cases: Key Error, ValueError and Success."""
         with self.assertRaises(ValueError):
             self.model['name'] = 0
+        with self.assertRaises(KeyError):
+            self.model['age'] = 20
         self.assertEqual(self.model['name'], 'initial name')
         self.model['name'] = 'new name'
         self.assertEqual(self.model['name'], 'new name')
+
+    def test_update(self):
+        """Test `update` to raise KeyError and ValueError as Exception."""
+        with self.assertRaises(Exception):
+            self.model.update({'a': 1})
+        with self.assertRaises(Exception):
+            self.model.update({'name': 1})
 
 
 class TestField(unittest.TestCase):

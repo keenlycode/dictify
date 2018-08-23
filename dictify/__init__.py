@@ -159,7 +159,6 @@ class Model(dict):
 
     user = User({'name': 'John'})
     """
-    from dictify import Field
 
     class Dict(dict):
         """Modified `dict` to strict with field's rules."""
@@ -174,34 +173,54 @@ class Model(dict):
             return super().__init__(data)
 
         def __setitem__(self, k, v):
-            """Verify value before set value."""
-            value = self._field[k].verify(k, v).value
+            """Verify value before `super().__setitem__`."""
+            try:
+                value = self._field[k].verify(k, v).value
+            except KeyError as e:
+                raise KeyError('Field is not defined')
             return super().__setitem__(k, value)
 
         def update(self, data):
+            """Modify `update` method to verify data before update."""
             errors = dict()
             for k, v in data.items():
                 try:
                     data[k] = self._field[k].verify(k, v).value
                 except ValueError as e:
-                    errors[k] = e.args[0]
+                    errors[k] = e
+                except KeyError as e:
+                    errors[k] = KeyError('Field is not defined')
             if errors:
-                raise ValueError(errors)
+                raise Exception(errors)
             return super().update(data)
 
     def __new__(cls, data=dict()):
         """Create Model.Dict with field's rules."""
         rule = dict()
         errors = dict()
+        result = dict()
+
+        # Loop to find Field then verify, keep errors information.
         for k, v in vars(cls).items():
             if isinstance(v, Field):
                 try:
                     rule[k] = v.rule.verify(k, data.get(k))
-                    data[k] = rule[k].value
+                    result[k] = rule[k].value
                 except (ValueError, AssertionError) as e:
-                    errors[k] = e.args[0]
-                except KeyError as e:
-                    errors[k] = "'%s' field is not defined" % e.args[0]
+                    errors[k] = e
+
+                # Delete data items() after field verification.
+                try:
+                    del data[k]
+                # Ignore possibility when data doesn't have defined field.
+                # In case when field is not required or have default value.
+                except KeyError:
+                    pass
+
+        # After verification, If there's data.keys() left,
+        # it means the field is not defined.
+        for k in data.keys():
+            errors[k] = KeyError('Field is not defined')
         if errors:
-            raise ValueError(errors)
-        return cls.Dict(data, rule)
+            raise Exception(errors)
+        return cls.Dict(result, rule)
