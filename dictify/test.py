@@ -15,7 +15,9 @@ class TestModel(unittest.TestCase):
         pass
 
     def test_setitem(self):
-        """Test `__setitem__` for 3 cases: Key Error, ValueError and Success."""
+        """Test `__setitem__` for 3 cases:
+        Key Error, ValueError and Success.
+        """
         with self.assertRaises(ValueError):
             self.model['name'] = 0
         with self.assertRaises(KeyError):
