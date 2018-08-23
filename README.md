@@ -67,11 +67,11 @@ use `json` package to transform between `json` and `dict`
 from dictify import *
 import json
 
-user = json.loads('{"name": "test-user", "email": "user@example.com"}')
 class User(Model):
     name = Field().required().type(str).length(max=100)
     email = Field().required().type(str).length(max=100)
 
+user = json.loads('{"name": "test-user", "email": "user@example.com"}')
 user = User(user)
 ```
 
