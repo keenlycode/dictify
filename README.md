@@ -2,7 +2,7 @@
 
 ## Python `dict` and `json` verification for mankind :)
 
-`dictify` is python library to verify dict object and `json` schema withe easy syntax and chainable rules.
+`dictify` is python library to verify `dict` object and `json` with easy syntax and chainable rules.
 
 ## Install
 ```bash
@@ -69,8 +69,8 @@ import json
 
 user = json.loads('{"name": "test-user", "email": "user@example.com"}')
 class User(Model):
-    # to defined, see example.
-    pass
+    name = Field().required().type(str).length(max=100)
+    email = Field().required().type(str).length(max=100)
 
 user = User(user)
 ```
@@ -80,7 +80,7 @@ user = User(user)
 - `default(default_: Any)`: Set default value.
 - `type(type_: type`): Define value's type.
 - `match(re_: 'regex pattern')`: Check value match with regex pattern.
-- `apply(func: function)`: Apply function to value. The applied function wall get field's value as it's first argument. For example:
+- `apply(func: function)`: Apply function to value. The applied function will get field's value as it's first argument. For example:
     ```python
     def add_10(value):
         return value + 10

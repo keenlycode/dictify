@@ -159,6 +159,7 @@ class Model(dict):
 
     user = User({'name': 'John'})
     """
+    from dictify import Field
 
     class Dict(dict):
         """Modified `dict` to strict with field's rules."""
@@ -199,6 +200,8 @@ class Model(dict):
                     data[k] = rule[k].value
                 except (ValueError, AssertionError) as e:
                     errors[k] = e.args[0]
+                except KeyError as e:
+                    errors[k] = "'%s' field is not defined" % e.args[0]
         if errors:
             raise ValueError(errors)
         return cls.Dict(data, rule)
