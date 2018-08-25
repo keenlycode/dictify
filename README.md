@@ -57,7 +57,7 @@ ValueError: ['Value is 200, must be 0 to 150']
 ### Chainable rules.
 As you can see in `User(Model)` in example above, fields' rules is chainable.
 ```python
-name = Field().required().type(str).lenth(max=100)
+name = Field().required().type(str).length(max=100)
 # `name` value required string type with max length = 100
 ```
 
