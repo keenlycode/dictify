@@ -18,7 +18,7 @@ class User(Model):
     id = Field().default(uuid.uuid4()).type(uuid.UUID)
     name = Field().required().type(str).length(max=100)
     email = Field().required().match('.+@.+')
-    gender = Field().any(['m', 'f'])
+    gender = Field().anyof(['m', 'f'])
     age = Field().range(min=0, max=150)
 ```
 
@@ -90,5 +90,5 @@ user = User(user)
 
 - `length(min: int, max: int)`: Define min/max constrain to value's length using `len()`.
 - `range(min: 'number', max: 'number')`: Define min/max number constrain to value.
-- `any(members: list)`: Value must be any of defined `members`
+- `anyof(members: list)`: Value must be any of defined `members`
 - `subset(members: list)`: Value must be subset of defined `members`
