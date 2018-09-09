@@ -47,7 +47,7 @@ class TestField(unittest.TestCase):
             apply = Field().default(10).apply(add_10)
             length = Field().length(min=2, max=10)
             range = Field().range(min=0, max=20)
-            any = Field().any([1, 2, 3])
+            anyof = Field().anyof([1, 2, 3])
             subset = Field().subset([1, 2, 3])
 
         self.model = TestModel({'required': True})
@@ -82,10 +82,10 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.model['length'] = 'test-with-lenght-more-than-10'
 
-    def test_any(self):
-        self.model['any'] = 1
+    def test_anyof(self):
+        self.model['anyof'] = 1
         with self.assertRaises(ValueError):
-            self.model['any'] = 5
+            self.model['anyof'] = 5
 
     def test_subset(self):
             self.model['subset'] = [1, 2, 3]

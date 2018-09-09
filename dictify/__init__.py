@@ -2,6 +2,7 @@ import re
 import inspect
 import math
 import unittest
+import warnings
 
 
 class RuleArgsError(Exception):
@@ -141,6 +142,12 @@ class Field:
 
     @rule
     def any(value, members: list):
+        """(Deprecated) Check if value is any of members."""
+        warnings.warn('Deprecated. Changed to `anyof`', DeprecationWarning)
+        Field.test.assertIn(value, members)
+
+    @rule
+    def anyof(value, members: list):
         """Check if value is any of members."""
         Field.test.assertIn(value, members)
 
