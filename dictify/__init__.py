@@ -14,6 +14,7 @@ class Field:
         """Init object."""
         self.rule = Field.Rule()
 
+
     class Verify:
         """Class contain verify function to be called."""
 
@@ -51,7 +52,7 @@ class Field:
                 raise ValueError(self.errors)
             return self
 
-    def rule(func):
+    def field(func):
         """Decorate function to add a rule. Bypassed if value is `None`."""
         def wrapper(self, *args, **kw):
             def f(value, *args, **kw):
@@ -64,7 +65,7 @@ class Field:
             return self
         return wrapper
 
-    def rule_with_none(func):
+    def field_with_none(func):
         """Decorate function to add a rule."""
         def wrapper(self, *args, **kw):
             verify = Field.Verify(func, *args, **kw)
@@ -72,29 +73,29 @@ class Field:
             return self
         return wrapper
 
-    @rule_with_none
+    @field_with_none
     def required(value):
         """Required."""
         if value in [None, '']:
             raise ValueError('Required.')
 
-    @rule_with_none
+    @field_with_none
     def default(value, default_: 'default value'):
         """Set default value."""
         if value is None:
             return default_
 
-    @rule
+    @field
     def type(value, type_: type):
         """Check value's type."""
         Field.test.assertIsInstance(value, type_)
 
-    @rule
+    @field
     def match(value, re_: 'regular expession string'):
         """Check value matching with regular expression."""
         Field.test.assertRegex(value, re_)
 
-    @rule_with_none
+    @field_with_none
     def apply(value, func: 'function to apply'):
         """Apply function to Field().
 
@@ -108,42 +109,42 @@ class Field:
         """
         return func(value)
 
-    @rule
+    @field
     def length(value: (str, list), min: int = 0, max: int = math.inf):
         """Set min/max of value's length."""
         try:
             length_ = len(value)
         except TypeError:
             raise ValueError('Value must be `list, str` type')
-        if not(min <= length_ <= max):
+        if not min <= length_ <= max:
             raise ValueError(
                 'Value\'s length is %s. Must be %s to %s'
                 % (length_, min, max)
             )
 
-    @rule
+    @field
     def range(value: (int, float, complex),
               min: (int, float, complex) = -math.inf,
               max: (int, float, complex) = math.inf):
         """Set possible value range."""
-        if not(min <= value <= max):
+        if not min <= value <= max:
             raise ValueError(
                 'Value is %s, must be %s to %s'
                 % (value, min, max)
             )
 
-    @rule
+    @field
     def any(value, members: list):
         """(Deprecated) Check if value is any of members."""
         warnings.warn('Deprecated. Changed to `anyof`', DeprecationWarning)
         Field.test.assertIn(value, members)
 
-    @rule
+    @field
     def anyof(value, members: list):
         """Check if value is any of members."""
         Field.test.assertIn(value, members)
 
-    @rule
+    @field
     def subset(values, members: list):
         """Check if value is subset of defined members."""
         Field.test.assertLessEqual(set(values), set(members))

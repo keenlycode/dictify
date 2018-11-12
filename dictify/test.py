@@ -1,5 +1,5 @@
 import unittest
-from dictify import *
+from dictify import Model, Field
 
 
 class TestModel(unittest.TestCase):
@@ -9,10 +9,6 @@ class TestModel(unittest.TestCase):
             email = Field().type(str)
 
         self.model = TestModel({'name': 'initial name'})
-
-    def test_new(self):
-        # To be continue.
-        pass
 
     def test_setitem(self):
         """Test `__setitem__` for 3 cases:
@@ -88,4 +84,4 @@ class TestField(unittest.TestCase):
             self.model['anyof'] = 5
 
     def test_subset(self):
-            self.model['subset'] = [1, 2, 3]
+        self.model['subset'] = [1, 2, 3]
