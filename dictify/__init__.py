@@ -5,14 +5,6 @@ import unittest
 import warnings
 
 
-class RuleArgsError(Exception):
-    """Error exception for verify functoin arguments."""
-
-    def __init__(self, msg):
-        """Init."""
-        return super().__init__(msg)
-
-
 class Field:
     """Class contain function to verify Model's fields."""
 
