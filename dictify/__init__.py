@@ -64,7 +64,7 @@ class Field:
             return self
         return wrapper
 
-    def rule_allow_none(func):
+    def rule_with_none(func):
         """Decorate function to add a rule."""
         def wrapper(self, *args, **kw):
             verify = Field.Verify(func, *args, **kw)
@@ -72,13 +72,13 @@ class Field:
             return self
         return wrapper
 
-    @rule_allow_none
+    @rule_with_none
     def required(value):
         """Required."""
         if value in [None, '']:
             raise ValueError('Required.')
 
-    @rule_allow_none
+    @rule_with_none
     def default(value, default_: 'default value'):
         """Set default value."""
         if value is None:
@@ -94,7 +94,7 @@ class Field:
         """Check value matching with regular expression."""
         Field.test.assertRegex(value, re_)
 
-    @rule_allow_none
+    @rule_with_none
     def apply(value, func: 'function to apply'):
         """Apply function to Field().
 
