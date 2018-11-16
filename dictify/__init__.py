@@ -4,11 +4,31 @@ import math
 import unittest
 import warnings
 
+test_case = unittest.TestCase()
+
+class ListOf(list):
+    def __init__(self, type_=None, values=[]):
+        self._type = type_
+        errors = list()
+        for v in values:
+            try:
+                test_case.assertIsInstance(v, self._type)
+            except AssertionError as e:
+                errors.append(e)
+        if errors:
+            raise ValueError(errors)
+        return super().__init__(values)
+
+    def __setitem__(self, index, value):
+        test_case.assertIsInstance(value, self._type)
+        return super().__setitem__(index, value)
+
+    def append(self, value):
+        test_case.assertIsInstance(value, self._type)
+        return super().append(value)
 
 class Field:
     """Class contain function to verify Model's fields."""
-
-    test = unittest.TestCase()
 
     def __init__(self):
         """Init object."""
@@ -76,7 +96,7 @@ class Field:
     @field_with_none
     def required(value):
         """Required."""
-        if value in [None, '']:
+        if value in [None, '', []]:
             raise ValueError('Required.')
 
     @field_with_none
@@ -88,12 +108,12 @@ class Field:
     @field
     def type(value, type_: type):
         """Check value's type."""
-        Field.test.assertIsInstance(value, type_)
+        test_case.assertIsInstance(value, type_)
 
     @field
     def match(value, re_: 'regular expession string'):
         """Check value matching with regular expression."""
-        Field.test.assertRegex(value, re_)
+        test_case.assertRegex(value, re_)
 
     @field_with_none
     def apply(value, func: 'function to apply'):
@@ -123,6 +143,10 @@ class Field:
             )
 
     @field
+    def listof(values, type_=None):
+        return ListOf(type_, values)
+
+    @field
     def range(value: (int, float, complex),
               min: (int, float, complex) = -math.inf,
               max: (int, float, complex) = math.inf):
@@ -137,17 +161,17 @@ class Field:
     def any(value, members: list):
         """(Deprecated) Check if value is any of members."""
         warnings.warn('Deprecated. Changed to `anyof`', DeprecationWarning)
-        Field.test.assertIn(value, members)
+        test_case.assertIn(value, members)
 
     @field
     def anyof(value, members: list):
         """Check if value is any of members."""
-        Field.test.assertIn(value, members)
+        test_case.assertIn(value, members)
 
     @field
     def subset(values, members: list):
         """Check if value is subset of defined members."""
-        Field.test.assertLessEqual(set(values), set(members))
+        test_case.assertLessEqual(set(values), set(members))
 
 
 class Model(dict):
@@ -178,6 +202,7 @@ class Model(dict):
                 value = self._field[k].verify(k, v).value
             except KeyError as e:
                 raise KeyError('Field is not defined')
+
             return super().__setitem__(k, value)
 
         def update(self, data):
