@@ -76,10 +76,7 @@ user = User(user)
 ```
 
 ## Rules
-- `required()`: Value is required (Not `None` or `''`).
-- `default(default_: Any)`: Set default value.
-- `type(type_: type`): Define value's type.
-- `match(re_: 'regex pattern')`: Check value match with regex pattern.
+- `anyof(members: list)`: Value must be any of defined `members`
 - `apply(func: function)`: Apply function to value. The applied function will get field's value as it's first argument. For example:
     ```python
     def add_10(value):
@@ -87,8 +84,14 @@ user = User(user)
 
     amount = Field().apply(add_10)
     ```
-
-- `length(min: int, max: int)`: Define min/max constrain to value's length using `len()`.
+- `default(default_: Any)`: Set default value.
+- `length(min: int, max: int)`: min/max constrain to value's length using `len()`.
+- `listof(type_: type)`: A list which contain object type as specified. For example:
+   ```python
+   comments = listof(str)
+   ```
+- `match(re_: 'regex pattern')`: Check value match with regex pattern.
 - `range(min: 'number', max: 'number')`: Define min/max number constrain to value.
-- `anyof(members: list)`: Value must be any of defined `members`
+- `required()`: Value is required (Not `None` or `''`).
 - `subset(members: list)`: Value must be subset of defined `members`
+- `type(type_: type`): Define value's type.
