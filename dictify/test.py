@@ -35,16 +35,18 @@ class TestField(unittest.TestCase):
             return value + 10
 
         class TestModel(Model):
-            required = Field().required()
             default = Field().default(1)
-            type = Field().type(str)
-            match = Field().match('[0-9]+')
+            required = Field().required()
+            any = Field().anyof([1, 2, 3])
+            anyof = Field().anyof([1, 2, 3])
             apply = Field().default(10).apply(add_10)
             length = Field().length(min=2, max=10)
             listof = Field().listof(str)
+            match = Field().match('[0-9]+')
+            number = Field().number(min=0, max=20)
             range = Field().range(min=0, max=20)
-            anyof = Field().anyof([1, 2, 3])
             subset = Field().subset([1, 2, 3])
+            type = Field().type(str)
 
         self.model = TestModel({'required': True})
 
@@ -77,6 +79,18 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.model['match'] = 'a'
             self.assertEqual(self.model['match'], match)
+
+    def test_number(self):
+        self.model['number'] = 1
+        with self.assertRaises(ValueError):
+            self.model['number'] = 21
+            self.assertEqual(self.model['number'], 1)
+
+    def test_range(self):
+        self.model['range'] = 1
+        with self.assertRaises(ValueError):
+            self.model['range'] = 21
+            self.assertEqual(self.model['range'], 1)
 
     def test_required(self):
         required = self.model['required']

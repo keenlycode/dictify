@@ -94,26 +94,27 @@ class Field:
         return wrapper
 
     @field_with_none
-    def required(value):
-        """Required."""
-        if value in [None, '', []]:
-            raise ValueError('Required.')
-
-    @field_with_none
     def default(value, default_: 'default value'):
         """Set default value."""
         if value is None:
             return default_
 
-    @field
-    def type(value, type_: type):
-        """Check value's type."""
-        test_case.assertIsInstance(value, type_)
+    @field_with_none
+    def required(value):
+        """Required."""
+        if value in [None, '', []]:
+            raise ValueError('Required.')
 
     @field
-    def match(value, re_: 'regular expession string'):
-        """Check value matching with regular expression."""
-        test_case.assertRegex(value, re_)
+    def any(value, members: list):
+        """(Deprecated) Check if value is any of members."""
+        warnings.warn('Deprecated. Changed to `anyof`', DeprecationWarning)
+        test_case.assertIn(value, members)
+
+    @field
+    def anyof(value, members: list):
+        """Check if value is any of members."""
+        test_case.assertIn(value, members)
 
     @field_with_none
     def apply(value, func: 'function to apply'):
@@ -147,10 +148,15 @@ class Field:
         return ListOf(type_, values)
 
     @field
-    def range(value: (int, float, complex),
-              min: (int, float, complex) = -math.inf,
-              max: (int, float, complex) = math.inf):
-        """Set possible value range."""
+    def match(value, re_: 'regular expession string'):
+        """Check value matching with regular expression."""
+        test_case.assertRegex(value, re_)
+
+    @field
+    def number(value: (int, float, complex),
+               min: (int, float, complex) = -math.inf,
+               max: (int, float, complex) = math.inf):
+        """Check if value is number"""
         if not min <= value <= max:
             raise ValueError(
                 'Value is %s, must be %s to %s'
@@ -158,20 +164,25 @@ class Field:
             )
 
     @field
-    def any(value, members: list):
-        """(Deprecated) Check if value is any of members."""
-        warnings.warn('Deprecated. Changed to `anyof`', DeprecationWarning)
-        test_case.assertIn(value, members)
-
-    @field
-    def anyof(value, members: list):
-        """Check if value is any of members."""
-        test_case.assertIn(value, members)
+    def range(value: (int, float, complex),
+              min: (int, float, complex) = -math.inf,
+              max: (int, float, complex) = math.inf):
+        """(Deprecated) Set possible value range."""
+        if not min <= value <= max:
+            raise ValueError(
+                'Value is %s, must be %s to %s'
+                % (value, min, max)
+            )
 
     @field
     def subset(values, members: list):
         """Check if value is subset of defined members."""
         test_case.assertLessEqual(set(values), set(members))
+
+    @field
+    def type(value, type_: type):
+        """Check value's type."""
+        test_case.assertIsInstance(value, type_)
 
 
 class Model(dict):
