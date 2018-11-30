@@ -88,7 +88,7 @@ user = User(user)
 - `length(min: int, max: int)`: min/max constrain to value's length using `len()`.
 - `listof(type_: type)`: A list which contain object type as specified. For example:
    ```python
-   comments = listof(str)
+   comments = Field().listof(str)
    ```
 - `match(re_: 'regex pattern')`: Check value match with regex pattern.
 - `number(min: 'number', max: 'number')`: Define min/max number constrain to value.
