@@ -19,7 +19,7 @@ class User(Model):
     name = Field().required().type(str).length(max=100)
     email = Field().required().match('.+@.+')
     gender = Field().anyof(['m', 'f'])
-    age = Field().range(min=0, max=150)
+    age = Field().number(min=0, max=150)
 ```
 
 ## Features
@@ -91,7 +91,7 @@ user = User(user)
    comments = listof(str)
    ```
 - `match(re_: 'regex pattern')`: Check value match with regex pattern.
-- `range(min: 'number', max: 'number')`: Define min/max number constrain to value.
+- `number(min: 'number', max: 'number')`: Define min/max number constrain to value.
 - `required()`: Value is required (Not `None` or `''`).
 - `subset(members: list)`: Value must be subset of defined `members`
 - `type(type_: type`): Define value's type.

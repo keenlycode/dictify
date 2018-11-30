@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dictify",
-    version="1.1.0",
+    version="1.1.1dev",
     author="Nitipit Nontasuwan",
     author_email="nitipit@gmail.com",
     description="Python `dict` and `json` verification for mankind :)",
