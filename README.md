@@ -43,7 +43,7 @@ ValueError: {'name': ['Required.'], 'email': ['Required.']}
 
 ### Verify dict object on the fly.
 ```python
->>> user['age'] = 200 # user['age'] rule is range(min=0, max=150)
+>>> user['age'] = 200 # user['age'] rule is number(min=0, max=150)
 ValueError: ['Value is 200, must be 0 to 150']
 >>> user['age'] = 20
 >>> user['gender'] = 'm'
