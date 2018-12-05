@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "bits-ui": "^0.3.2",
+    "gulp-markdown": "^3.0.0",
     "gulp-stylus": "^2.7.0"
   }
 }
