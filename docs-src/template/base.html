@@ -1,0 +1,27 @@
+<html>
+<head>
+<title>{% block title %}{% endblock %}</title>
+<link rel="stylesheet" href="bits-ui/normalize.css">
+    <link rel="stylesheet" href="bits-ui/bits-ui.css">
+    <style>
+    @font-face {
+        /* Set UI font, Cantarell is recommended */
+        font-family: bits-ui;
+        src: url('bits-ui/font/Cantarell/Cantarell-Regular.ttf');
+    }
+    </style>
+    <script defer src="bits-ui/riot.min.js"></script>
+    <script defer src="bits-ui/bits-ui.js"></script>
+    <script>
+        window.addEventListener('load', function(){
+            riot.mount('bits');
+        })
+    </script>
+{% block head %}
+{% endblock %}
+</head>
+<body>
+{% block body %}
+{% endblock %}
+</body>
+</html>
