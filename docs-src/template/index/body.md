@@ -1,4 +1,4 @@
-<img class="center" src="/static/asset/dictify.svg" alt="dictify" style="margin-top: 2rem;">
+<img class="center" src="static/asset/dictify.svg" alt="dictify" style="margin-top: 2rem;">
 
 <h3 style="text-align: center;">Python <code>dict</code> and <code>json</code> verification <br> for humankind :)</h3>
 
