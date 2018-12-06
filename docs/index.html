@@ -2,35 +2,50 @@
 <head>
 <title></title>
 <link rel="stylesheet" href="static/lib/bits-ui/normalize.css">
-    <link rel="stylesheet" href="static/lib/bits-ui/bits-ui.css">
-    <link rel="stylesheet" href="static/lib/prismjs/themes/prism-tomorrow.css">
-    <link rel="stylesheet" href="static/template/base.css">
-    <style>
-    @font-face {
-        /* Set UI font, Cantarell is recommended */
-        font-family: bits-ui;
-        src: url('static/lib/bits-ui/font/Cantarell/Cantarell-Regular.ttf');
-    }
-    @font-face {
-        /* Set UI font, Cantarell is recommended */
-        font-family: cantarell;
-        src: url('static/lib/bits-ui/font/Cantarell/Cantarell-Regular.ttf');
-    }
-    </style>
-    <script defer src="static/lib/bits-ui/riot.min.js"></script>
-    <script defer src="static/lib/bits-ui/bits-ui.js"></script>
-    <script src="static/lib/prismjs/prism.js"></script>
-    <script src="static/lib/prismjs/components/prism-python.min.js"></script>
-    <script>
-        window.addEventListener('load', function(){
-            riot.mount('bits');
-        })
-    </script>
+<link rel="stylesheet" href="static/bits-ui/bits-ui.css">
+<link rel="stylesheet" href="static/lib/prismjs/themes/prism-tomorrow.css">
+<link rel="stylesheet" href="static/template/base.css">
+
+<link rel="icon-svg"
+    theme="brand"
+    href="static/asset/icon/brand.svg">
+<script>
+    window.addEventListener('load', function(){
+        riot.mount('icon');
+    });
+</script>
+
+<style>
+@font-face {
+    /* Set UI font, Cantarell is recommended */
+    font-family: bits-ui;
+    src: url('static/lib/bits-ui/font/Cantarell/Cantarell-Regular.ttf');
+}
+@font-face {
+    /* Set UI font, Cantarell is recommended */
+    font-family: cantarell;
+    src: url('static/lib/bits-ui/font/Cantarell/Cantarell-Regular.ttf');
+}
+</style>
+<script defer src="static/lib/bits-ui/riot.min.js"></script>
+<script defer src="static/lib/bits-ui/bits-ui.js"></script>
+<script src="static/lib/prismjs/prism.js"></script>
+<script src="static/lib/prismjs/components/prism-python.min.js"></script>
+<script>
+    window.addEventListener('load', function(){
+        riot.mount('bits');
+    })
+</script>
 </head>
 <body>
 <div class="container">
 <p><img class="center" src="static/asset/dictify.svg" alt="dictify" style="margin-top: 2rem;"></p>
-<h3 style="text-align: center;">Python <code>dict</code> and <code>json</code> verification <br> for humankind :)</h3><hr>
+<h3 style="text-align: center;">Python <code>dict</code> and <code>json</code> verification <br> for humankind :)</h3><div style="text-align: center; margin: 1rem 0;">
+    <a class="button center"
+        href="https://github.com/nitipit/dictify" target="blank">
+        <icon theme="brand" name="github" style="margin-right: 0.2rem; fill: white;"></icon> Github
+    </a>
+</div><hr>
 <p><strong>dictify</strong> is python library to verify <code>dict</code> object and <code>json</code> with easy syntax and chainable rules.</p>
 <h2>Install</h2>
 <pre><code class="lang-bash">pip install dictify

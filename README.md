@@ -1,4 +1,4 @@
-<img src="./dictify.png">
+<img src="https://nitipit.github.io/dictify/static/asset/dictify.svgdictify.png">
 
 ## Python `dict` and `json` verification for mankind :)
 

@@ -2,6 +2,13 @@
 
 <h3 style="text-align: center;">Python <code>dict</code> and <code>json</code> verification <br> for humankind :)</h3>
 
+<div style="text-align: center; margin: 1rem 0;">
+    <a class="button center"
+        href="https://github.com/nitipit/dictify" target="blank">
+        <icon theme="brand" name="github" style="margin-right: 0.2rem; fill: white;"></icon> Github
+    </a>
+</div>
+
 ---
 
 **dictify** is python library to verify `dict` object and `json` with easy syntax and chainable rules.
