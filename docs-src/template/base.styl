@@ -1,4 +1,42 @@
 @require '../bits-ui/_require'
 
 body
-    background-color: yellow
+    margin: 0
+    background-color: #eeeeee
+    font-family: cantarell
+    padding-bottom: 10rem
+
+.container
+    margin: auto
+    @media $sm
+        width: 90%
+        min-width: 280px
+    @media $md
+        width: 70%
+    @media $lg
+        width: 50%
+        max-width: 1000px
+
+img.center
+    margin: auto
+    display: block
+
+pre
+    background-color: white
+    padding: 0.8rem
+    overflow: auto
+    font-size: 0.8em
+    border-radius: $radius
+    code
+        padding: 0
+
+code
+    background-color: white
+    padding: 0.2rem
+    border-radius: $radius
+    box-sizing: border-box
+
+h2
+    margin-top: 2rem
+h3
+    margin-top: 1rem

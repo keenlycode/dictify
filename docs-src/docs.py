@@ -1,20 +1,22 @@
-import os
-
+from sanic import Sanic, response
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-env = Environment(
+import mistune
+
+app = Sanic()
+app.static('/static', '../docs/static/')
+jinja = Environment(
     loader=FileSystemLoader('template'),
     autoescape=select_autoescape(['html', 'xml']),
     trim_blocks=True,
 )
-template = env.get_template('index.html')
-src_dir = os.path.dirname(os.path.abspath(__file__))
+markdown = mistune.Markdown(escape=False)
 
-dest_dir = os.path.join(src_dir, '../docs/')
-dest_dir = os.path.dirname(os.path.abspath(dest_dir))
-print(dest_dir)
-if not os.path.exists(dest_dir):
-    os.makedirs(dest_dir)
+@app.route('/')
+async def home(request):
+    template = jinja.get_template('index.html')
+    body = open('template/index/body.md')
+    body = markdown(body.read())
+    return response.html(template.render(body=body))
 
-f = open('../docs/index.html', 'w')
-f.write(template.render())
-f.close()
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000, debug=True)

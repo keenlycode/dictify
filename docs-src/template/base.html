@@ -1,18 +1,26 @@
 <html>
 <head>
 <title>{% block title %}{% endblock %}</title>
-<link rel="stylesheet" href="bits-ui/normalize.css">
-    <link rel="stylesheet" href="bits-ui/bits-ui.css">
-    <link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="/static/lib/bits-ui/normalize.css">
+    <link rel="stylesheet" href="/static/lib/bits-ui/bits-ui.css">
+    <link rel="stylesheet" href="/static/lib/prismjs/themes/prism-tomorrow.css">
+    <link rel="stylesheet" href="/static/template/base.css">
     <style>
     @font-face {
         /* Set UI font, Cantarell is recommended */
         font-family: bits-ui;
-        src: url('bits-ui/font/Cantarell/Cantarell-Regular.ttf');
+        src: url('/static/lib/bits-ui/font/Cantarell/Cantarell-Regular.ttf');
+    }
+    @font-face {
+        /* Set UI font, Cantarell is recommended */
+        font-family: cantarell;
+        src: url('/static/lib/bits-ui/font/Cantarell/Cantarell-Regular.ttf');
     }
     </style>
-    <script defer src="bits-ui/riot.min.js"></script>
-    <script defer src="bits-ui/bits-ui.js"></script>
+    <script defer src="/static/lib/bits-ui/riot.min.js"></script>
+    <script defer src="/static/lib/bits-ui/bits-ui.js"></script>
+    <script src="/static/lib/prismjs/prism.js"></script>
+    <script src="/static/lib/prismjs/components/prism-python.min.js"></script>
     <script>
         window.addEventListener('load', function(){
             riot.mount('bits');
