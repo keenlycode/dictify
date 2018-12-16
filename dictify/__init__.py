@@ -185,7 +185,7 @@ class Field:
         test_case.assertIsInstance(value, type_)
 
 
-class Model(dict):
+class Model:
     """Class to defined fields and rules.
 
     ## Example:
