@@ -1,4 +1,5 @@
 import unittest
+import json
 from dictify import Model, Field
 
 class TestModel(unittest.TestCase):
@@ -107,6 +108,9 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.model['type'] = 1
             self.assertEqual(self.model['type'], string)
+
+    def test_json(self):
+        json.dumps(self.model)
 
 class TestSubClass(unittest.TestCase):
     def setUp(self):

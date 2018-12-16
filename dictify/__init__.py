@@ -198,7 +198,7 @@ class Model(dict):
     def __init__(self, data=dict()):
         rule = dict()
         errors = dict()
-        result = dict() #
+        result = dict()
         for k in self.__dir__():
             field = self.__getattribute__(k)
             if isinstance(field, Field):
