@@ -57,7 +57,7 @@ class Field:
             self.rules = []
             self.errors = []
 
-        def verify(self, key, value):
+        def verify(self, value):
             """Verify value with rules."""
             self.value = value
             self.errors = list()
@@ -185,7 +185,7 @@ class Field:
         test_case.assertIsInstance(value, type_)
 
 
-class Model:
+class Model(dict):
     """Class to defined fields and rules.
 
     ## Example:
@@ -195,55 +195,18 @@ class Model:
     user = User({'name': 'John'})
     """
 
-    class Dict(dict):
-        """Modified `dict` to strict with field's rules."""
-
-        def __init__(self, data, rule):
-            """Create modified dict from data.
-
-            Dict() object will keep Field.Rule() object in self._field
-            which will be called in `__setitem__`
-            """
-            self._field = rule
-            return super().__init__(data)
-
-        def __setitem__(self, k, v):
-            """Verify value before `super().__setitem__`."""
-            try:
-                value = self._field[k].verify(k, v).value
-            except KeyError as e:
-                raise KeyError('Field is not defined')
-
-            return super().__setitem__(k, value)
-
-        def update(self, data):
-            """Modify `update` method to verify data before update."""
-            errors = dict()
-            for k, v in data.items():
-                try:
-                    data[k] = self._field[k].verify(k, v).value
-                except ValueError as e:
-                    errors[k] = e
-                except KeyError as e:
-                    errors[k] = KeyError('Field is not defined')
-            if errors:
-                raise Exception(errors)
-            return super().update(data)
-
-    def __new__(cls, data=dict()):
-        """Create Model.Dict with field's rules."""
+    def __init__(self, data=dict()):
         rule = dict()
         errors = dict()
-        result = dict()
-
-        # Loop to find Field then verify, keep errors information.
-        for k, v in vars(cls).items():
-            if isinstance(v, Field):
+        result = dict() #
+        for k in self.__dir__():
+            field = self.__getattribute__(k)
+            if isinstance(field, Field):
                 try:
-                    rule[k] = v.rule.verify(k, data.get(k))
+                    rule[k] = field.rule.verify(data.get(k))
                     result[k] = rule[k].value
-                except (ValueError, AssertionError) as e:
-                    errors[k] = e
+                except (ValueError, AssertionError) as error:
+                    errors[k] = error
 
                 # Delete data items() after field verification.
                 try:
@@ -259,4 +222,28 @@ class Model:
             errors[k] = KeyError('Field is not defined')
         if errors:
             raise Exception(errors)
-        return cls.Dict(result, rule)
+        self._field = rule
+        return super().__init__(result)
+
+    def __setitem__(self, k, v):
+        """Verify value before `super().__setitem__`."""
+        try:
+            value = self._field[k].verify(v).value
+        except KeyError as e:
+            raise KeyError('Field is not defined')
+
+        return super().__setitem__(k, value)
+
+    def update(self, data):
+        """Modify `update` method to verify data before update."""
+        errors = dict()
+        for k, v in data.items():
+            try:
+                data[k] = self._field[k].verify(v).value
+            except ValueError as e:
+                errors[k] = e
+            except KeyError as e:
+                errors[k] = KeyError('Field is not defined')
+        if errors:
+            raise Exception(errors)
+        return super().update(data)

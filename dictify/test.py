@@ -107,3 +107,17 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.model['type'] = 1
             self.assertEqual(self.model['type'], string)
+
+class TestSubClass(unittest.TestCase):
+    def setUp(self):
+        class Content(Model):
+            content_type = Field().type(str)
+
+        class HTML(Content):
+            pass
+
+        self.html = HTML()
+
+    def test_subclass(self):
+        with self.assertRaises(ValueError):
+            self.html['content_type'] = 1
