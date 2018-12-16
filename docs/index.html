@@ -105,6 +105,9 @@ class User(Model):
 
 user = json.loads(&#39;{&quot;name&quot;: &quot;test-user&quot;, &quot;email&quot;: &quot;user@example.com&quot;}&#39;)
 user = User(user)
+
+# transform to json string
+user = json.dumps(user)
 </code></pre>
 <h2>Rules</h2>
 <ul>
