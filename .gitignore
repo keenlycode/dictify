@@ -1,2 +1,6 @@
 venv/
 __pycache__
+docs-src/_bits-ui
+docs-src/node_modules/
+docs-src/yarn.lock
+_
