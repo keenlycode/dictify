@@ -1,5 +1,6 @@
 import unittest
 import json
+import uuid
 from dictify import Model, Field
 
 class TestModel(unittest.TestCase):
@@ -32,15 +33,17 @@ class TestModel(unittest.TestCase):
 
 class TestField(unittest.TestCase):
     def setUp(self):
-        def add_10(value):
-            return value + 10
 
         class TestModel(Model):
+            def uuid4_rule(value):
+                id_ = uuid.UUID(value)
+                self.assertEqual(id_.version, 4)
+
             default = Field().default(1)
             required = Field().required()
             any = Field().anyof([1, 2, 3])
             anyof = Field().anyof([1, 2, 3])
-            apply = Field().default(10).apply(add_10)
+            apply = Field().default(str(uuid.uuid4())).apply(uuid4_rule)
             length = Field().length(min=2, max=10)
             listof = Field().listof(str)
             match = Field().match('[0-9]+')
@@ -57,7 +60,7 @@ class TestField(unittest.TestCase):
             self.model['anyof'] = 5
 
     def test_apply(self):
-        self.assertEqual(self.model['apply'], 20)
+        self.apply = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
 
     def test_default(self):
         self.assertEqual(self.model['default'], 1)

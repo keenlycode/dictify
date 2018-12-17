@@ -79,10 +79,18 @@ user = User(user)
 - `anyof(members: list)`: Value must be any of defined `members`
 - `apply(func: function)`: Apply function to value. The applied function will get field's value as it's first argument. For example:
     ```python
-    def add_10(value):
-        return value + 10
+    from dictify import Model, Field
+    import uuid
+    from unittest import TestCase
 
-    amount = Field().apply(add_10)
+    test_case = TestCase()
+
+    class User(Model):
+        def uuid4_rule(value):
+            id_ = uuid.UUID(value)
+            self.assertEqual(id_.version, 4)
+
+        id_ = Field().apply(uuid4_rule)
     ```
 - `default(default_: Any)`: Set default value.
 - `length(min: int, max: int)`: min/max constrain to value's length using `len()`.
