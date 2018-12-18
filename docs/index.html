@@ -1,5 +1,14 @@
 <html>
 <head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-36104934-8"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-36104934-8');
+</script>
 <title></title>
 <link rel="stylesheet" href="static/lib/bits-ui/normalize.css">
 <link rel="stylesheet" href="static/bits-ui/bits-ui.css">
@@ -113,10 +122,18 @@ user = json.dumps(user)
 <ul>
 <li><code>anyof(members: list)</code>: Value must be any of defined <code>members</code></li>
 <li><p><code>apply(func: function)</code>: Apply function to value. The applied function will get field's value as it's first argument. For example:</p>
-<pre><code class="lang-python">  def add_10(value):
-      return value + 10
+<pre><code class="lang-python">  from dictify import Model, Field
+  import uuid
+  from unittest import TestCase
 
-  amount = Field().apply(add_10)
+  test_case = TestCase()
+
+  class User(Model):
+      def uuid4_rule(value):
+          id_ = uuid.UUID(value)
+          test_case.assertEqual(id_.version, 4)
+
+      id_ = Field().apply(uuid4_rule)
 </code></pre>
 </li>
 <li><code>default(default_: Any)</code>: Set default value.</li>

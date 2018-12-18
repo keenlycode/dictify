@@ -88,7 +88,7 @@ user = User(user)
     class User(Model):
         def uuid4_rule(value):
             id_ = uuid.UUID(value)
-            self.assertEqual(id_.version, 4)
+            test_case.assertEqual(id_.version, 4)
 
         id_ = Field().apply(uuid4_rule)
     ```
