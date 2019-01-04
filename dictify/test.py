@@ -39,7 +39,7 @@ class TestField(unittest.TestCase):
                 id_ = uuid.UUID(value)
                 self.assertEqual(id_.version, 4)
 
-            default = Field().default(1)
+            default = Field().default({})
             required = Field().required()
             any = Field().anyof([1, 2, 3])
             anyof = Field().anyof([1, 2, 3])
@@ -63,7 +63,7 @@ class TestField(unittest.TestCase):
         self.apply = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
 
     def test_default(self):
-        self.assertEqual(self.model['default'], 1)
+        self.assertEqual(self.model['default'], {})
 
     def test_length(self):
         self.model['length'] = 'hello'

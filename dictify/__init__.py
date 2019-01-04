@@ -64,7 +64,7 @@ class Field:
             for verify in self.rules:
                 try:
                     value = verify(self.value)
-                    if value:
+                    if value is not None:
                         self.value = value
                 except (ValueError, AssertionError) as e:
                     self.errors.append(e.args[0])
