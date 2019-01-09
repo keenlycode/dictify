@@ -1,6 +1,6 @@
 <img src="https://nitipit.github.io/dictify/static/asset/dictify.svg">
 
-## Python `dict` and `json` verification for mankind :)
+## Python `dict` and `json` verification for humankind :)
 
 `dictify` is python library to verify `dict` object and `json` with easy syntax and chainable rules.
 
