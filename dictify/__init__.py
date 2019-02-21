@@ -94,10 +94,13 @@ class Field:
         return wrapper
 
     @field_with_none
-    def default(value, default_: 'default value'):
+    def default(value, default_):
         """Set default value."""
         if value is None:
-            return default_
+            if callable(default_):
+                return default_()
+            else:
+                return default_
 
     @field_with_none
     def required(value):

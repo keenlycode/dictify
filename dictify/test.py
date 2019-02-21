@@ -3,6 +3,7 @@ import json
 import uuid
 from dictify import Model, Field
 
+
 class TestModel(unittest.TestCase):
     def setUp(self):
         class TestModel(Model):
