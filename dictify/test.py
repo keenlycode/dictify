@@ -34,8 +34,8 @@ class TestModel(unittest.TestCase):
 
 class TestField(unittest.TestCase):
     def setUp(self):
-
         class TestModel(Model):
+            
             def uuid4_rule(value):
                 id_ = uuid.UUID(value)
                 self.assertEqual(id_.version, 4)
@@ -129,3 +129,7 @@ class TestSubClass(unittest.TestCase):
     def test_subclass(self):
         with self.assertRaises(ValueError):
             self.html['content_type'] = 1
+
+
+if __name__ == '__main__':
+    unittest.main()

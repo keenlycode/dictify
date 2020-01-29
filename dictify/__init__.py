@@ -6,6 +6,53 @@ import warnings
 
 test_case = unittest.TestCase()
 
+
+class Function:
+    def __init__(self, func, *args, **kw):
+        """Keep `func`, `*args` and `**kw` to be called."""
+        self.func = func
+        self.args = args
+        self.kw = kw
+
+    def __call__(self, value):
+        return self.func(value, *self.args, **self.kw)
+
+class define:
+    def value(func):
+        """Decorator to add function to field if value is provided."""
+
+        def wrapper(field, *args, **kw):
+            def f(value, *args, **kw):
+                if value is None or '' or []:
+                    return value
+                else:
+                    return func(value, *args, **kw)
+            function = Function(f, *args, **kw)
+            field.functions.append(function)
+            return field
+        return wrapper
+
+    def empty(func):
+        """Decorator to add field's function if value is empty"""
+        def wrapper(field, *args, **kw):
+            def f(value, *argd, **kw):
+                if value is None or '' or []:
+                    return func(value, *args, **kw)
+                else:
+                    return value
+            function = Function(f, *args, **kw)
+            field.functions.append(function)
+            return field
+        return wrapper
+
+    def any(func):
+        def wrapper(field, *args, **kw):
+            function = Function(func, *args, **kw)
+            field.functions.append(function)
+            return field
+        return wrapper
+
+
 class ListOf(list):
     def __init__(self, type_=None, values=[]):
         self._type = type_
@@ -17,7 +64,7 @@ class ListOf(list):
                 errors.append(e)
         if errors:
             raise ValueError(errors)
-        return super().__init__(values)
+        super().__init__(values)
 
     def __setitem__(self, index, value):
         test_case.assertIsInstance(value, self._type)
@@ -27,99 +74,40 @@ class ListOf(list):
         test_case.assertIsInstance(value, self._type)
         return super().append(value)
 
+
 class Field:
-    """Class contain function to verify Model's fields."""
 
     def __init__(self):
-        """Init object."""
-        self.rule = Field.Rule()
+        self.value = None
+        self.functions = []
 
+    def query(self, value):
+        """Apply all functions to field's value"""
+        errors = list()
+        self.value = value
+        for function in self.functions:
+            try:
+                value = function(self.value)
+                if value is not None:
+                    self.value = value
+            except (ValueError, AssertionError) as e:
+                errors.append(e.args[0])
+        if errors:
+            raise ValueError(errors)
+        return self
 
-    class Verify:
-        """Class contain verify function to be called."""
-
-        def __init__(self, func, *args, **kw):
-            """Keep `func`, `*args` and `**kw` to be called."""
-            self.func = func
-            self.args = args
-            self.kw = kw
-
-        def __call__(self, value):
-            """Verify value with `self.func`."""
-            return self.func(value, *self.args, **self.kw)
-
-    class Rule:
-        """Class for verify rules. Store rules and errors information."""
-
-        def __init__(self):
-            """Init rule object."""
-            self.value = None
-            self.rules = []
-            self.errors = []
-
-        def verify(self, value):
-            """Verify value with rules."""
-            self.value = value
-            self.errors = list()
-            for verify in self.rules:
-                try:
-                    value = verify(self.value)
-                    if value is not None:
-                        self.value = value
-                except (ValueError, AssertionError) as e:
-                    self.errors.append(e.args[0])
-            if self.errors:
-                raise ValueError(self.errors)
-            return self
-
-    def field(func):
-        """Decorate function to add a rule. Bypassed if value is `None`."""
-        def wrapper(self, *args, **kw):
-            def f(value, *args, **kw):
-                if value is None:
-                    return value
-                else:
-                    return func(value, *args, **kw)
-            verify = Field.Verify(f, *args, **kw)
-            self.rule.rules.append(verify)
-            return self
-        return wrapper
-
-    def field_with_none(func):
-        """Decorate function to add a rule."""
-        def wrapper(self, *args, **kw):
-            verify = Field.Verify(func, *args, **kw)
-            self.rule.rules.append(verify)
-            return self
-        return wrapper
-
-    @field_with_none
-    def default(value, default_):
-        """Set default value."""
-        if value is None:
-            if callable(default_):
-                return default_()
-            else:
-                return default_
-
-    @field_with_none
-    def required(value):
-        """Required."""
-        if value in [None, '', []]:
-            raise ValueError('Required.')
-
-    @field
+    @define.value
     def any(value, members: list):
         """(Deprecated) Check if value is any of members."""
         warnings.warn('Deprecated. Changed to `anyof`', DeprecationWarning)
         test_case.assertIn(value, members)
 
-    @field
+    @define.value
     def anyof(value, members: list):
         """Check if value is any of members."""
         test_case.assertIn(value, members)
 
-    @field_with_none
+    @define.any
     def apply(value, func: 'function to apply'):
         """Apply function to Field().
 
@@ -133,7 +121,20 @@ class Field:
         """
         return func(value)
 
-    @field
+    @define.empty
+    def default(value, default_):
+        """Set default value."""
+        if callable(default_):
+            return default_()
+        else:
+            return default_
+
+    @define.empty
+    def required(value):
+        """Required."""
+        raise ValueError('Required.')
+
+    @define.value
     def length(value: (str, list), min: int = 0, max: int = math.inf):
         """Set min/max of value's length."""
         try:
@@ -146,16 +147,16 @@ class Field:
                 % (length_, min, max)
             )
 
-    @field
+    @define.value
     def listof(values, type_=None):
         return ListOf(type_, values)
 
-    @field
+    @define.value
     def match(value, re_: 'regular expession string'):
         """Check value matching with regular expression."""
         test_case.assertRegex(value, re_)
 
-    @field
+    @define.value
     def number(value: (int, float, complex),
                min: (int, float, complex) = -math.inf,
                max: (int, float, complex) = math.inf):
@@ -166,7 +167,7 @@ class Field:
                 % (value, min, max)
             )
 
-    @field
+    @define.value
     def range(value: (int, float, complex),
               min: (int, float, complex) = -math.inf,
               max: (int, float, complex) = math.inf):
@@ -177,12 +178,12 @@ class Field:
                 % (value, min, max)
             )
 
-    @field
+    @define.value
     def subset(values, members: list):
         """Check if value is subset of defined members."""
         test_case.assertLessEqual(set(values), set(members))
 
-    @field
+    @define.value
     def type(value, type_: type):
         """Check value's type."""
         test_case.assertIsInstance(value, type_)
@@ -199,15 +200,15 @@ class Model(dict):
     """
 
     def __init__(self, data=dict()):
-        rule = dict()
+        field = dict()
         errors = dict()
         result = dict()
         for k in self.__dir__():
-            field = self.__getattribute__(k)
-            if isinstance(field, Field):
+            f = self.__getattribute__(k)
+            if isinstance(f, Field):
                 try:
-                    rule[k] = field.rule.verify(data.get(k))
-                    result[k] = rule[k].value
+                    field[k] = f.query(data.get(k))
+                    result[k] = field[k].value
                 except (ValueError, AssertionError) as error:
                     errors[k] = error
 
@@ -225,14 +226,14 @@ class Model(dict):
             errors[k] = KeyError('Field is not defined')
         if errors:
             raise Exception(errors)
-        self._field = rule
-        return super().__init__(result)
+        self._field = field
+        super().__init__(result)
 
     def __setitem__(self, k, v):
         """Verify value before `super().__setitem__`."""
         try:
-            value = self._field[k].verify(v).value
-        except KeyError as e:
+            value = self._field[k].query(v).value
+        except KeyError:
             raise KeyError('Field is not defined')
 
         return super().__setitem__(k, value)
@@ -242,7 +243,7 @@ class Model(dict):
         errors = dict()
         for k, v in data.items():
             try:
-                data[k] = self._field[k].verify(v).value
+                data[k] = self._field[k].query(v).value
             except ValueError as e:
                 errors[k] = e
             except KeyError as e:
