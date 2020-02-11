@@ -181,7 +181,7 @@ class Field:
     @define.value
     def subset(values, members: list):
         """Check if value is subset of defined members."""
-        test_case.assertLessEqual(set(values), set(members))
+        test_case.assertLessEqual(set(values), set(members), msg="Not a subset")
 
     @define.value
     def type(value, type_: type):
