@@ -26,7 +26,7 @@ class define:
                 if value is None or '' or []:
                     return value
                 else:
-                    return func( value, *args, **kw)
+                    return func(value, *args, **kw)
             function = Function(f, *args, **kw)
             field.functions.append(function)
             return field
