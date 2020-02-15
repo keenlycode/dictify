@@ -36,7 +36,7 @@ class define:
     def empty(func):
         """Decorator to add field's function if value is empty"""
         def wrapper(field, *args, **kw):
-            def f(value, *argd, **kw):
+            def f(value, *args, **kw):
                 if value is None or '' or []:
                     return func(value, *args, **kw)
                 else:
