@@ -1,5 +1,4 @@
 import re
-import inspect
 import math
 import unittest
 import warnings
@@ -18,6 +17,7 @@ class Function:
         return self.func(value, *self.args, **self.kw)
 
 class define:
+    @staticmethod
     def value(func):
         """Decorator to add function to field if value is provided."""
 
@@ -26,12 +26,13 @@ class define:
                 if value is None or '' or []:
                     return value
                 else:
-                    return func(value, *args, **kw)
+                    return func( value, *args, **kw)
             function = Function(f, *args, **kw)
             field.functions.append(function)
             return field
         return wrapper
 
+    @staticmethod
     def empty(func):
         """Decorator to add field's function if value is empty"""
         def wrapper(field, *args, **kw):
@@ -45,6 +46,7 @@ class define:
             return field
         return wrapper
 
+    @staticmethod
     def any(func):
         def wrapper(field, *args, **kw):
             function = Function(func, *args, **kw)
