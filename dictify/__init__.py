@@ -205,6 +205,7 @@ class Model(dict):
         field = dict()
         errors = dict()
         result = dict()
+        data = data.copy()
         for k in self.__dir__():
             f = self.__getattribute__(k)
             if isinstance(f, Field):

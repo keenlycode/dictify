@@ -1,16 +1,42 @@
 import unittest
 import json
 import uuid
-from dictify import Model, Field
+from dictify import Model as BaseModel, Field
 
+
+class Model(BaseModel):
+    name = Field().type(str)
+    email = Field().type(str)
+
+
+class FieldModel(BaseModel):
+    def uuid4_rule(value):
+        id_ = uuid.UUID(value)
+        assert id_.version == 4
+
+    default = Field().default({})
+    required = Field().required()
+    any = Field().anyof([1, 2, 3])
+    anyof = Field().anyof([1, 2, 3])
+    apply = Field().default(str(uuid.uuid4())).apply(uuid4_rule)
+    length = Field().length(min=2, max=10)
+    listof = Field().listof(str)
+    match = Field().match('[0-9]+')
+    number = Field().number(min=0, max=20)
+    range = Field().range(min=0, max=20)
+    subset = Field().subset([1, 2, 3])
+    type = Field().type(str)
+    
 
 class TestModel(unittest.TestCase):
-    def setUp(self):
-        class TestModel(Model):
-            name = Field().type(str)
-            email = Field().type(str)
 
-        self.model = TestModel({'name': 'initial name'})
+    def setUp(self):
+        self.model = Model({'name': 'initial name'})
+
+    def test_data_unmodified(self):
+        data = {'name': 'test'}
+        Model(data)
+        self.assertDictEqual(data, {'name': 'test'})
 
     def test_setitem(self):
         """Test `__setitem__` for 3 cases:
@@ -34,26 +60,7 @@ class TestModel(unittest.TestCase):
 
 class TestField(unittest.TestCase):
     def setUp(self):
-        class TestModel(Model):
-            
-            def uuid4_rule(value):
-                id_ = uuid.UUID(value)
-                self.assertEqual(id_.version, 4)
-
-            default = Field().default({})
-            required = Field().required()
-            any = Field().anyof([1, 2, 3])
-            anyof = Field().anyof([1, 2, 3])
-            apply = Field().default(str(uuid.uuid4())).apply(uuid4_rule)
-            length = Field().length(min=2, max=10)
-            listof = Field().listof(str)
-            match = Field().match('[0-9]+')
-            number = Field().number(min=0, max=20)
-            range = Field().range(min=0, max=20)
-            subset = Field().subset([1, 2, 3])
-            type = Field().type(str)
-
-        self.model = TestModel({'required': True})
+        self.model = FieldModel({'required': True})
 
     def test_anyof(self):
         self.model['anyof'] = 1
@@ -118,7 +125,7 @@ class TestField(unittest.TestCase):
 
 class TestSubClass(unittest.TestCase):
     def setUp(self):
-        class Content(Model):
+        class Content(BaseModel):
             content_type = Field().type(str)
 
         class HTML(Content):
