@@ -1,7 +1,7 @@
 import unittest
 import json
 import uuid
-from dictify import Model, Field, FieldError, ModelError
+from dictify import Model, Field, FieldError, ModelError, ListError
 
 
 class Note(Model):
@@ -21,10 +21,10 @@ class MockUp(Model):
     default = Field(default='default')
     required = Field(required=True)
     anyof = Field().anyof([1, 2, 3])
-    verify = Field(default=str(uuid.uuid4())).verify(uuid4_rule)
+    verify = Field().verify(uuid4_rule)
     length = Field().length(min=2, max=10)
     listof = Field().listof(str)
-    match = Field().search('[0-9]+')
+    search = Field().search('[0-9]+')
     min = Field().min(0)
     max = Field().max(10)
     subset = Field().subset([1, 2, 3])
@@ -54,11 +54,11 @@ class TestModel(unittest.TestCase):
         note = self.note.copy()
 
         # 1. FieldError.
-        with self.assertRaises(FieldError):
+        with self.assertRaises(ModelError):
             self.note['title'] = 0
 
         # 2. KeyError.
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ModelError):
             self.note['datetime'] = 'today'
 
         # 3. Data unmodified if there is any error.
@@ -89,71 +89,76 @@ class TestModel(unittest.TestCase):
         self.assertDictEqual(data, self.note)
         
 
-# class TestField(unittest.TestCase):
+class TestField(unittest.TestCase):
 
-#     def setUp(self):
-#         self.model = MockUp({'required': True})
+    def setUp(self):
+        self.model = MockUp({'required': True})
 
-#     def test_anyof(self):
-#         self.model['anyof'] = 1
-#         with self.assertRaises(FieldError):
-#             self.model['anyof'] = 5
+    def test_anyof(self):
+        self.model['anyof'] = 1
+        with self.assertRaises(ModelError):
+            self.model['anyof'] = 5
 
-#     def test_verify(self):
-#         self.model['verify'] = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
+    def test_verify(self):
+        self.model['verify'] = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
 
-#     def test_default(self):
-#         self.assertEqual(self.model['default'], 'default')
+    def test_default(self):
+        self.assertEqual(self.model['default'], 'default')
 
-#     def test_length(self):
-#         self.model['length'] = 'hello'
-#         with self.assertRaises(ValueError):
-#             self.model['length'] = 'test-with-lenght-more-than-10'
+    def test_length(self):
+        self.model['length'] = 'hello'
+        with self.assertRaises(ModelError):
+            self.model['length'] = 'length-more-than-10'
 
-#     def test_listof(self):
-#         list_of_string = ['ab', 'cd']
-#         self.model['listof'] = list_of_string
-#         with self.assertRaises(ValueError):
-#             self.model['listof'] = [1, 2]
-#             self.assertEqual(self.model['listof'], list_of_string)
+    def test_listof(self):
+        str_list = ['ab', 'cd']
+        self.model['listof'] = str_list
+        with self.assertRaises(ListError):
+            self.model['listof'] = [1, 2]
+        self.assertEqual(self.model['listof'], str_list)
 
-#     def test_match(self):
-#         self.model['match'] = '0123456789'
-#         match = self.model['match']
-#         with self.assertRaises(ValueError):
-#             self.model['match'] = 'a'
-#             self.assertEqual(self.model['match'], match)
+    def test_search(self):
+        self.model['search'] = '0123456789'
+        search = self.model['search']
+        with self.assertRaises(ModelError):
+            self.model['search'] = 'a'
+        self.assertEqual(self.model['search'], search)
 
-#     def test_number(self):
-#         self.model['number'] = 1
-#         with self.assertRaises(ValueError):
-#             self.model['number'] = 21
-#             self.assertEqual(self.model['number'], 1)
+    def test_min(self):
+        self.model['min'] = 1
+        with self.assertRaises(ModelError):
+            self.model['min'] = -1
+        self.assertEqual(self.model['min'], 1)
 
-#     def test_range(self):
-#         self.model['range'] = 1
-#         with self.assertRaises(ValueError):
-#             self.model['range'] = 21
-#             self.assertEqual(self.model['range'], 1)
+    def test_max(self):
+        self.model['max'] = 10
+        with self.assertRaises(ModelError):
+            self.model['max'] = 11
+        self.assertEqual(self.model['max'], 10)
 
-#     def test_required(self):
-#         required = self.model['required']
-#         with self.assertRaises(ValueError):
-#             self.model['required'] = None
-#             self.assertEqual(self.model['required'], required)
+    def test_required(self):
+        required = self.model['required']
+        with self.assertRaises(ModelError):
+            self.model['required'] = None
+        self.assertEqual(self.model['required'], required)
 
-#     def test_subset(self):
-#         self.model['subset'] = [1, 2, 3]
+    def test_subset(self):
+        subset = [1, 2]
+        self.model['subset'] = subset
+        with self.assertRaises(ModelError):
+            self.model['subset'] = [3, 4]
+        self.assertEqual(self.model['subset'], subset)
 
-#     def test_type(self):
-#         string = 'test'
-#         self.model['type'] = string
-#         with self.assertRaises(ValueError):
-#             self.model['type'] = 1
-#             self.assertEqual(self.model['type'], string)
+    def test_type(self):
+        string = 'test'
+        self.model['type'] = string
+        with self.assertRaises(ModelError):
+            self.model['type'] = 1
+            self.assertEqual(self.model['type'], string)
 
-#     def test_json(self):
-#         json.dumps(self.model)
+    def test_json(self):
+        data = json.dumps(self.model)
+        self.assertIsInstance(data, str)
 
 # class TestSubClass(unittest.TestCase):
 #     def setUp(self):

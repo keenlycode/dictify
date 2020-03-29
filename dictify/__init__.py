@@ -2,7 +2,7 @@ import math
 import re
 
 
-def rule(func):
+def function(func):
     """Decorator to add function to field for validation."""
     def wrapper(field, *args, **kw):
         field._functions.append(lambda field: func(field, *args, **kw))
@@ -57,12 +57,14 @@ class Field:
     def _validate(self, value=None):
         """Apply all functions to field's value"""
         errors = list()
+        self.value = self._default
         if value is not None:
             self.value = value
-        else:
-            self.value = self._default
         if self._required:
-            assert self.value is not None, 'Value is required'
+            try:
+                assert self.value is not None, 'Value is required'
+            except AssertionError as e:
+                raise FieldError([e])
         if self.value is None:
             return self
         for function in self._functions:
@@ -74,16 +76,16 @@ class Field:
             raise FieldError(errors)
         return self
 
-    @rule
+    @function
     def type(self, type_):
         assert isinstance(self.value, type_), f'Value is not instance of {type_}'
 
-    @rule
+    @function
     def anyof(self, members: list):
         """Check if value is any of members."""
         assert self.value in members, f'{self.value} is not in {members}'
 
-    @rule
+    @function
     def length(self, min: int = 0, max: int = math.inf):
         """Set min/max of value's length."""
         assert isinstance(self.value, (str, list)),\
@@ -92,34 +94,39 @@ class Field:
         assert min <= length_ <= max,\
             f"Value's length is {length_}. Must be {min} to {max}"
 
-    @rule
+    @function
     def listof(self, type_):
         self.value = ListOf(self, type_)
 
-    @rule
+    @function
     def verify(self, func):
         func(self)
 
-    @rule
+    @function
     def search(self, re_: str):
         """Check value matching with regular expression."""
-        assert re.search(re_, self.value)
+        assert re.search(re_, self.value),\
+            f"re.search('{re_}', '{self.value}') is None"
 
-    @rule
+    @function
     def min(self, min_: (int, float, complex) = -math.inf, equal=True):
         if equal is True:
-            assert self.value >= min_, f"{self.value} => {min_}"
+            assert self.value >= min_,\
+                f"Value({self.value}) >= Min({min_})"
         else:
-            assert self.value > min_, f"{self.value} > {min_}"
+            assert self.value > min_,\
+                f"Value({self.value}) > Min({min_})"
 
-    @rule
+    @function
     def max(self, max_: (int, float, complex) = -math.inf, equal=True):
         if equal is True:
-            assert self.value <= max_, f"{self.value} <= {max_}"
+            assert self.value <= max_,\
+                f"Value({self.value}) <= Max({max_})"
         else:
-            assert self.value < max_, f"{self.value} < {max_}"
+            assert self.value < max_,\
+                f"Value({self.value}) < Max({max_})"
 
-    @rule
+    @function
     def subset(self, members: list):
         """Check if value is subset of defined members."""
         assert set(self.value) <= set(members),\
@@ -131,23 +138,32 @@ class Model(dict):
 
     def __init__(self, data=dict()):
         assert isinstance(data, dict)
+        data = data.copy()
         field = dict()
         for key in self.__dir__():
             f = self.__getattribute__(key)
             if not isinstance(f, Field):
                 continue
             field[key] = f
+            if f._default is not None:
+                data[key] = f._default
+
         self._field = field
-        data = self._validate(data.copy())
+        data = self._validate(data)
         super().__init__(data)
 
     def __setitem__(self, key, value):
         """Verify value before `super().__setitem__`."""
+        error = None
         try:
             self._field[key]._validate(value)
             super().__setitem__(key, value)
         except KeyError:
-            raise KeyError('Field is not defined')
+            error = {key: KeyError('Field is not defined')}
+        except FieldError as e:
+            error = {key: e}
+        if error:
+            raise ModelError(error)
 
     def _validate(self, data: dict):
         error = dict()
