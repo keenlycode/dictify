@@ -51,20 +51,16 @@ class Field:
     def __init__(self, required=False, default=None):
         self._required = required
         self._default = default
-        self._value = default
         self._functions = list()
-
-    @property
-    def value(self):
-        return self._value
+        self.value = default
 
     def _validate(self, value=None):
         """Apply all functions to field's value"""
         errors = list()
         if value is not None:
-            self._value = value
+            self.value = value
         else:
-            self._value = self._default
+            self.value = self._default
         if self._required:
             assert self.value is not None, 'Value is required'
         if self.value is None:
@@ -98,7 +94,7 @@ class Field:
 
     @rule
     def listof(self, type_):
-        self._value = ListOf(self, type_)
+        self.value = ListOf(self, type_)
 
     @rule
     def verify(self, func):
@@ -135,7 +131,15 @@ class Model(dict):
 
     def __init__(self, data=dict()):
         assert isinstance(data, dict)
-        self._validate(data)
+        field = dict()
+        for key in self.__dir__():
+            f = self.__getattribute__(key)
+            if not isinstance(f, Field):
+                continue
+            field[key] = f
+        self._field = field
+        data = self._validate(data.copy())
+        super().__init__(data)
 
     def __setitem__(self, key, value):
         """Verify value before `super().__setitem__`."""
@@ -145,39 +149,20 @@ class Model(dict):
         except KeyError:
             raise KeyError('Field is not defined')
 
-    def _validate(self, data):
-        field = dict()
-        result = dict()
+    def _validate(self, data: dict):
         error = dict()
-        data = data.copy()
-        for k in self.__dir__():
-            f = self.__getattribute__(k)
-            if not isinstance(f, Field):
-                continue
-            field[k] = f
+        for key in data:
             try:
-                result[k] = f._validate(data.get(k)).value
-            except FieldError as e:
-                error[k] = e
-
-            # Delete data items() after field verification.
-            try:
-                del data[k]
-            # Ignore possibility when data doesn't have defined field.
-            # In case when field is not required or have default value.
+                data[key] = self._field[key]._validate(data[key]).value
             except KeyError:
-                pass
-
-        # After verification, If there's data.keys() left,
-        # it means the field is undefined.
-        for k in data.keys():
-            error[k] = KeyError('Field is not defined')
+                error[key] = KeyError('Field is not defined')
+            except FieldError as e:
+                error[key] = e
         if error:
             raise ModelError(error)
-        self._field = field
-        super().__init__(result)
+        return data
 
     def update(self, data):
-        self._validate(data)
+        assert isinstance(data, dict)
+        data = self._validate(data.copy())
         super().update(data)
-        return self

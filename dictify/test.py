@@ -4,9 +4,9 @@ import uuid
 from dictify import Model, Field, FieldError, ModelError
 
 
-class User(Model):
-    name = Field().type(str)
-    email = Field().type(str)
+class Note(Model):
+    title = Field(required=True).type(str)
+    note = Field().type(str)
 
 
 class MockUp(Model):
@@ -31,59 +31,79 @@ class MockUp(Model):
     type = Field().type(str)
     
 
-# class TestModel(unittest.TestCase):
-
-#     def setUp(self):
-#         self.model = User({'name': 'initial name'})
-
-#     def test_data_unmodified(self):
-#         data = {'name': 'test'}
-#         User(data)
-#         self.assertDictEqual(data, {'name': 'test'})
-
-#     def test_setitem(self):
-#         """Test `__setitem__` for 3 cases:
-#         Key Error, ValueError and Success.
-#         """
-#         data = self.model.copy()
-#         with self.assertRaises(FieldError):
-#             self.model['name'] = 0
-#         with self.assertRaises(KeyError):
-#             self.model['age'] = 20
-#         self.assertDictEqual(
-#             data, self.model,
-#             f"Model's data is the same after error")
-#         self.assertEqual(self.model['name'], 'initial name')
-#         self.model['name'] = 'new name'
-#         self.assertEqual(self.model['name'], 'new name')
-
-#     def test_update(self):
-#         """Test `update` to raise KeyError and ValueError as Exception."""
-#         data = self.model.copy()
-#         with self.assertRaises(ModelError):
-#             self.model.update({'a': 1})
-#         with self.assertRaises(ModelError):
-#             self.model.update({'name': 1})
-#         self.assertDictEqual(
-#             data, self.model,
-#             f"Model's data is the same after error")
-        
-
-class TestField(unittest.TestCase):
+class TestModel(unittest.TestCase):
 
     def setUp(self):
-        self.model = MockUp({'required': True})
+        self.note = Note({
+            'title': 'Title',
+            'note': 'Content'})
 
-    def test_anyof(self):
-        self.model['anyof'] = 1
+    def test_data_unmodified(self):
+        note = {'title': 'test'}
+        Note(note)
+        self.assertDictEqual(note, {'title': 'test'})
+
+    def test_setitem(self):
+        """Test `__setitem__` for 4 cases:
+        1. FieldError,
+        2. Key Error
+        3. Data unmodified if there is any error.
+        4. Success.
+        """
+
+        note = self.note.copy()
+
+        # 1. FieldError.
         with self.assertRaises(FieldError):
-            self.model['anyof'] = 5
+            self.note['title'] = 0
 
-    def test_verify(self):
-        self.model['verify'] = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
+        # 2. KeyError.
+        with self.assertRaises(KeyError):
+            self.note['datetime'] = 'today'
 
-    def test_default(self):
-        self.assertEqual(self.model['default'], 'default')
+        # 3. Data unmodified if there is any error.
+        self.assertDictEqual(
+            note, self.note,
+            f"Data must be the same if there is any error")
+
+        # 4. Success.
+        self.note['title'] = 'New Title'
+        self.assertEqual(self.note['title'], 'New Title')
+
+    def test_update(self):
+        """Test `update` to raise KeyError and ValueError as Exception."""
+        data = self.note.copy()
+        
+        with self.assertRaises(ModelError):
+            self.note.update({'title': 1})
+
+        with self.assertRaises(ModelError):
+            self.note.update({'datetime': 1})
+
+        self.assertDictEqual(
+            data, self.note,
+            f"Data must be the same if there is any error")
+
+        data = {'title': 'New Title', 'note': 'New Note'}
+        self.note.update(data)
+        self.assertDictEqual(data, self.note)
+        
+
+# class TestField(unittest.TestCase):
+
+#     def setUp(self):
+#         self.model = MockUp({'required': True})
+
+#     def test_anyof(self):
+#         self.model['anyof'] = 1
+#         with self.assertRaises(FieldError):
+#             self.model['anyof'] = 5
+
+#     def test_verify(self):
+#         self.model['verify'] = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
+
+#     def test_default(self):
+#         self.assertEqual(self.model['default'], 'default')
 
 #     def test_length(self):
 #         self.model['length'] = 'hello'
