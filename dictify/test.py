@@ -1,22 +1,13 @@
 import unittest
 import json
 import uuid
-from dictify import Model, Field, ModelError, ListError
+from pprint import pprint
+from dictify import Model, Field, ModelError
 
 
 class Note(Model):
     title = Field(required=True).type(str)
     note = Field().type(str)
-
-
-class FileBody(Model):
-    content_type = Field(required=True).type(str)
-    body = Field(required=True).type(bytes)
-
-
-class File(Model):
-    name = Field(required=True).type(str)
-    file = Field(required=True).model(FileBody)
 
 
 class MockUp(Model):
@@ -31,14 +22,15 @@ class MockUp(Model):
     default = Field(default='default')
     required = Field(required=True)
     anyof = Field().anyof([1, 2, 3])
-    verify = Field().verify(uuid4_rule)
     length = Field().length(min=2, max=10)
     listof = Field().listof(str)
-    search = Field().search('[0-9]+')
     min = Field().min(0)
     max = Field().max(10)
+    model = Field().model(Note)
+    search = Field().search('[0-9]+')
     subset = Field().subset([1, 2, 3])
     type = Field().type(str)
+    verify = Field().verify(uuid4_rule)
     
 
 class TestModel(unittest.TestCase):
@@ -99,19 +91,6 @@ class TestModel(unittest.TestCase):
         self.assertDictEqual(data, self.note)
 
 
-class TestNestedModel(unittest.TestCase):
-
-    def test_nested(self):
-        file_body = {
-            'content_type': 'image/jpeg',
-            'body': b'test'
-        }
-        self.file = File({
-            'name': 'test_file',
-            'file': file_body
-        })
-
-
 class TestField(unittest.TestCase):
 
     def setUp(self):
@@ -158,6 +137,10 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ModelError):
             self.model['max'] = 11
         self.assertEqual(self.model['max'], 10)
+
+    def test_model(self):
+        self.model['model'] = Note({'title': 'Note Title'})
+        pprint(self.model)
 
     def test_required(self):
         required = self.model['required']

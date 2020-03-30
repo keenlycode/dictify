@@ -61,18 +61,18 @@ class ListOf(list):
 
 class Field:
     def __init__(self, required=False, default=None):
-        self._required = required
-        self._default = default
         self._functions = list()
+        self.required = required
+        self.default = default
         self.value = default
 
     def validate(self, value=None):
         """Apply all functions to field's value"""
         errors = list()
-        self.value = self._default
+        self.value = self.default
         if value is not None:
             self.value = value
-        if self._required:
+        if self.required:
             try:
                 assert self.value, 'Value is required'
             except AssertionError as e:
@@ -163,12 +163,11 @@ class Model(dict):
             # If it's Field instance, check for default value
             if isinstance(item, Field):
                 field[key] = item
-                if (data.get(key) is None) and (item._default is not None):
-                    data[key] = item._default
-            if isinstance(item, Model):
-                field[key] = item
+                if (data.get(key) is None) and (item.default is not None):
+                    data[key] = item.default
 
         self._field = field
+        data = self._required(data)
         data = self._validate(data)
         super().__init__(data)
 
@@ -184,6 +183,14 @@ class Model(dict):
             error = {key: e}
         if error:
             raise ModelError(error)
+
+    def _required(self, data: dict):
+        for key in self._field:
+            # If there's no data for required field, set data to `None`
+            if self._field[key].required:
+                if not data.get(key):
+                    data[key] = None
+        return data
 
     def _validate(self, data: dict):
         error = dict()
