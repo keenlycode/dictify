@@ -3,7 +3,7 @@ import re
 
 
 def function(func):
-    """Decorator to add function to field for validation."""
+    """Decorator to add function to Field()._functions for validation."""
     def wrapper(field, *args, **kw):
         field._functions.append(lambda field: func(field, *args, **kw))
         return field
@@ -11,14 +11,26 @@ def function(func):
 
 
 class ModelError(Exception):
+    """
+    ModelError message format:
+    {'field_name': FieldError(Exceptions)}
+    """
     pass
 
 
 class FieldError(Exception):
+    """
+    FieldError message format:
+    FieldError(Exceptions)
+    """
     pass
 
 
 class ListError(Exception):
+    """
+    ListError message format
+    ListError(Exceptions)
+    """
     pass
 
 
@@ -54,7 +66,7 @@ class Field:
         self._functions = list()
         self.value = default
 
-    def _validate(self, value=None):
+    def validate(self, value=None):
         """Apply all functions to field's value"""
         errors = list()
         self.value = self._default
@@ -62,7 +74,7 @@ class Field:
             self.value = value
         if self._required:
             try:
-                assert self.value is not None, 'Value is required'
+                assert self.value, 'Value is required'
             except AssertionError as e:
                 raise FieldError([e])
         if self.value is None:
@@ -99,8 +111,8 @@ class Field:
         self.value = ListOf(self, type_)
 
     @function
-    def verify(self, func):
-        func(self)
+    def model(self, cls):
+        self.value = cls(self.value)
 
     @function
     def search(self, re_: str):
@@ -132,21 +144,29 @@ class Field:
         assert set(self.value) <= set(members),\
             f"{self.value} is not a subset of {members}"
 
+    @function
+    def verify(self, func):
+        func(self)
+
 
 class Model(dict):
     """Class to defined fields and rules."""
 
     def __init__(self, data=dict()):
-        assert isinstance(data, dict)
+        assert isinstance(data, dict),\
+            f"Model initial data should be an instance of `dict`"
         data = data.copy()
         field = dict()
         for key in self.__dir__():
-            f = self.__getattribute__(key)
-            if not isinstance(f, Field):
-                continue
-            field[key] = f
-            if f._default is not None:
-                data[key] = f._default
+            item = self.__getattribute__(key)
+            # Set field[key] if It's Model or Field instance.
+            # If it's Field instance, check for default value
+            if isinstance(item, Field):
+                field[key] = item
+                if (data.get(key) is None) and (item._default is not None):
+                    data[key] = item._default
+            if isinstance(item, Model):
+                field[key] = item
 
         self._field = field
         data = self._validate(data)
@@ -156,11 +176,11 @@ class Model(dict):
         """Verify value before `super().__setitem__`."""
         error = None
         try:
-            self._field[key]._validate(value)
+            self._field[key].validate(value)
             super().__setitem__(key, value)
         except KeyError:
             error = {key: KeyError('Field is not defined')}
-        except FieldError as e:
+        except (FieldError, ListError) as e:
             error = {key: e}
         if error:
             raise ModelError(error)
@@ -169,7 +189,7 @@ class Model(dict):
         error = dict()
         for key in data:
             try:
-                data[key] = self._field[key]._validate(data[key]).value
+                data[key] = self._field[key].validate(data[key]).value
             except KeyError:
                 error[key] = KeyError('Field is not defined')
             except FieldError as e:

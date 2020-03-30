@@ -1,12 +1,22 @@
 import unittest
 import json
 import uuid
-from dictify import Model, Field, FieldError, ModelError, ListError
+from dictify import Model, Field, ModelError, ListError
 
 
 class Note(Model):
     title = Field(required=True).type(str)
     note = Field().type(str)
+
+
+class FileBody(Model):
+    content_type = Field(required=True).type(str)
+    body = Field(required=True).type(bytes)
+
+
+class File(Model):
+    name = Field(required=True).type(str)
+    file = Field(required=True).model(FileBody)
 
 
 class MockUp(Model):
@@ -87,7 +97,20 @@ class TestModel(unittest.TestCase):
         data = {'title': 'New Title', 'note': 'New Note'}
         self.note.update(data)
         self.assertDictEqual(data, self.note)
-        
+
+
+class TestNestedModel(unittest.TestCase):
+
+    def test_nested(self):
+        file_body = {
+            'content_type': 'image/jpeg',
+            'body': b'test'
+        }
+        self.file = File({
+            'name': 'test_file',
+            'file': file_body
+        })
+
 
 class TestField(unittest.TestCase):
 
@@ -113,7 +136,7 @@ class TestField(unittest.TestCase):
     def test_listof(self):
         str_list = ['ab', 'cd']
         self.model['listof'] = str_list
-        with self.assertRaises(ListError):
+        with self.assertRaises(ModelError):
             self.model['listof'] = [1, 2]
         self.assertEqual(self.model['listof'], str_list)
 
@@ -160,19 +183,20 @@ class TestField(unittest.TestCase):
         data = json.dumps(self.model)
         self.assertIsInstance(data, str)
 
-# class TestSubClass(unittest.TestCase):
-#     def setUp(self):
-#         class Content(BaseModel):
-#             content_type = Field().type(str)
 
-#         class HTML(Content):
-#             pass
+class TestSubClass(unittest.TestCase):
+    def setUp(self):
+        class Content(Model):
+            content_type = Field().type(str)
 
-#         self.html = HTML()
+        class HTML(Content):
+            pass
 
-#     def test_subclass(self):
-#         with self.assertRaises(ValueError):
-#             self.html['content_type'] = 1
+        self.html = HTML()
+
+    def test_subclass(self):
+        with self.assertRaises(ModelError):
+            self.html['content_type'] = 1
 
 
 if __name__ == '__main__':
