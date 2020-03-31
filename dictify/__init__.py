@@ -60,23 +60,28 @@ class ListOf(list):
 
 
 class Field:
-    def __init__(self, required=False, default=None):
+    def __init__(self, *args, **option):
         self._functions = list()
-        self.required = required
-        self.default = default
-        self.value = default
+        self.option = option
+        if 'required' not in self.option:
+            self.option['required'] = False
+        if 'disallow' not in self.option:
+            self.option['disallow'] = [None]
+        if 'default' in self.option:
+            assert self.option['default'] not in self.option['disallow'],\
+                f"""Default value is disallowed.
+                default({self.option['default']}), disallow({self.option['disallow']})
+                """
 
     def validate(self, value=None):
-        """Apply all functions to field's value"""
+        """Validate value"""
         errors = list()
-        self.value = self.default
-        if value is not None:
-            self.value = value
-        if self.required:
-            try:
-                assert self.value, 'Value is required'
-            except AssertionError as e:
-                raise FieldError([e])
+        try:
+            assert value not in self.option['disallow'],\
+                f"Value({value}) is not allowed. Disallow {self.option['disallow']}"
+        except AssertionError as e:
+            raise FieldError([e])
+        self.value = value
         if self.value is None:
             return self
         for function in self._functions:
@@ -156,18 +161,21 @@ class Model(dict):
         assert isinstance(data, dict),\
             f"Model initial data should be an instance of `dict`"
         data = data.copy()
-        field = dict()
+        self._field = dict()
         for key in self.__dir__():
             item = self.__getattribute__(key)
             # Set field[key] if It's Model or Field instance.
             # If it's Field instance, check for default value
-            if isinstance(item, Field):
-                field[key] = item
-                if (data.get(key) is None) and (item.default is not None):
-                    data[key] = item.default
-
-        self._field = field
-        data = self._required(data)
+            if not isinstance(item, Field):
+                continue
+            if ('default' in item.option) and (key not in data):
+                data[key] = item.option['default']
+            elif item.option['required']:
+                try:
+                    assert key in data, f"Value is required"
+                except AssertionError as e:
+                    raise FieldError([e])
+            self._field[key] = item
         data = self._validate(data)
         super().__init__(data)
 

@@ -1,7 +1,7 @@
 import unittest
 import json
 import uuid
-from pprint import pprint
+from collections import UserDict
 from dictify import Model, Field, ModelError
 
 
@@ -138,9 +138,9 @@ class TestField(unittest.TestCase):
             self.model['max'] = 11
         self.assertEqual(self.model['max'], 10)
 
-    def test_model(self):
-        self.model['model'] = Note({'title': 'Note Title'})
-        pprint(self.model)
+    # def test_model(self):
+    #     self.model['model'] = Note({'title': 'Note Title'})
+    #     self.assertIs(type(self.model['model']), dict)
 
     def test_required(self):
         required = self.model['required']
