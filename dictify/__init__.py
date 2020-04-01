@@ -158,29 +158,33 @@ class Model(dict):
     """Class to defined fields and rules."""
 
     def __init__(self, data=dict()):
-        assert isinstance(data, dict),\
-            f"Model initial data should be an instance of `dict`"
+        assert type(data) == dict,\
+            f"Model initial data type should be `dict`"
         data = data.copy()
         self._field = dict()
         for key in self.__dir__():
-            item = self.__getattribute__(key)
-            # Set field[key] if It's Model or Field instance.
-            # If it's Field instance, check for default value
-            if not isinstance(item, Field):
+            field = self.__getattribute__(key)
+            # Check if item is Field().
+            if not isinstance(field, Field):
                 continue
-            if ('default' in item.option) and (key not in data):
-                data[key] = item.option['default']
-            elif item.option['required']:
+            # If default option is set in Field(), set default value
+            if ('default' in field.option) and (key not in data):
+                data[key] = field.option['default']
+            # If required option is set in Field(), check if it's provided.
+            elif field.option['required']:
                 if key not in data:
                     raise ModelError({
                         key: FieldError([AssertionError("Value is required")])
                     })
-            self._field[key] = item
+            # Keep Field() in self._field for data validation.
+            self._field[key] = field
         data = self._validate(data)
         super().__init__(data)
 
     def __setitem__(self, key, value):
         """Verify value before `super().__setitem__`."""
+        if issubclass(type(value), Model):
+            value = dict(value)
         error = None
         try:
             self._field[key].validate(value)

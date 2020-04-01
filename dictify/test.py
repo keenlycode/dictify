@@ -1,17 +1,17 @@
 import unittest
 import json
 import uuid
-from collections import UserDict
+from datetime import datetime
 from dictify import Model, Field, ModelError
 
 
 class Note(Model):
     title = Field(required=True).type(str)
-    note = Field().type(str)
+    content = Field().type(str)
+    datetime = Field(default=datetime.utcnow()).type(datetime)
 
 
 class MockUp(Model):
-
     def uuid4_rule(field):
         try:
             id_ = uuid.UUID(field.value)
@@ -38,12 +38,11 @@ class TestModel(unittest.TestCase):
     def setUp(self):
         self.note = Note({
             'title': 'Title',
-            'note': 'Content'})
+            'content': 'Content'})
 
-    def test_data_unmodified(self):
-        note = {'title': 'test'}
-        Note(note)
-        self.assertDictEqual(note, {'title': 'test'})
+    def test_init(self):
+        with self.assertRaises(AssertionError):
+            self.note = Note([])
 
     def test_setitem(self):
         """Test `__setitem__` for 4 cases:
@@ -73,7 +72,6 @@ class TestModel(unittest.TestCase):
         self.assertEqual(self.note['title'], 'New Title')
 
     def test_update(self):
-        """Test `update` to raise KeyError and ValueError as Exception."""
         data = self.note.copy()
         
         with self.assertRaises(ModelError):
@@ -86,7 +84,7 @@ class TestModel(unittest.TestCase):
             data, self.note,
             f"Data must be the same if there is any error")
 
-        data = {'title': 'New Title', 'note': 'New Note'}
+        data.update({'title': 'New Title', 'content': 'New Note'})
         self.note.update(data)
         self.assertDictEqual(data, self.note)
 
@@ -138,9 +136,9 @@ class TestField(unittest.TestCase):
             self.model['max'] = 11
         self.assertEqual(self.model['max'], 10)
 
-    # def test_model(self):
-    #     self.model['model'] = Note({'title': 'Note Title'})
-    #     self.assertIs(type(self.model['model']), dict)
+    def test_model(self):
+        self.model['model'] = Note({'title': 'Note Title'})
+        self.assertIs(type(self.model['model']), dict)
 
     def test_required(self):
         required = self.model['required']
