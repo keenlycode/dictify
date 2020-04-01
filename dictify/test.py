@@ -1,7 +1,6 @@
 import unittest
 import json
 import uuid
-from copy import deepcopy
 from datetime import datetime
 from dictify import Model, Field, ModelError
 
