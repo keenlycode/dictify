@@ -39,11 +39,10 @@ class ListOf(list):
         self._type = type_
         errors = list()
         for v in field.value:
-            try:
-                assert isinstance(v, self._type),\
-                    f"'{v}' is not instance of {self._type}"
-            except AssertionError as e:
-                errors.append(e)
+            if not isinstance(v, self._type):
+                errors.append(
+                    AssertionError(f"'{v}' is not instance of {self._type}")
+                )
         if errors:
             raise ListError(errors)
         super().__init__(field.value)
@@ -76,11 +75,12 @@ class Field:
     def validate(self, value=None):
         """Validate value"""
         errors = list()
-        try:
-            assert value not in self.option['disallow'],\
-                f"Value({value}) is not allowed. Disallow {self.option['disallow']}"
-        except AssertionError as e:
-            raise FieldError([e])
+        if value in self.option['disallow']:
+            raise FieldError([
+                AssertionError(
+                    f"""Value({value}) is not allowed.
+                    Disallow {self.option['disallow']}""")
+            ])
         self.value = value
         if self.value is None:
             return self
@@ -171,10 +171,10 @@ class Model(dict):
             if ('default' in item.option) and (key not in data):
                 data[key] = item.option['default']
             elif item.option['required']:
-                try:
-                    assert key in data, f"Value is required"
-                except AssertionError as e:
-                    raise FieldError([e])
+                if key not in data:
+                    raise ModelError({
+                        key: FieldError([AssertionError("Value is required")])
+                    })
             self._field[key] = item
         data = self._validate(data)
         super().__init__(data)
@@ -192,13 +192,12 @@ class Model(dict):
         if error:
             raise ModelError(error)
 
-    def _required(self, data: dict):
-        for key in self._field:
-            # If there's no data for required field, set data to `None`
-            if self._field[key].required:
-                if not data.get(key):
-                    data[key] = None
-        return data
+    def __delitem__(self, key):
+        if self._field[key].option['default']:
+            self[key] = self._field[key].option['default']
+        elif self._field[key].option['required']:
+            raise FieldError([AssertionError('Value is required')])
+        return super().__delitem__(key)
 
     def _validate(self, data: dict):
         error = dict()
@@ -216,4 +215,4 @@ class Model(dict):
     def update(self, data):
         assert isinstance(data, dict)
         data = self._validate(data.copy())
-        super().update(data)
+        return super().update(data)
