@@ -14,14 +14,14 @@ class User(Model):
 class Comment(Model):
     content = Field().type(str)
     datetime = Field(default=datetime.utcnow()).type(datetime)
-    user = Field(required=True).model(User)
+    user = Field(required=True).type(User)
 
 
 class Note(Model):
     title = Field(required=True).type(str)
     content = Field().type(str)
     datetime = Field(default=datetime.utcnow()).type(datetime)
-    user = Field(required=True).model(User)
+    user = Field(required=True).type(User)
     comments = Field().listof(Comment)
 
 
@@ -51,7 +51,7 @@ class TestModel(unittest.TestCase):
     def setUp(self):
         self.note = Note({
             'title': 'Title',
-            'user': {'name': 'user example'}
+            'user': User({'name': 'user example'})
         })
 
     def test_init(self):
@@ -71,10 +71,10 @@ class TestModel(unittest.TestCase):
             'title': 'Title',
             'content': 'Content',
             'datetime': datetime.utcnow(),
-            'user': {
+            'user': User({
                 'id': uuid.uuid4(),
                 'name': 'user example'
-            }
+            })
         }
         note = Note(data)
         self.assertDictEqual(note, data)
