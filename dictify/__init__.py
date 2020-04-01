@@ -215,7 +215,7 @@ class Model(dict):
         data = dict(self)
         for key, value in self.items():
             if isinstance(value, Model):
-                data[key] = value.dict()
+                data[key] = value.to_dict()
         return data
 
     def update(self, data):

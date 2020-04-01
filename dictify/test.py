@@ -114,14 +114,17 @@ class TestModel(unittest.TestCase):
             'title': 'Title',
             'user': User({'name': 'user example'})
         })
+        note = note.to_dict()
+        # Assert field contains `Model` instance becomes `dict` instance.
+        self.assertIs(type(note['user']), dict)
         
-
     def test_update(self):
         note = Note({
             'title': 'Title',
             'user': User({'name': 'user example'})
         })
-        data = dict(note)
+        data = note.to_dict()
+        self.assertIs(type(data['user']), dict)
         
         with self.assertRaises(ModelError):
             note.update({'title': 1})
@@ -133,9 +136,10 @@ class TestModel(unittest.TestCase):
             data, note,
             f"Data must be the same if there is any error")
 
-        data.update({'title': 'New Title', 'content': 'New Note'})
-        note.update(data)
-        self.assertDictEqual(data, note)
+        update = {'title': 'New Title', 'content': 'New Note'}
+        data.update(update)
+        note.update(update)
+        self.assertDictEqual(data, note.to_dict())
 
 
 class TestField(unittest.TestCase):
