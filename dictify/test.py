@@ -1,14 +1,28 @@
 import unittest
 import json
 import uuid
+from copy import deepcopy
 from datetime import datetime
 from dictify import Model, Field, ModelError
+
+
+class User(Model):
+    id = Field(default=uuid.uuid4()).type(uuid.UUID)
+    name = Field(required=True)
+
+
+class Comment(Model):
+    content = Field().type(str)
+    datetime = Field(default=datetime.utcnow()).type(datetime)
+    user = Field(required=True).model(User)
 
 
 class Note(Model):
     title = Field(required=True).type(str)
     content = Field().type(str)
     datetime = Field(default=datetime.utcnow()).type(datetime)
+    user = Field(required=True).model(User)
+    comments = Field().listof(Comment)
 
 
 class MockUp(Model):
@@ -26,7 +40,6 @@ class MockUp(Model):
     listof = Field().listof(str)
     min = Field().min(0)
     max = Field().max(10)
-    model = Field().model(Note)
     search = Field().search('[0-9]+')
     subset = Field().subset([1, 2, 3])
     type = Field().type(str)
@@ -38,11 +51,33 @@ class TestModel(unittest.TestCase):
     def setUp(self):
         self.note = Note({
             'title': 'Title',
-            'content': 'Content'})
+            'user': {'name': 'user example'}
+        })
 
     def test_init(self):
+        # Test when initial data is not type of dict.
         with self.assertRaises(AssertionError):
             self.note = Note([])
+        
+        # Test required field.
+        with self.assertRaises(ModelError):
+            Note({})
+
+        # Test default value.
+        self.assertIsInstance(self.note['datetime'], datetime)
+
+        # Test successful initial
+        data = {
+            'title': 'Title',
+            'content': 'Content',
+            'datetime': datetime.utcnow(),
+            'user': {
+                'id': uuid.uuid4(),
+                'name': 'user example'
+            }
+        }
+        note = Note(data)
+        self.assertDictEqual(note, data)
 
     def test_setitem(self):
         """Test `__setitem__` for 4 cases:
@@ -72,7 +107,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(self.note['title'], 'New Title')
 
     def test_update(self):
-        data = self.note.copy()
+        data = dict(self.note)
         
         with self.assertRaises(ModelError):
             self.note.update({'title': 1})
@@ -135,10 +170,6 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ModelError):
             self.model['max'] = 11
         self.assertEqual(self.model['max'], 10)
-
-    def test_model(self):
-        self.model['model'] = Note({'title': 'Note Title'})
-        self.assertIs(type(self.model['model']), dict)
 
     def test_required(self):
         required = self.model['required']

@@ -95,7 +95,8 @@ class Field:
 
     @function
     def type(self, type_):
-        assert isinstance(self.value, type_), f'Value is not instance of {type_}'
+        assert isinstance(self.value, type_),\
+            f'{type(self.value)} is not instance of {type_}'
 
     @function
     def anyof(self, members: list):
@@ -158,8 +159,8 @@ class Model(dict):
     """Class to defined fields and rules."""
 
     def __init__(self, data=dict()):
-        assert type(data) == dict,\
-            f"Model initial data type should be `dict`"
+        assert isinstance(data, dict),\
+            f"Model initial data shold be instance of dict"
         data = data.copy()
         self._field = dict()
         for key in self.__dir__():
@@ -183,8 +184,6 @@ class Model(dict):
 
     def __setitem__(self, key, value):
         """Verify value before `super().__setitem__`."""
-        if issubclass(type(value), Model):
-            value = dict(value)
         error = None
         try:
             self._field[key].validate(value)
@@ -220,3 +219,10 @@ class Model(dict):
         assert isinstance(data, dict)
         data = self._validate(data.copy())
         return super().update(data)
+
+    def dict(self):
+        data = dict(self)
+        for key, value in self.items():
+            if isinstance(value, Model):
+                data[key] = value.dict()
+        return data
