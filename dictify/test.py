@@ -110,31 +110,32 @@ class TestModel(unittest.TestCase):
         self.assertEqual(note['title'], 'New Title')
 
     def test_to_dict(self):
-        self.note = Note({
+        note = Note({
             'title': 'Title',
             'user': User({'name': 'user example'})
         })
+        
 
     def test_update(self):
-        self.note = Note({
+        note = Note({
             'title': 'Title',
             'user': User({'name': 'user example'})
         })
-        data = dict(self.note)
+        data = dict(note)
         
         with self.assertRaises(ModelError):
-            self.note.update({'title': 1})
+            note.update({'title': 1})
 
         with self.assertRaises(ModelError):
-            self.note.update({'datetime': 1})
+            note.update({'datetime': 1})
 
         self.assertDictEqual(
-            data, self.note,
+            data, note,
             f"Data must be the same if there is any error")
 
         data.update({'title': 'New Title', 'content': 'New Note'})
-        self.note.update(data)
-        self.assertDictEqual(data, self.note)
+        note.update(data)
+        self.assertDictEqual(data, note)
 
 
 class TestField(unittest.TestCase):
