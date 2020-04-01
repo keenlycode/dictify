@@ -48,23 +48,22 @@ class MockUp(Model):
 
 class TestModel(unittest.TestCase):
 
-    def setUp(self):
-        self.note = Note({
-            'title': 'Title',
-            'user': User({'name': 'user example'})
-        })
-
     def test_init(self):
         # Test when initial data is not type of dict.
         with self.assertRaises(AssertionError):
-            self.note = Note([])
+            Note([])
         
         # Test required field.
         with self.assertRaises(ModelError):
             Note({})
 
+        note = Note({
+            'title': 'Title',
+            'user': User({'name': 'user example'})
+        })
+
         # Test default value.
-        self.assertIsInstance(self.note['datetime'], datetime)
+        self.assertIsInstance(note['datetime'], datetime)
 
         # Test successful initial
         data = {
@@ -87,26 +86,40 @@ class TestModel(unittest.TestCase):
         4. Success.
         """
 
-        note = self.note.copy()
+        note = Note({
+            'title': 'Title',
+            'user': User({'name': 'user example'})
+        })
+        data = note.copy()
 
         # 1. FieldError.
         with self.assertRaises(ModelError):
-            self.note['title'] = 0
+            note['title'] = 0
 
         # 2. KeyError.
         with self.assertRaises(ModelError):
-            self.note['datetime'] = 'today'
+            note['datetime'] = 'today'
 
         # 3. Data unmodified if there is any error.
         self.assertDictEqual(
-            note, self.note,
+            data, note,
             f"Data must be the same if there is any error")
 
         # 4. Success.
-        self.note['title'] = 'New Title'
-        self.assertEqual(self.note['title'], 'New Title')
+        note['title'] = 'New Title'
+        self.assertEqual(note['title'], 'New Title')
+
+    def test_to_dict(self):
+        self.note = Note({
+            'title': 'Title',
+            'user': User({'name': 'user example'})
+        })
 
     def test_update(self):
+        self.note = Note({
+            'title': 'Title',
+            'user': User({'name': 'user example'})
+        })
         data = dict(self.note)
         
         with self.assertRaises(ModelError):
