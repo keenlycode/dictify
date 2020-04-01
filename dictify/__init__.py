@@ -117,10 +117,6 @@ class Field:
         self.value = ListOf(self, type_)
 
     @function
-    def model(self, cls):
-        self.value = cls(self.value)
-
-    @function
     def search(self, re_: str):
         """Check value matching with regular expression."""
         assert re.search(re_, self.value),\
