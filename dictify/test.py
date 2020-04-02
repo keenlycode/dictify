@@ -5,6 +5,18 @@ from datetime import datetime
 from dictify import Model, Field, ModelError
 
 
+def datetime_verify(field):
+    datetime.fromisoformat(field.value)
+
+
+def uuid4_verify(field):
+    try:
+        id_ = uuid.UUID(field.value)
+    except AttributeError:
+        raise AttributeError(f"Can't parse value to UUID")
+    assert id_.version == 4, f"Value is UUID v{id_.version}, not v4"
+
+
 class User(Model):
     id = Field(default=uuid.uuid4()).type(uuid.UUID)
     name = Field(required=True)
@@ -125,38 +137,32 @@ class TestModel(unittest.TestCase):
         3. Data unmodified if there is any error.
         4. Success.
         """
-
-        note = Note({
-            'title': 'Title',
-            'user': User({'name': 'user example'})
-        })
-        data = note.copy()
+        data = self.note.copy()
 
         # 1. FieldError.
         with self.assertRaises(ModelError):
-            note['title'] = 0
+            self.note['title'] = 0
 
         # 2. KeyError.
         with self.assertRaises(ModelError):
-            note['datetime'] = 'today'
+            self.note['datetime'] = 'today'
 
         # 3. Data unmodified if there is any error.
         self.assertDictEqual(
-            data, note, "Data must be the same if there is any error")
+            self.note, data, "Data must be the same if there is any error")
 
         # 4. Success.
         title = 'New Title'
-        note['title'] = title
-        self.assertEqual(note['title'], title)
+        self.note['title'] = title
+        self.assertEqual(self.note['title'], title)
 
-    def test_to_dict(self):
-        note = Note({
-            'title': 'Title',
-            'user': User({'name': 'user example'})
-        })
-        note = note.to_dict()
+    # def test_to_dict(self):
+    #     note = self.note.copy()
+    #     note['datetime'] = note['datetime'].isoformat()
+    #     json.dumps(note)
         # Assert field contains `Model` instance becomes `dict` instance.
-        self.assertIs(type(note['user']), dict)
+        # self.assertIs(type(note['user']), dict)
+        # self.assertIs(type(note['comments']), list)
         
     def test_update(self):
         note = Note({
