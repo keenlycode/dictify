@@ -58,13 +58,6 @@ class NoteJSON(Model):
 
 
 class MockUp(Model):
-    def uuid4_rule(field):
-        try:
-            id_ = uuid.UUID(field.value)
-        except AttributeError:
-            raise AttributeError(f"Can't parse value to UUID")
-        assert id_.version == 4, f"Value is UUID v{id_.version}, not v4"
-
     default = Field(default='default')
     required = Field(required=True)
     anyof = Field().anyof([1, 2, 3])
@@ -72,10 +65,11 @@ class MockUp(Model):
     listof = Field().listof(str)
     min = Field().min(0)
     max = Field().max(10)
+    model = Field().model(NoteJSON)
     search = Field().search('[0-9]+')
     subset = Field().subset([1, 2, 3])
     type = Field().type(str)
-    verify = Field().verify(uuid4_rule)
+    verify = Field().verify(uuid4_verify)
     
 
 class TestModel(unittest.TestCase):
@@ -237,6 +231,17 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ModelError):
             self.model['listof'] = [1, 2]
         self.assertEqual(self.model['listof'], str_list)
+
+    def test_model(self):
+        note = NoteJSON({
+            'title': 'Note',
+            'user': UserJSON({'name': 'user-1'})
+        })
+        # 1. Set field value to NoteJSON() instance
+        self.model['model'] = note
+        note = json.dumps(note)
+        note = json.loads(note)
+        self.model['model'] = note
 
     def test_search(self):
         self.model['search'] = '0123456789'
