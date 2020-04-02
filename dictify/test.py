@@ -239,6 +239,8 @@ class TestField(unittest.TestCase):
         })
         # 1. Set field value to NoteJSON() instance
         self.model['model'] = note
+
+        # 2. Set field value to dict() which is JSON compatible.
         note = json.dumps(note)
         note = json.loads(note)
         self.model['model'] = note
