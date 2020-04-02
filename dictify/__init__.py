@@ -171,12 +171,20 @@ class Model(dict):
             elif field.option['required']:
                 if key not in data:
                     raise ModelError({
-                        key: FieldError([AssertionError("Value is required")])
+                        key: KeyError("This field is required")
                     })
             # Keep Field() in self._field for data validation.
             self._field[key] = field
         data = self._validate(data)
         super().__init__(data)
+
+    def __delitem__(self, key):
+        if self._field[key].option.get('default'):
+            self[key] = self._field[key].option['default']
+        elif self._field[key].option['required']:
+            raise ModelError({key: KeyError("This field is required")})
+        else:
+            return super().__delitem__(key)
 
     def __setitem__(self, key, value):
         """Verify value before `super().__setitem__`."""
@@ -190,13 +198,6 @@ class Model(dict):
             error = {key: e}
         if error:
             raise ModelError(error)
-
-    def __delitem__(self, key):
-        if self._field[key].option['default']:
-            self[key] = self._field[key].option['default']
-        elif self._field[key].option['required']:
-            raise FieldError([AssertionError('Value is required')])
-        return super().__delitem__(key)
 
     def _validate(self, data: dict):
         error = dict()

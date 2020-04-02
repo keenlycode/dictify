@@ -47,6 +47,27 @@ class MockUp(Model):
 
 class TestModel(unittest.TestCase):
 
+    def setUp(self):
+        self.note = Note({
+            'title': 'Title',
+            'content': 'Content',
+            'datetime': datetime.utcnow(),
+            'user': User({
+                'id': uuid.uuid4(),
+                'name': 'user1'
+            }),
+            'comments': [
+                Comment({
+                    'content': 'second user comment',
+                    'user': User({'name': 'second user'})
+                }),
+                Comment({
+                    'content': 'third user comment',
+                    'user': User({'name': 'third user'})
+                })
+            ]
+        })
+
     def test_init(self):
         # Test when initial data is not type of dict.
         with self.assertRaises(AssertionError):
@@ -77,6 +98,26 @@ class TestModel(unittest.TestCase):
         note = Note(data)
         self.assertDictEqual(note, data)
 
+    def test_delitem(self):
+        """Test 3 cases:
+        1. Delete field with default option.
+        2. Delete field with required option.
+        3. Delete field with no option.
+        """
+        # 1. Delete field with default option.
+        del self.note['datetime']
+        self.assertIsInstance(self.note['datetime'], datetime)
+
+        # 2. Delete field with required option.
+        title = self.note['title']
+        with self.assertRaises(ModelError):
+            del self.note['title']
+        self.assertEqual(title, self.note['title'])
+
+        # 3. Delete field with no option.
+        del self.note['content']
+        self.assertNotIn('content', self.note)
+
     def test_setitem(self):
         """Test `__setitem__` for 4 cases:
         1. FieldError,
@@ -101,12 +142,12 @@ class TestModel(unittest.TestCase):
 
         # 3. Data unmodified if there is any error.
         self.assertDictEqual(
-            data, note,
-            f"Data must be the same if there is any error")
+            data, note, "Data must be the same if there is any error")
 
         # 4. Success.
-        note['title'] = 'New Title'
-        self.assertEqual(note['title'], 'New Title')
+        title = 'New Title'
+        note['title'] = title
+        self.assertEqual(note['title'], title)
 
     def test_to_dict(self):
         note = Note({
@@ -140,6 +181,9 @@ class TestModel(unittest.TestCase):
         note.update(update)
         self.assertDictEqual(data, note.to_dict())
 
+    # def test_json(self):
+    #     data = json.dumps(self.note)
+    #     self.assertIsInstance(data, str)
 
 class TestField(unittest.TestCase):
 
@@ -207,10 +251,6 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ModelError):
             self.model['type'] = 1
             self.assertEqual(self.model['type'], string)
-
-    def test_json(self):
-        data = json.dumps(self.model)
-        self.assertIsInstance(data, str)
 
 
 class TestSubClass(unittest.TestCase):
