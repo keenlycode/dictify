@@ -191,8 +191,8 @@ class TestModel(unittest.TestCase):
             'title': 'Title',
             'user': User({'name': 'user example'})
         })
-        data = note.to_dict()
-        self.assertIs(type(data['user']), dict)
+        data = note.copy()
+        self.assertIsInstance(data['user'], dict)
         
         with self.assertRaises(ModelError):
             note.update({'title': 1})
@@ -207,7 +207,7 @@ class TestModel(unittest.TestCase):
         update = {'title': 'New Title', 'content': 'New Note'}
         data.update(update)
         note.update(update)
-        self.assertDictEqual(data, note.to_dict())
+        self.assertDictEqual(data, note)
 
 
 class TestField(unittest.TestCase):

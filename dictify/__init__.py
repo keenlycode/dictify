@@ -216,13 +216,6 @@ class Model(dict):
             raise ModelError(error)
         return data
 
-    def to_dict(self):
-        data = dict(self)
-        for key, value in self.items():
-            if isinstance(value, Model):
-                data[key] = value.to_dict()
-        return data
-
     def update(self, data):
         assert isinstance(data, dict)
         data = self._validate(data.copy())
