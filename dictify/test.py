@@ -19,7 +19,7 @@ def uuid4_verify(field):
 
 class User(Model):
     id = Field(default=uuid.uuid4()).type(uuid.UUID)
-    name = Field(required=True)
+    name = Field(required=True).type(str)
 
 
 class Comment(Model):
@@ -34,6 +34,27 @@ class Note(Model):
     datetime = Field(default=datetime.utcnow()).type(datetime)
     user = Field(required=True).type(User)
     comments = Field().listof(Comment)
+
+
+class UserJSON(Model):
+    id = Field(default=str(uuid.uuid4())).verify(uuid4_verify)
+    name = Field(required=True).type(str)
+
+
+class CommentJSON(Model):
+    content = Field(required=True).type(str)
+    datetime = Field(default=datetime.utcnow().isoformat())\
+        .verify(datetime_verify)
+    user = Field(required=True).model(UserJSON)
+
+
+class NoteJSON(Model):
+    title = Field(required=True).type(str)
+    content = Field().type(str)
+    datetime = Field(default=datetime.utcnow().isoformat())\
+        .verify(datetime_verify)
+    user = Field(required=True).model(UserJSON)
+    comments = Field().listof(CommentJSON)
 
 
 class MockUp(Model):
@@ -156,13 +177,14 @@ class TestModel(unittest.TestCase):
         self.note['title'] = title
         self.assertEqual(self.note['title'], title)
 
-    # def test_to_dict(self):
-    #     note = self.note.copy()
-    #     note['datetime'] = note['datetime'].isoformat()
-    #     json.dumps(note)
-        # Assert field contains `Model` instance becomes `dict` instance.
-        # self.assertIs(type(note['user']), dict)
-        # self.assertIs(type(note['comments']), list)
+    def test_json(self):
+        note = NoteJSON({
+            'title': 'Note JSON',
+            'user': UserJSON({'name': 'user-1'})
+        })
+        note = json.dumps(note)
+        note = json.loads(note)
+        NoteJSON(note)
         
     def test_update(self):
         note = Note({
@@ -187,9 +209,6 @@ class TestModel(unittest.TestCase):
         note.update(update)
         self.assertDictEqual(data, note.to_dict())
 
-    # def test_json(self):
-    #     data = json.dumps(self.note)
-    #     self.assertIsInstance(data, str)
 
 class TestField(unittest.TestCase):
 

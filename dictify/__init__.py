@@ -104,6 +104,10 @@ class Field:
         assert self.value in members, f'{self.value} is not in {members}'
 
     @function
+    def model(self, model_cls):
+        model_cls(self.value)
+
+    @function
     def length(self, min: int = 0, max: int = math.inf):
         """Set min/max of value's length."""
         assert isinstance(self.value, (str, list)),\
