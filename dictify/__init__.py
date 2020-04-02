@@ -13,7 +13,7 @@ def function(func):
 class ModelError(Exception):
     """
     ModelError message format:
-    {'field_name': FieldError(Exceptions)}
+    {'field_name': FieldError([Exception,])}
     """
     pass
 
@@ -21,7 +21,7 @@ class ModelError(Exception):
 class FieldError(Exception):
     """
     FieldError message format:
-    FieldError(Exceptions)
+    FieldError([Exception,])
     """
     pass
 
@@ -29,12 +29,15 @@ class FieldError(Exception):
 class ListError(Exception):
     """
     ListError message format
-    ListError(Exceptions)
+    ListError([Exception,])
     """
     pass
 
 
 class ListOf(list):
+    """
+    Modified list to check it's members instance.
+    """
     def __init__(self, field, type_=None):
         self._type = type_
         errors = list()
@@ -59,6 +62,10 @@ class ListOf(list):
 
 
 class Field:
+    """
+    Field class to be defined in Model.
+    Field(required=False, disallow=[None])
+    """
     def __init__(self, *args, **option):
         self._functions = list()
         self.option = option
