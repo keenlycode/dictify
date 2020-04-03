@@ -1,9 +1,11 @@
 import math
 import re
+from functools import wraps
 
 
 def function(func):
     """Decorator to add function to Field()._functions for validation."""
+    @wraps(func)
     def wrapper(field, *args, **kw):
         field._functions.append(lambda field: func(field, *args, **kw))
         return field
@@ -64,7 +66,8 @@ class ListOf(list):
 class Field:
     """
     Field class to be defined in Model.
-    Field(required=False, disallow=[None])
+    kwargs:
+    - `required`
     """
     def __init__(self, *args, **option):
         self._functions = list()
