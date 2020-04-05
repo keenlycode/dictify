@@ -8,7 +8,8 @@ def function(func: Callable):
     """Decorator to add function to Field()._functions for validation."""
     @wraps(func)
     def wrapper(field, *args, **kw):
-        field._functions.append(lambda field: func(field, *args, **kw))
+        field._functions.append(
+            lambda field, value: func(field, value, *args, **kw))
         return field
     return wrapper
 
@@ -45,17 +46,17 @@ class ListOf(list):
     """
     Modified list to check it's members instance.
     """
-    def __init__(self, field, type_=None):
+    def __init__(self, value, type_=None):
         self._type = type_
         errors = list()
-        for v in field.value:
+        for v in value:
             if not isinstance(v, self._type):
                 errors.append(
                     AssertionError(f"'{v}' is not instance of {self._type}")
                 )
         if errors:
             raise ListError(errors)
-        super().__init__(field.value)
+        super().__init__(value)
 
     def __setitem__(self, index, value):
         assert isinstance(value, self._type),\
@@ -123,79 +124,77 @@ class Field:
                     f"""Value({value}) is not allowed.
                     Disallow {self.option['disallow']}""")
             ])
-        old_value = self.value
-        self._value = value
         for function in self._functions:
             try:
-                function(self)
+                function(self, value)
             except AssertionError as e:
                 errors.append(e)
         if errors:
-            self._value = old_value
             raise FieldError(errors)
+        self._value = value
 
     @function
-    def instance(self, type_: type):
-        """``assert isinstance(self.value, type_)``"""
-        assert isinstance(self.value, type_),\
-            f'{type(self.value)} is not instance of {type_}'
+    def instance(self, value, type_: type):
+        """``assert isinstance(value, type_)``"""
+        assert isinstance(value, type_),\
+            f'{type(value)} is not instance of {type_}'
 
     @function
-    def anyof(self, members: list):
-        """``assert self.value in members``"""
-        assert self.value in members, f'{self.value} is not in {members}'
+    def anyof(self, value, members: list):
+        """``assert value in members``"""
+        assert value in members, f'{value} is not in {members}'
 
     @function
-    def length(self, min: int = 0, max: int = math.inf):
-        """Set value's min/max length. ``assert min <= len(self.value) <= max``"""
-        assert isinstance(self.value, (str, list)),\
-            f"Value muse be `str` or `list` object"
-        length_ = len(self.value)
+    def length(self, value, min: int = 0, max: int = math.inf):
+        """Set value's min/max length. ``assert min <= len(value) <= max``"""
+        assert isinstance(value, (str, list)),\
+            f"{value} is not instance of `str` or `list`"
+        length_ = len(value)
         assert min <= length_ <= max,\
             f"Value's length is {length_}. Must be {min} to {max}"
 
     @function
-    def listof(self, type_):
+    def listof(self, value, type_):
         """Check if ``Field()`` value is list of ``type_``"""
-        ListOf(self, type_)
+        ListOf(value, type_)
 
     @function
-    def model(self, model_cls):
-        model_cls(self.value)
+    def model(self, value, model_cls):
+        model_cls(value)
 
     @function
-    def min(self, min_: (int, float, complex) = -math.inf, equal=True):
+    def min(self, value, min_: (int, float, complex) = -math.inf, equal=True):
         if equal is True:
-            assert self.value >= min_,\
-                f"Value({self.value}) >= Min({min_}) is False"
+            assert value >= min_,\
+                f"Value({value}) >= Min({min_}) is False"
         else:
-            assert self.value > min_,\
-                f"Value({self.value}) > Min({min_}) is False"
+            assert value > min_,\
+                f"Value({value}) > Min({min_}) is False"
 
     @function
-    def max(self, max_: (int, float, complex) = -math.inf, equal=True):
+    def max(self, value, max_: (int, float, complex) = -math.inf, equal=True):
         if equal is True:
-            assert self.value <= max_,\
-                f"Value({self.value}) <= Max({max_}) is False"
+            assert value <= max_,\
+                f"Value({value}) <= Max({max_}) is False"
         else:
-            assert self.value < max_,\
-                f"Value({self.value}) < Max({max_}) is False"
+            assert value < max_,\
+                f"Value({value}) < Max({max_}) is False"
 
     @function
-    def search(self, re_: str):
+    def search(self, value, re_: str):
         """Check value matching with regular expression."""
-        assert re.search(re_, self.value),\
-            f"re.search('{re_}', '{self.value}') is None"
+        assert re.search(re_, value),\
+            f"re.search('{re_}', '{value}') is None"
 
     @function
-    def subset(self, members: list):
+    def subset(self, value, members: list):
         """Check if value is subset of defined members."""
-        assert set(self.value) <= set(members),\
-            f"{self.value} is not a subset of {members}"
+        assert set(value) <= set(members),\
+            f"{value} is not a subset of {members}"
 
     @function
-    def verify(self, func):
-        func(self)
+    def verify(self, value, func):
+        func(value)
 
 
 class Model(dict):
@@ -222,7 +221,7 @@ class Model(dict):
                     })
             # Keep Field() in self._field for data validation.
             self._field[key] = field
-        data = self._validate(data)
+        self._validate(data)
         super().__init__(data)
 
     def __delitem__(self, key):
@@ -251,16 +250,14 @@ class Model(dict):
         for key in data:
             try:
                 self._field[key].value = data[key]
-                data[key] = self._field[key].value
             except KeyError:
                 error[key] = KeyError('Field is not defined')
             except FieldError as e:
                 error[key] = e
         if error:
             raise ModelError(error)
-        return data
 
     def update(self, data):
         assert isinstance(data, dict)
-        data = self._validate(data.copy())
+        self._validate(data)
         return super().update(data)

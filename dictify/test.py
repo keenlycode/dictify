@@ -5,13 +5,13 @@ from datetime import datetime
 from dictify import Model, Field, ModelError
 
 
-def datetime_verify(field):
-    datetime.fromisoformat(field.value)
+def datetime_verify(value):
+    datetime.fromisoformat(value)
 
 
-def uuid4_verify(field):
+def uuid4_verify(value):
     try:
-        id_ = uuid.UUID(field.value)
+        id_ = uuid.UUID(value)
     except AttributeError:
         raise AttributeError(f"Can't parse value to UUID")
     assert id_.version == 4, f"Value is UUID v{id_.version}, not v4"
