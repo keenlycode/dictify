@@ -30,7 +30,7 @@ class FieldError(Exception):
 
 class ListError(Exception):
     """
-    ListError message format
+    ListError message format:
     ListError([Exception,])
     """
     pass
@@ -66,9 +66,7 @@ class ListOf(list):
 class Field:
     """Create ``Field()`` object which can validate it's value.
 
-    ``Field()`` is designed to be defined in ``Model`` class,
-    so it's not much useful for standalone usage. See ``Model`` for more
-    information and usage
+    ``Field()`` can be defined in ``class Model``.
 
     Examples
     --------
@@ -76,21 +74,26 @@ class Field:
 
         # Use with options.
         field = Field(required=True, disallow=[None])
-        value = 'hi'
-        field.validate(value)
-        field.value = value
+        field.value = 'hi'
 
         # Use with validators.
         field = Field().anyof(['AM','PM'])
-        value = 'AM'
-        field.validate(value)
-        field.value = value
+        field.value = 'AM'
+        field.value = 'A'  # This will raise FieldError
 
-    Parameters:
-        required(bool=False): Required option.
-            Only useful when define ``Field()`` in ``Model`` class
-        disallow(list=[None]): List of disallowed value.
-        default(any): Default value. Ignore required option if set.
+        # Chained validators.
+        field = Field().instance(int).min(0).max(10)
+        field.value = 5
+        field.value = -1  # This will raise FieldError
+
+    Parameters
+    ----------
+    required: bool=False
+        Required option. Only useful when define ``Field()`` in ``Model`` class
+    disallow: list=[None]
+        List of disallowed value.
+    default: any
+        Default value. Ignore required option if set.
     """
     def __init__(self, required: bool = False,
                  disallow: list = [None], **option):
@@ -112,11 +115,6 @@ class Field:
 
     @value.setter
     def value(self, value):
-        self._validate(value)
-        self._value = value
-
-    def _validate(self, value=None):
-        """Validate field's value"""
         errors = list()
         if value in self.option['disallow']:
             raise FieldError([
@@ -168,19 +166,19 @@ class Field:
     def min(self, min_: (int, float, complex) = -math.inf, equal=True):
         if equal is True:
             assert self.value >= min_,\
-                f"Value({self.value}) >= Min({min_})"
+                f"Value({self.value}) >= Min({min_}) is False"
         else:
             assert self.value > min_,\
-                f"Value({self.value}) > Min({min_})"
+                f"Value({self.value}) > Min({min_}) is False"
 
     @function
     def max(self, max_: (int, float, complex) = -math.inf, equal=True):
         if equal is True:
             assert self.value <= max_,\
-                f"Value({self.value}) <= Max({max_})"
+                f"Value({self.value}) <= Max({max_}) is False"
         else:
             assert self.value < max_,\
-                f"Value({self.value}) < Max({max_})"
+                f"Value({self.value}) < Max({max_}) is False"
 
     @function
     def search(self, re_: str):
@@ -239,7 +237,7 @@ class Model(dict):
         error = None
         try:
             self._field[key].value = value
-            super().__setitem__(key, value)
+            super().__setitem__(key, self._field[key].value)
         except KeyError:
             error = {key: KeyError('Field is not defined')}
         except (FieldError, ListError) as e:
