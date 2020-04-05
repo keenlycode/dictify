@@ -28,6 +28,10 @@ class FieldError(Exception):
     pass
 
 
+class FieldDefaultError(Exception):
+    pass
+
+
 class ListError(Exception):
     """
     ListError message format:
@@ -72,17 +76,13 @@ class Field:
     --------
     ::
 
-        # Use with options.
-        field = Field(required=True, disallow=[None])
-        field.value = 'hi'
-
         # Use with validators.
-        field = Field().anyof(['AM','PM'])
+        field = Field(required=True).anyof(['AM','PM'])
         field.value = 'AM'
         field.value = 'A'  # This will raise FieldError
 
         # Chained validators.
-        field = Field().instance(int).min(0).max(10)
+        field = Field(default=0).instance(int).min(0).max(10)
         field.value = 5
         field.value = -1  # This will raise FieldError
 
