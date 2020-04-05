@@ -14,6 +14,14 @@ def function(func: Callable):
     return wrapper
 
 
+class Undefined:
+    def __repr__(self):
+        return 'undefined'
+
+
+UNDEF = Undefined()
+
+
 class ModelError(Exception):
     """
     ModelError message format:
@@ -100,8 +108,8 @@ class Field:
     def __init__(self, required: bool = False,
                  disallow: list = [None], **option):
         self._functions = list()
-        self._value = None
         self.option = option
+        self._value = UNDEF
         self.option['required'] = required
         self.option['disallow'] = disallow
         if 'default' in self.option:
