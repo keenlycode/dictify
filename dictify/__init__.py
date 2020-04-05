@@ -112,9 +112,10 @@ class Field:
 
     @value.setter
     def value(self, value):
+        self._validate(value)
         self._value = value
 
-    def validate(self, value=None):
+    def _validate(self, value=None):
         """Validate field's value"""
         errors = list()
         if value in self.option['disallow']:
@@ -123,17 +124,16 @@ class Field:
                     f"""Value({value}) is not allowed.
                     Disallow {self.option['disallow']}""")
             ])
-        self.value = value
-        if self.value is None:
-            return self
+        old_value = self.value
+        self._value = value
         for function in self._functions:
             try:
                 function(self)
             except AssertionError as e:
                 errors.append(e)
         if errors:
+            self._value = old_value
             raise FieldError(errors)
-        return self
 
     @function
     def instance(self, type_: type):
@@ -238,7 +238,7 @@ class Model(dict):
         """Verify value before `super().__setitem__`."""
         error = None
         try:
-            self._field[key].validate(value)
+            self._field[key].value = value
             super().__setitem__(key, value)
         except KeyError:
             error = {key: KeyError('Field is not defined')}
@@ -251,7 +251,8 @@ class Model(dict):
         error = dict()
         for key in data:
             try:
-                data[key] = self._field[key].validate(data[key]).value
+                self._field[key].value = data[key]
+                data[key] = self._field[key].value
             except KeyError:
                 error[key] = KeyError('Field is not defined')
             except FieldError as e:
