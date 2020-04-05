@@ -15,7 +15,7 @@ def function(func):
 class ModelError(Exception):
     """
     ModelError message format:
-    {'field_name': FieldError([Exception,])}
+    {'field': FieldError([Exception,])}
     """
     pass
 
@@ -64,26 +64,58 @@ class ListOf(list):
 
 
 class Field:
+    """Create ``Field()`` object which can validate it's value.
+
+    ``Field()`` is designed to be defined in ``Model`` class,
+    so it's not much useful for standalone usage. See ``Model`` for more
+    information and usage
+
+    Examples
+    --------
+    ::
+
+        # Use with options.
+        field = Field(required=True, disallow=[None])
+        value = 'hi'
+        field.validate(value)
+        field.value = value
+
+        # Use with validators.
+        field = Field().anyof(['AM','PM'])
+        value = 'AM'
+        field.validate(value)
+        field.value = value
+
+    Parameters:
+        required(bool=False): Required option.
+            Only useful when define ``Field()`` in ``Model`` class
+        disallow(list=[None]): List of disallowed value.
+        default(any): Default value. Ignore required option if set.
     """
-    Field class to be defined in Model.
-    kwargs:
-    - `required`
-    """
-    def __init__(self, *args, **option):
+    def __init__(self, required: bool = False,
+                 disallow: list = [None], **option):
         self._functions = list()
+        self._value = None
         self.option = option
-        if 'required' not in self.option:
-            self.option['required'] = False
-        if 'disallow' not in self.option:
-            self.option['disallow'] = [None]
+        self.option['required'] = required
+        self.option['disallow'] = disallow
         if 'default' in self.option:
             assert self.option['default'] not in self.option['disallow'],\
                 f"""Default value is disallowed.
                 default({self.option['default']}), disallow({self.option['disallow']})
                 """
 
+    @property
+    def value(self):
+        """``Field()`` value"""
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
+
     def validate(self, value=None):
-        """Validate value"""
+        """Validate field's value"""
         errors = list()
         if value in self.option['disallow']:
             raise FieldError([
@@ -104,22 +136,19 @@ class Field:
         return self
 
     @function
-    def type(self, type_):
+    def instance(self, type_: type):
+        """``assert isinstance(self.value, type_)``"""
         assert isinstance(self.value, type_),\
             f'{type(self.value)} is not instance of {type_}'
 
     @function
     def anyof(self, members: list):
-        """Check if value is any of members."""
+        """``assert self.value in members``"""
         assert self.value in members, f'{self.value} is not in {members}'
 
     @function
-    def model(self, model_cls):
-        model_cls(self.value)
-
-    @function
     def length(self, min: int = 0, max: int = math.inf):
-        """Set min/max of value's length."""
+        """Set value's min/max length. ``assert min <= len(self.value) <= max``"""
         assert isinstance(self.value, (str, list)),\
             f"Value muse be `str` or `list` object"
         length_ = len(self.value)
@@ -128,13 +157,12 @@ class Field:
 
     @function
     def listof(self, type_):
-        self.value = ListOf(self, type_)
+        """Check if ``Field()`` value is list of ``type_``"""
+        ListOf(self, type_)
 
     @function
-    def search(self, re_: str):
-        """Check value matching with regular expression."""
-        assert re.search(re_, self.value),\
-            f"re.search('{re_}', '{self.value}') is None"
+    def model(self, model_cls):
+        model_cls(self.value)
 
     @function
     def min(self, min_: (int, float, complex) = -math.inf, equal=True):
@@ -153,6 +181,12 @@ class Field:
         else:
             assert self.value < max_,\
                 f"Value({self.value}) < Max({max_})"
+
+    @function
+    def search(self, re_: str):
+        """Check value matching with regular expression."""
+        assert re.search(re_, self.value),\
+            f"re.search('{re_}', '{self.value}') is None"
 
     @function
     def subset(self, members: list):

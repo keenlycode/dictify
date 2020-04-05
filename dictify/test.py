@@ -18,39 +18,39 @@ def uuid4_verify(field):
 
 
 class User(Model):
-    id = Field(default=uuid.uuid4()).type(uuid.UUID)
-    name = Field(required=True).type(str)
+    id = Field(default=uuid.uuid4()).instance(uuid.UUID)
+    name = Field(required=True).instance(str)
 
 
 class Comment(Model):
-    content = Field().type(str)
-    datetime = Field(default=datetime.utcnow()).type(datetime)
-    user = Field(required=True).type(User)
+    content = Field().instance(str)
+    datetime = Field(default=datetime.utcnow()).instance(datetime)
+    user = Field(required=True).instance(User)
 
 
 class Note(Model):
-    title = Field(required=True).type(str)
-    content = Field().type(str)
-    datetime = Field(default=datetime.utcnow()).type(datetime)
-    user = Field(required=True).type(User)
+    title = Field(required=True).instance(str)
+    content = Field().instance(str)
+    datetime = Field(default=datetime.utcnow()).instance(datetime)
+    user = Field(required=True).instance(User)
     comments = Field().listof(Comment)
 
 
 class UserJSON(Model):
     id = Field(default=str(uuid.uuid4())).verify(uuid4_verify)
-    name = Field(required=True).type(str)
+    name = Field(required=True).instance(str)
 
 
 class CommentJSON(Model):
-    content = Field(required=True).type(str)
+    content = Field(required=True).instance(str)
     datetime = Field(default=datetime.utcnow().isoformat())\
         .verify(datetime_verify)
     user = Field(required=True).model(UserJSON)
 
 
 class NoteJSON(Model):
-    title = Field(required=True).type(str)
-    content = Field().type(str)
+    title = Field(required=True).instance(str)
+    content = Field().instance(str)
     datetime = Field(default=datetime.utcnow().isoformat())\
         .verify(datetime_verify)
     user = Field(required=True).model(UserJSON)
@@ -68,7 +68,7 @@ class MockUp(Model):
     model = Field().model(NoteJSON)
     search = Field().search('[0-9]+')
     subset = Field().subset([1, 2, 3])
-    type = Field().type(str)
+    instance = Field().instance(str)
     verify = Field().verify(uuid4_verify)
     
 
@@ -277,18 +277,18 @@ class TestField(unittest.TestCase):
             self.model['subset'] = [3, 4]
         self.assertEqual(self.model['subset'], subset)
 
-    def test_type(self):
+    def test_instance(self):
         string = 'test'
-        self.model['type'] = string
+        self.model['instance'] = string
         with self.assertRaises(ModelError):
-            self.model['type'] = 1
-            self.assertEqual(self.model['type'], string)
+            self.model['instance'] = 1
+        self.assertEqual(self.model['instance'], string)
 
 
 class TestSubClass(unittest.TestCase):
     def setUp(self):
         class Content(Model):
-            content_type = Field().type(str)
+            content_type = Field().instance(str)
 
         class HTML(Content):
             pass
