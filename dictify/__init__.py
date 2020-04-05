@@ -1,9 +1,10 @@
 import math
 import re
+from typing import Callable
 from functools import wraps
 
 
-def function(func):
+def function(func: Callable):
     """Decorator to add function to Field()._functions for validation."""
     @wraps(func)
     def wrapper(field, *args, **kw):
