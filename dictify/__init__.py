@@ -31,17 +31,23 @@ UNDEF = Undef()
 
 
 class ModelError(Exception):
-    """
-    ModelError message format:
-    {'field': FieldError([Exception,])}
+    """``Exception`` when data doesn't pass ``Model`` validation.
+
+    Parameters
+    ----------
+    message: str
+        Error message. Format: ``{'field': FieldError([Exception,])}``
     """
     pass
 
 
 class FieldError(Exception):
-    """
-    FieldError message format:
-    FieldError([Exception,])
+    """``Exception`` when data doesn't pass ``Field`` validation.
+
+    Parameters
+    ----------
+    message: str
+        Error message. Format: ``FieldError([Exception,])``
     """
     pass
 
@@ -59,10 +65,16 @@ class ListError(Exception):
 
 
 class ListOf(list):
+    """Modified list to check it's members instance.
+
+    Parameters
+    ----------
+    value:
+        Value for validation it's type with ``type_``.
+    type_:
+        Type for validation with ``value``
     """
-    Modified list to check it's members instance.
-    """
-    def __init__(self, value, type_=None):
+    def __init__(self, value, type_):
         self._type = type_
         errors = list()
         for v in value:
@@ -75,11 +87,13 @@ class ListOf(list):
         super().__init__(value)
 
     def __setitem__(self, index, value):
+        """Set list value at ``index`` if ``value`` is valid"""
         assert isinstance(value, self._type),\
             f"'{value}' is not instance of {self._type}"
         return super().__setitem__(index, value)
 
     def append(self, value):
+        """Append object to the end of the list if ``value`` is valid."""
         assert isinstance(value, self._type),\
             f"'{value}' is not instance of {self._type}"
         return super().append(value)
@@ -245,14 +259,26 @@ class Field:
         assert set(value) <= set(members),\
             f"{value} is not a subset of {members}"
 
-    @function
-    def type(self, value, type_: type):
-        """Check if value's type is ``type_``"""
-        assert type(value) == type_
-
 
 class Model(dict):
-    """Class to defined fields and rules."""
+    """Modified ``dict`` that can defined ``Field`` in it's class.
+
+    Examples
+    --------
+    ::
+
+        class Note(Model):
+            title = Field(required=True).instance(str)
+            content = Field().instance(str)
+            datetime = Field(default=datetime.utcnow()).instance(datetime)
+
+        note = Note({'title': 'Title'})
+
+    Parameters
+    ----------
+    data: dict
+        Model's data
+    """
 
     def __init__(self, data=dict()):
         assert isinstance(data, dict),\
@@ -279,15 +305,18 @@ class Model(dict):
         super().__init__(data)
 
     def __delitem__(self, key):
-        if self._field[key].option.get('default'):
+        """Delete item but also check for Field's default or required option
+        to make sure that Model's data is valid.
+        """
+        if 'default' in self._field[key].option:
             self[key] = self._field[key].option['default']
-        elif self._field[key].option['required']:
+        elif self._field[key].option.get('required'):
             raise ModelError({key: KeyError("This field is required")})
         else:
             return super().__delitem__(key)
 
     def __setitem__(self, key, value):
-        """Verify value before `super().__setitem__`."""
+        """Set item's value if ``value`` is valid."""
         error = None
         try:
             self._field[key].value = value
@@ -312,6 +341,7 @@ class Model(dict):
             raise ModelError(error)
 
     def update(self, data):
+        """Update data if ``data`` is valid."""
         assert isinstance(data, dict)
         self._validate(data)
-        return super().update(data)
+        super().update(data)

@@ -10,7 +10,10 @@ Welcome to dictify's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: dictify
+.. autoclass:: dictify.Model
+   :members: update, __setitem__, __delitem__
+
+.. autoclass:: dictify.Field
    :members:
 
 Indices and tables
