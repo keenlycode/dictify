@@ -5,11 +5,11 @@ from datetime import datetime
 from dictify import Model, Field, ModelError
 
 
-def datetime_verify(value):
+def datetime_verify(field, value):
     datetime.fromisoformat(value)
 
 
-def uuid4_verify(value):
+def uuid4_verify(field, value):
     try:
         id_ = uuid.UUID(value)
     except AttributeError:
@@ -37,14 +37,14 @@ class Note(Model):
 
 
 class UserJSON(Model):
-    id = Field(default=str(uuid.uuid4())).verify(uuid4_verify)
+    id = Field(default=str(uuid.uuid4())).func(uuid4_verify)
     name = Field(required=True).instance(str)
 
 
 class CommentJSON(Model):
     content = Field(required=True).instance(str)
     datetime = Field(default=datetime.utcnow().isoformat())\
-        .verify(datetime_verify)
+        .func(datetime_verify)
     user = Field(required=True).model(UserJSON)
 
 
@@ -52,7 +52,7 @@ class NoteJSON(Model):
     title = Field(required=True).instance(str)
     content = Field().instance(str)
     datetime = Field(default=datetime.utcnow().isoformat())\
-        .verify(datetime_verify)
+        .func(datetime_verify)
     user = Field(required=True).model(UserJSON)
     comments = Field().listof(CommentJSON)
 
@@ -69,7 +69,7 @@ class MockUp(Model):
     search = Field().search('[0-9]+')
     subset = Field().subset([1, 2, 3])
     instance = Field().instance(str)
-    verify = Field().verify(uuid4_verify)
+    func = Field().func(uuid4_verify)
     
 
 class TestModel(unittest.TestCase):
@@ -214,8 +214,8 @@ class TestField(unittest.TestCase):
         with self.assertRaises(ModelError):
             self.model['anyof'] = 5
 
-    def test_verify(self):
-        self.model['verify'] = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
+    def test_func(self):
+        self.model['func'] = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
 
     def test_default(self):
         self.assertEqual(self.model['default'], 'default')

@@ -1,25 +1,33 @@
 import math
 import re
-from typing import Callable
+import typing
 from functools import wraps
 
 
-def function(func: Callable):
-    """Decorator to add function to Field()._functions for validation."""
+def function(func: typing.Callable):
+    """Decorator to add ``Field`` methods for value validation."""
     @wraps(func)
     def wrapper(field, *args, **kw):
+        if field._value != UNDEF:  # There's a default value.
+            try:
+                func(field, field._value, *args, **kw)
+            except AssertionError as error:
+                raise FieldDefineError(
+                    f"Field(default={field._value}) conflict with "+\
+                    f"{func.__name__}(*{args}, **{kw})", error)
         field._functions.append(
             lambda field, value: func(field, value, *args, **kw))
         return field
     return wrapper
 
 
-class Undefined:
+class Undef:
     def __repr__(self):
-        return 'undefined'
+        return 'undef'
 
 
-UNDEF = Undefined()
+#: undefined value for using with ``Field.__init__()``
+UNDEF = Undef()
 
 
 class ModelError(Exception):
@@ -38,7 +46,7 @@ class FieldError(Exception):
     pass
 
 
-class FieldDefaultError(Exception):
+class FieldDefineError(Exception):
     pass
 
 
@@ -79,8 +87,7 @@ class ListOf(list):
 
 class Field:
     """Create ``Field()`` object which can validate it's value.
-
-    ``Field()`` can be defined in ``class Model``.
+    Can be defined in ``class Model``.
 
     Examples
     --------
@@ -96,6 +103,13 @@ class Field:
         field.value = 5
         field.value = -1  # This will raise FieldError
 
+    Notes
+    -----
+        As the examples, when defining ``Field()`` validation with it's methods
+        below. The first arguments ``(value)`` can be omitted since it will be
+        put automatically while validating value.
+    ...
+
     Parameters
     ----------
     required: bool=False
@@ -105,6 +119,7 @@ class Field:
     default: any
         Default value. Ignore required option if set.
     """
+
     def __init__(self, required: bool = False,
                  disallow: list = [None], **option):
         self._functions = list()
@@ -117,10 +132,11 @@ class Field:
                 f"""Default value is disallowed.
                 default({self.option['default']}), disallow({self.option['disallow']})
                 """
+            self._value = self.option['default']
 
     @property
     def value(self):
-        """``Field()`` value"""
+        """``Field()``'s value"""
         return self._value
 
     @value.setter
@@ -142,15 +158,34 @@ class Field:
         self._value = value
 
     @function
+    def anyof(self, value, members: list):
+        """``assert value in members``"""
+        assert value in members, f'{value} is not in {members}'
+
+    @function
+    def func(self, value, fn):
+        """Use custom function for value validation.
+
+        - ``fn`` should have call signature as ``fn(field, value)``
+        - ``fn`` should raise ``AssertionError`` if value doesn't pass validation.
+
+        Examples
+        --------
+        ::
+
+            def is_uuid4(field, value):
+                id = uuid.UUID(value)
+                assert id.version == 4
+
+            field = Field().func(is_uuid4)
+        """
+        fn(self, value)
+
+    @function
     def instance(self, value, type_: type):
         """``assert isinstance(value, type_)``"""
         assert isinstance(value, type_),\
             f'{type(value)} is not instance of {type_}'
-
-    @function
-    def anyof(self, value, members: list):
-        """``assert value in members``"""
-        assert value in members, f'{value} is not in {members}'
 
     @function
     def length(self, value, min: int = 0, max: int = math.inf):
@@ -163,24 +198,15 @@ class Field:
 
     @function
     def listof(self, value, type_):
-        """Check if ``Field()`` value is list of ``type_``"""
+        """Check if ``Field()`` value is a list of ``type_``"""
         ListOf(value, type_)
 
     @function
-    def model(self, value, model_cls):
-        model_cls(value)
-
-    @function
-    def min(self, value, min_: (int, float, complex) = -math.inf, equal=True):
-        if equal is True:
-            assert value >= min_,\
-                f"Value({value}) >= Min({min_}) is False"
-        else:
-            assert value > min_,\
-                f"Value({value}) > Min({min_}) is False"
-
-    @function
-    def max(self, value, max_: (int, float, complex) = -math.inf, equal=True):
+    def max(self, value, max_: typing.Union[int, float, complex] = -math.inf, equal=True):
+        """
+        - If ``equal`` == ``True``, Check if ``value`` <= ``max_``
+        - If ``equal`` == ``False``, Check if ``value`` < ``max_``
+        """
         if equal is True:
             assert value <= max_,\
                 f"Value({value}) <= Max({max_}) is False"
@@ -189,20 +215,40 @@ class Field:
                 f"Value({value}) < Max({max_}) is False"
 
     @function
+    def min(self, value, min_: typing.Union[int, float, complex] = -math.inf, equal=True):
+        """
+        - If ``equal`` == ``True``, Check if ``value`` >= ``min_``
+        - If ``equal`` == ``False``, Check if ``value`` > ``min_``
+        """
+        if equal is True:
+            assert value >= min_,\
+                f"Value({value}) >= Min({min_}) is False"
+        else:
+            assert value > min_,\
+                f"Value({value}) > Min({min_}) is False"
+
+    @function
+    def model(self, value, model_cls: 'Model'):
+        """Check if value pass validation by ``model_cls``.
+        Useful for nested data."""
+        model_cls(value)
+
+    @function
     def search(self, value, re_: str):
-        """Check value matching with regular expression."""
+        """Check value matching with regular expression string ``re_``."""
         assert re.search(re_, value),\
             f"re.search('{re_}', '{value}') is None"
 
     @function
     def subset(self, value, members: list):
-        """Check if value is subset of defined members."""
+        """Check if value is subset of ``members``."""
         assert set(value) <= set(members),\
             f"{value} is not a subset of {members}"
 
     @function
-    def verify(self, value, func):
-        func(value)
+    def type(self, value, type_: type):
+        """Check if value's type is ``type_``"""
+        assert type(value) == type_
 
 
 class Model(dict):
