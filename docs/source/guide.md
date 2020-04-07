@@ -2,12 +2,12 @@
 
 `dictify` is python library to verify `dict` object and `json` with easy syntax and chainable rules.
 
-## Install
+# Install
 ```bash
 pip install dictify
 ```
 
-## Example:
+# Example
 ```python
 from dictify import *
 import uuid
@@ -20,8 +20,8 @@ class User(Model):
     age = Field().number(min=0, max=150)
 ```
 
-## Features
-### Auto verify new dict object.
+# Features
+## Auto verify new dict object.
 ```python
 >>> user = User()
 ValueError: {'name': ['Required.'], 'email': ['Required.']}
@@ -39,7 +39,7 @@ ValueError: {'name': ['Required.'], 'email': ['Required.']}
  'age': None}
 ```
 
-### Verify dict object on the fly.
+## Verify dict object on the fly.
 ```python
 >>> user['age'] = 200 # user['age'] rule is number(min=0, max=150)
 ValueError: ['Value is 200, must be 0 to 150']
@@ -52,14 +52,14 @@ ValueError: ['Value is 200, must be 0 to 150']
  'age': 20}
 ```
 
-### Chainable rules.
+## Chainable rules.
 As you can see in `User(Model)` in example above, fields' rules is chainable.
 ```python
 name = Field().required().type(str).length(max=100)
 # `name` value required string type with max length = 100
 ```
 
-## To use with `json`
+# To use with `json`
 use `json` package to transform between `json` and `dict`
 ```python
 from dictify import *
@@ -73,7 +73,7 @@ user = json.loads('{"name": "test-user", "email": "user@example.com"}')
 user = User(user)
 ```
 
-## Rules
+# Rules
 - `anyof(members: list)`: Value must be any of defined `members`
 - `apply(func: function)`: Apply function to value. The applied function will get field's value as it's first argument. For example:
     ```python

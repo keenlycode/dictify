@@ -138,7 +138,6 @@ class Field:
                  disallow: list = [None], **option):
         self._functions = list()
         self.option = option
-        self._value = UNDEF
         self.option['required'] = required
         self.option['disallow'] = disallow
         if 'default' in self.option:
@@ -146,7 +145,12 @@ class Field:
                 f"""Default value is disallowed.
                 default({self.option['default']}), disallow({self.option['disallow']})
                 """
-            self._value = self.option['default']
+            if callable(self.option['default']):
+                self._value = self.option['default']()
+            else:
+                self._value = self.option['default']
+        else:
+            self._value = UNDEF
 
     @property
     def value(self):
@@ -253,6 +257,13 @@ class Field:
         assert re.search(re_, value),\
             f"re.search('{re_}', '{value}') is None"
 
+    def reset(self):
+        """Reset ``Field()`` value to ``default`` or ``UNDEF``"""
+        if 'default' in self.option:
+            self._value = self.option['default']
+        else:
+            self._value = UNDEF
+
     @function
     def subset(self, value, members: list):
         """Check if value is subset of ``members``."""
@@ -333,6 +344,7 @@ class Model(dict):
         for key in data:
             try:
                 self._field[key].value = data[key]
+                self._field[key].reset()
             except KeyError:
                 error[key] = KeyError('Field is not defined')
             except FieldError as e:

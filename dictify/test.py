@@ -102,7 +102,8 @@ class TestModel(unittest.TestCase):
         
         # Test required field.
         with self.assertRaises(ModelError):
-            Note({})
+            note = Note({})
+            print(note)
 
         note = Note({
             'title': 'Title',
