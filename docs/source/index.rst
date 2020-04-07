@@ -8,7 +8,6 @@ Welcome to dictify's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    guide
    reference
