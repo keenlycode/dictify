@@ -10,11 +10,8 @@ Welcome to dictify's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. autoclass:: dictify.Model
-   :members: update, __setitem__, __delitem__
-
-.. autoclass:: dictify.Field
-   :members:
+   guide
+   reference
 
 Indices and tables
 ==================

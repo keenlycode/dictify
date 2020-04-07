@@ -16,7 +16,6 @@
 
 import sys
 from pathlib import Path
-import sphinx_rtd_theme
 
 
 path = Path('../../')
@@ -38,7 +37,8 @@ author = 'Nitipit Nontasuwan'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx_rtd_theme',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'recommonmark'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

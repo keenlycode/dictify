@@ -1,18 +1,30 @@
 from pathlib import Path
-import subprocess
 import os
-from watchgod import arun_process
+from watchgod import awatch
 import asyncio
 
-sphinx_doc_dir = Path(__file__).parent.joinpath('sphinx-doc').absolute()
+sphinx_doc_dir = Path(__file__).parent.joinpath('docs').absolute()
 app_dir = Path(__file__).parent.joinpath('dictify').absolute()
 os.chdir(sphinx_doc_dir)
 
-subprocess.run(['make', 'html'])
+
+async def start():
+    await asyncio.create_subprocess_shell('make html')
+
+
+async def py_watch():
+    async for change in awatch(str(app_dir)):
+        await asyncio.create_subprocess_shell('make html')
+        
+
+async def sphinx_watch():
+    async for change in awatch(str(sphinx_doc_dir)):
+        await asyncio.create_subprocess_shell('make html')
 
 
 async def main():
-    await arun_process(app_dir, lambda: subprocess.run(['make', 'html']))
+    await asyncio.gather(
+        start(), py_watch(), sphinx_watch()
+    )
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+asyncio.run(main())
