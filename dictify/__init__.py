@@ -8,12 +8,12 @@ def function(func: typing.Callable):
     """Decorator to add ``Field`` methods for value validation."""
     @wraps(func)
     def wrapper(field, *args, **kw):
-        if field._value != UNDEF:  # There's a default value.
+        if field.default != UNDEF:
             try:
-                func(field, field._value, *args, **kw)
+                func(field, field.default, *args, **kw)
             except AssertionError as error:
-                raise FieldDefineError(
-                    f"Field(default={field._value}) conflict with "+\
+                raise Field.DefaultError(
+                    f"Field(default={field.default}) conflict with "+\
                     f"{func.__name__}(*{args}, **{kw})", error)
         field._functions.append(
             lambda field, value: func(field, value, *args, **kw))
@@ -21,13 +21,14 @@ def function(func: typing.Callable):
     return wrapper
 
 
-class Undef:
+class UNDEF:
+    """Create ```UNDEF`` value"""
     def __repr__(self):
-        return 'undef'
+        return 'UNDEF'
 
 
-#: undefined value for using with ``Field.__init__()``
-UNDEF = Undef()
+#: undefined value
+UNDEF = UNDEF()
 
 
 class ModelError(Exception):
@@ -49,10 +50,6 @@ class FieldError(Exception):
     message: str
         Error message. Format: ``FieldError([Exception,])``
     """
-    pass
-
-
-class FieldDefineError(Exception):
     pass
 
 
@@ -128,43 +125,62 @@ class Field:
     ----------
     required: bool=False
         Required option. Only useful when define ``Field()`` in ``Model`` class
-    disallow: list=[None]
+    disallow: list=[]
         List of disallowed value.
-    default: any
-        Default value. Ignore required option if set.
+    default=UNDEF
+        Field's default value
     """
 
-    def __init__(self, required: bool = False,
-                 disallow: list = [None], **option):
+    def __init__(
+            self, required: bool = False,
+            default=UNDEF, disallow: list = []):
+        self.required = required
+        self.default = default
+        self.disallow = disallow
+        assert self.default not in self.disallow, f"Default value is disallowed. " +\
+            f"default({self.default}), " +\
+            f"disallow({self.disallow})"
         self._functions = list()
-        self.option = option
-        self.option['required'] = required
-        self.option['disallow'] = disallow
-        if 'default' in self.option:
-            assert self.option['default'] not in self.option['disallow'],\
-                f"""Default value is disallowed.
-                default({self.option['default']}), disallow({self.option['disallow']})
-                """
-            if callable(self.option['default']):
-                self._value = self.option['default']()
-            else:
-                self._value = self.option['default']
+        self._value = self.default
+
+    class Error(Exception):
+        pass
+
+    class DefaultError(Exception):
+        pass
+
+    class RequiredError(Exception):
+        pass
+
+    @property
+    def default(self):
+        """Field's default value"""
+        if callable(self._default):
+            return self._default()
         else:
-            self._value = UNDEF
+            return self._default
+
+    @default.setter
+    def default(self, value):
+        self._default = value
 
     @property
     def value(self):
         """``Field()``'s value"""
+        if self.required and self._value == UNDEF:
+            raise Field.RequiredError('Field is required')
         return self._value
 
     @value.setter
     def value(self, value):
         errors = list()
-        if value in self.option['disallow']:
+        if self.required and value == UNDEF:
+            raise Field.RequiredError('Field is required')
+        if value in self.disallow:
             raise FieldError([
                 AssertionError(
-                    f"""Value({value}) is not allowed.
-                    Disallow {self.option['disallow']}""")
+                    f"Value({value}) is not allowed. " +\
+                    f"Disallow {self.disallow}")
             ])
         for function in self._functions:
             try:
@@ -177,7 +193,10 @@ class Field:
 
     @function
     def anyof(self, value, members: list):
-        """``assert value in members``"""
+        """Check if ``value`` is in ``members`` list.
+
+        ``assert value in members``
+        """
         assert value in members, f'{value} is not in {members}'
 
     @function
@@ -201,7 +220,10 @@ class Field:
 
     @function
     def instance(self, value, type_: type):
-        """``assert isinstance(value, type_)``"""
+        """Check if ``value`` is instance to ``type_``
+        
+        ``assert isinstance(value, type_)``
+        """
         assert isinstance(value, type_),\
             f'{type(value)} is not instance of {type_}'
 
@@ -222,8 +244,8 @@ class Field:
     @function
     def max(self, value, max_: typing.Union[int, float, complex] = -math.inf, equal=True):
         """
-        - If ``equal`` == ``True``, Check if ``value`` <= ``max_``
-        - If ``equal`` == ``False``, Check if ``value`` < ``max_``
+        - Check if ``value`` <= ``max_`` when ``equal`` is ``True``
+        - Check if ``value`` < ``max_`` when ``equal`` is ``False``
         """
         if equal is True:
             assert value <= max_,\
@@ -235,8 +257,8 @@ class Field:
     @function
     def min(self, value, min_: typing.Union[int, float, complex] = -math.inf, equal=True):
         """
-        - If ``equal`` == ``True``, Check if ``value`` >= ``min_``
-        - If ``equal`` == ``False``, Check if ``value`` > ``min_``
+        - Check if ``value`` >= ``min_`` when ``equal`` is ``True``
+        - Check if ``value`` > ``min_`` when ``equal`` is ``False``
         """
         if equal is True:
             assert value >= min_,\
@@ -258,11 +280,8 @@ class Field:
             f"re.search('{re_}', '{value}') is None"
 
     def reset(self):
-        """Reset ``Field()`` value to ``default`` or ``UNDEF``"""
-        if 'default' in self.option:
-            self._value = self.option['default']
-        else:
-            self._value = UNDEF
+        """Reset ``Field().value`` to default or ``UNDEF``"""
+        self._value = self.default
 
     @function
     def subset(self, value, members: list):
@@ -302,10 +321,10 @@ class Model(dict):
             if not isinstance(field, Field):
                 continue
             # If default option is set in Field(), set default value
-            if ('default' in field.option) and (key not in data):
-                data[key] = field.option['default']
+            if (field.default != UNDEF) and (key not in data):
+                data[key] = field.value
             # If required option is set in Field(), check if it's provided.
-            elif field.option['required']:
+            elif field.required:
                 if key not in data:
                     raise ModelError({
                         key: KeyError("This field is required")
@@ -319,15 +338,17 @@ class Model(dict):
         """Delete item but also check for Field's default or required option
         to make sure that Model's data is valid.
         """
-        if 'default' in self._field[key].option:
-            self[key] = self._field[key].option['default']
-        elif self._field[key].option.get('required'):
+        # if 'default' in self._field[key].option:
+        #     self[key] = self._field[key].option['default']
+        if self._field[key].default != UNDEF:
+            self[key] = self._field[key].default
+        elif self._field[key].required:
             raise ModelError({key: KeyError("This field is required")})
         else:
             return super().__delitem__(key)
 
     def __setitem__(self, key, value):
-        """Set item's value if ``value`` is valid."""
+        """Set ``value`` if is valid."""
         error = None
         try:
             self._field[key].value = value
@@ -353,7 +374,8 @@ class Model(dict):
             raise ModelError(error)
 
     def update(self, data):
-        """Update data if ``data`` is valid."""
+        """Update ``data`` if is valid."""
         assert isinstance(data, dict)
+        data = data.copy()
         self._validate(data)
-        super().update(data)
+        return super().update(data)

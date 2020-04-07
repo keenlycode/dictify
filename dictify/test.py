@@ -268,7 +268,7 @@ class TestField(unittest.TestCase):
     def test_required(self):
         required = self.model['required']
         with self.assertRaises(ModelError):
-            self.model['required'] = None
+            del self.model['required']
         self.assertEqual(self.model['required'], required)
 
     def test_subset(self):
