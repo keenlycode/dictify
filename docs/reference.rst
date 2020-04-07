@@ -2,7 +2,7 @@ Reference
 =========
 
 .. autoclass:: dictify.Model
-   :members: update, __setitem__, __delitem__
+   :members: __setitem__, __delitem__, update
 
 .. autoclass:: dictify.Field
    :members:

@@ -14,13 +14,13 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-import sys
 from pathlib import Path
+import sys
+import sphinx_rtd_theme
 
-
-path = Path('../../')
-path = str(path.resolve())
+path = Path('../').resolve()
 sys.path.insert(0, path)
+
 
 # -- Project information -----------------------------------------------------
 
@@ -36,7 +36,6 @@ author = 'Nitipit Nontasuwan'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx_rtd_theme',
     'sphinx.ext.napoleon',
     'recommonmark'
 ]
@@ -47,7 +46,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 
 # -- Options for HTML output -------------------------------------------------
