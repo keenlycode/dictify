@@ -1,256 +1,347 @@
-import re
 import math
-import unittest
-import warnings
+import re
+import typing
+from functools import wraps
 
-test_case = unittest.TestCase()
+
+def function(func: typing.Callable):
+    """Decorator to add ``Field`` methods for value validation."""
+    @wraps(func)
+    def wrapper(field, *args, **kw):
+        if field._value != UNDEF:  # There's a default value.
+            try:
+                func(field, field._value, *args, **kw)
+            except AssertionError as error:
+                raise FieldDefineError(
+                    f"Field(default={field._value}) conflict with "+\
+                    f"{func.__name__}(*{args}, **{kw})", error)
+        field._functions.append(
+            lambda field, value: func(field, value, *args, **kw))
+        return field
+    return wrapper
 
 
-class Function:
-    def __init__(self, func, *args, **kw):
-        """Keep `func`, `*args` and `**kw` to be called."""
-        self.func = func
-        self.args = args
-        self.kw = kw
+class Undef:
+    def __repr__(self):
+        return 'undef'
 
-    def __call__(self, value):
-        return self.func(value, *self.args, **self.kw)
 
-class define:
-    @staticmethod
-    def value(func):
-        """Decorator to add function to field if value is provided."""
+#: undefined value for using with ``Field.__init__()``
+UNDEF = Undef()
 
-        def wrapper(field, *args, **kw):
-            def f(value, *args, **kw):
-                if value is None or '' or []:
-                    return value
-                else:
-                    return func(value, *args, **kw)
-            function = Function(f, *args, **kw)
-            field.functions.append(function)
-            return field
-        return wrapper
 
-    @staticmethod
-    def empty(func):
-        """Decorator to add field's function if value is empty"""
-        def wrapper(field, *args, **kw):
-            def f(value, *args, **kw):
-                if value is None or '' or []:
-                    return func(value, *args, **kw)
-                else:
-                    return value
-            function = Function(f, *args, **kw)
-            field.functions.append(function)
-            return field
-        return wrapper
+class ModelError(Exception):
+    """``Exception`` when data doesn't pass ``Model`` validation.
 
-    @staticmethod
-    def any(func):
-        def wrapper(field, *args, **kw):
-            function = Function(func, *args, **kw)
-            field.functions.append(function)
-            return field
-        return wrapper
+    Parameters
+    ----------
+    message: str
+        Error message. Format: ``{'field': FieldError([Exception,])}``
+    """
+    pass
+
+
+class FieldError(Exception):
+    """``Exception`` when data doesn't pass ``Field`` validation.
+
+    Parameters
+    ----------
+    message: str
+        Error message. Format: ``FieldError([Exception,])``
+    """
+    pass
+
+
+class FieldDefineError(Exception):
+    pass
+
+
+class ListError(Exception):
+    """
+    ListError message format:
+    ListError([Exception,])
+    """
+    pass
 
 
 class ListOf(list):
-    def __init__(self, type_=None, values=[]):
+    """Modified list to check it's members instance.
+
+    Parameters
+    ----------
+    value:
+        Value for validation it's type with ``type_``.
+    type_:
+        Type for validation with ``value``
+    """
+    def __init__(self, value, type_):
         self._type = type_
         errors = list()
-        for v in values:
-            try:
-                test_case.assertIsInstance(v, self._type)
-            except AssertionError as e:
-                errors.append(e)
+        for v in value:
+            if not isinstance(v, self._type):
+                errors.append(
+                    AssertionError(f"'{v}' is not instance of {self._type}")
+                )
         if errors:
-            raise ValueError(errors)
-        super().__init__(values)
+            raise ListError(errors)
+        super().__init__(value)
 
     def __setitem__(self, index, value):
-        test_case.assertIsInstance(value, self._type)
+        """Set list value at ``index`` if ``value`` is valid"""
+        assert isinstance(value, self._type),\
+            f"'{value}' is not instance of {self._type}"
         return super().__setitem__(index, value)
 
     def append(self, value):
-        test_case.assertIsInstance(value, self._type)
+        """Append object to the end of the list if ``value`` is valid."""
+        assert isinstance(value, self._type),\
+            f"'{value}' is not instance of {self._type}"
         return super().append(value)
 
 
 class Field:
+    """Create ``Field()`` object which can validate it's value.
+    Can be defined in ``class Model``.
 
-    def __init__(self):
-        self.value = None
-        self.functions = []
+    Examples
+    --------
+    ::
 
-    def query(self, value):
-        """Apply all functions to field's value"""
+        # Use with validators.
+        field = Field(required=True).anyof(['AM','PM'])
+        field.value = 'AM'
+        field.value = 'A'  # This will raise FieldError
+
+        # Chained validators.
+        field = Field(default=0).instance(int).min(0).max(10)
+        field.value = 5
+        field.value = -1  # This will raise FieldError
+
+    Notes
+    -----
+        As the examples, when defining ``Field()`` validation with it's methods
+        below. The first arguments ``(value)`` can be omitted since it will be
+        put automatically while validating value.
+    ...
+
+    Parameters
+    ----------
+    required: bool=False
+        Required option. Only useful when define ``Field()`` in ``Model`` class
+    disallow: list=[None]
+        List of disallowed value.
+    default: any
+        Default value. Ignore required option if set.
+    """
+
+    def __init__(self, required: bool = False,
+                 disallow: list = [None], **option):
+        self._functions = list()
+        self.option = option
+        self._value = UNDEF
+        self.option['required'] = required
+        self.option['disallow'] = disallow
+        if 'default' in self.option:
+            assert self.option['default'] not in self.option['disallow'],\
+                f"""Default value is disallowed.
+                default({self.option['default']}), disallow({self.option['disallow']})
+                """
+            self._value = self.option['default']
+
+    @property
+    def value(self):
+        """``Field()``'s value"""
+        return self._value
+
+    @value.setter
+    def value(self, value):
         errors = list()
-        self.value = value
-        for function in self.functions:
+        if value in self.option['disallow']:
+            raise FieldError([
+                AssertionError(
+                    f"""Value({value}) is not allowed.
+                    Disallow {self.option['disallow']}""")
+            ])
+        for function in self._functions:
             try:
-                value = function(self.value)
-                if value is not None:
-                    self.value = value
-            except (ValueError, AssertionError) as e:
-                errors.append(e.args[0])
+                function(self, value)
+            except AssertionError as e:
+                errors.append(e)
         if errors:
-            raise ValueError(errors)
-        return self
+            raise FieldError(errors)
+        self._value = value
 
-    @define.value
-    def any(value, members: list):
-        """(Deprecated) Check if value is any of members."""
-        warnings.warn('Deprecated. Changed to `anyof`', DeprecationWarning)
-        test_case.assertIn(value, members)
+    @function
+    def anyof(self, value, members: list):
+        """``assert value in members``"""
+        assert value in members, f'{value} is not in {members}'
 
-    @define.value
-    def anyof(value, members: list):
-        """Check if value is any of members."""
-        test_case.assertIn(value, members)
+    @function
+    def func(self, value, fn):
+        """Use custom function for value validation.
 
-    @define.any
-    def apply(value, func: 'function to apply'):
-        """Apply function to Field().
+        - ``fn`` should have call signature as ``fn(field, value)``
+        - ``fn`` should raise ``AssertionError`` if value doesn't pass validation.
 
-        ## Example use:
-        class User(Model):
-            def check(value):
-                # Do something with value,
-                # like checking value or setting value.
+        Examples
+        --------
+        ::
 
-            name = Field().apply(check)
+            def is_uuid4(field, value):
+                id = uuid.UUID(value)
+                assert id.version == 4
+
+            field = Field().func(is_uuid4)
         """
-        return func(value)
+        fn(self, value)
 
-    @define.empty
-    def default(value, default_):
-        """Set default value."""
-        if callable(default_):
-            return default_()
+    @function
+    def instance(self, value, type_: type):
+        """``assert isinstance(value, type_)``"""
+        assert isinstance(value, type_),\
+            f'{type(value)} is not instance of {type_}'
+
+    @function
+    def length(self, value, min: int = 0, max: int = math.inf):
+        """Set value's min/max length. ``assert min <= len(value) <= max``"""
+        assert isinstance(value, (str, list)),\
+            f"{value} is not instance of `str` or `list`"
+        length_ = len(value)
+        assert min <= length_ <= max,\
+            f"Value's length is {length_}. Must be {min} to {max}"
+
+    @function
+    def listof(self, value, type_):
+        """Check if ``Field()`` value is a list of ``type_``"""
+        ListOf(value, type_)
+
+    @function
+    def max(self, value, max_: typing.Union[int, float, complex] = -math.inf, equal=True):
+        """
+        - If ``equal`` == ``True``, Check if ``value`` <= ``max_``
+        - If ``equal`` == ``False``, Check if ``value`` < ``max_``
+        """
+        if equal is True:
+            assert value <= max_,\
+                f"Value({value}) <= Max({max_}) is False"
         else:
-            return default_
+            assert value < max_,\
+                f"Value({value}) < Max({max_}) is False"
 
-    @define.empty
-    def required(value):
-        """Required."""
-        raise ValueError('Required.')
+    @function
+    def min(self, value, min_: typing.Union[int, float, complex] = -math.inf, equal=True):
+        """
+        - If ``equal`` == ``True``, Check if ``value`` >= ``min_``
+        - If ``equal`` == ``False``, Check if ``value`` > ``min_``
+        """
+        if equal is True:
+            assert value >= min_,\
+                f"Value({value}) >= Min({min_}) is False"
+        else:
+            assert value > min_,\
+                f"Value({value}) > Min({min_}) is False"
 
-    @define.value
-    def length(value: (str, list), min: int = 0, max: int = math.inf):
-        """Set min/max of value's length."""
-        try:
-            length_ = len(value)
-        except TypeError:
-            raise ValueError('Value must be `list, str` type')
-        if not min <= length_ <= max:
-            raise ValueError(
-                'Value\'s length is %s. Must be %s to %s'
-                % (length_, min, max)
-            )
+    @function
+    def model(self, value, model_cls: 'Model'):
+        """Check if value pass validation by ``model_cls``.
+        Useful for nested data."""
+        model_cls(value)
 
-    @define.value
-    def listof(values, type_=None):
-        return ListOf(type_, values)
+    @function
+    def search(self, value, re_: str):
+        """Check value matching with regular expression string ``re_``."""
+        assert re.search(re_, value),\
+            f"re.search('{re_}', '{value}') is None"
 
-    @define.value
-    def match(value, re_: 'regular expession string'):
-        """Check value matching with regular expression."""
-        test_case.assertRegex(value, re_)
-
-    @define.value
-    def number(value: (int, float, complex),
-               min: (int, float, complex) = -math.inf,
-               max: (int, float, complex) = math.inf):
-        """Check if value is number"""
-        if not min <= value <= max:
-            raise ValueError(
-                'Value is %s, must be %s to %s'
-                % (value, min, max)
-            )
-
-    @define.value
-    def range(value: (int, float, complex),
-              min: (int, float, complex) = -math.inf,
-              max: (int, float, complex) = math.inf):
-        """(Deprecated) Set possible value range."""
-        if not min <= value <= max:
-            raise ValueError(
-                'Value is %s, must be %s to %s'
-                % (value, min, max)
-            )
-
-    @define.value
-    def subset(values, members: list):
-        """Check if value is subset of defined members."""
-        test_case.assertLessEqual(set(values), set(members), msg="Not a subset")
-
-    @define.value
-    def type(value, type_: type):
-        """Check value's type."""
-        test_case.assertIsInstance(value, type_)
+    @function
+    def subset(self, value, members: list):
+        """Check if value is subset of ``members``."""
+        assert set(value) <= set(members),\
+            f"{value} is not a subset of {members}"
 
 
 class Model(dict):
-    """Class to defined fields and rules.
+    """Modified ``dict`` that can defined ``Field`` in it's class.
 
-    ## Example:
-    Class User(Model):
-        name = Field().required().type(str)
+    Examples
+    --------
+    ::
 
-    user = User({'name': 'John'})
+        class Note(Model):
+            title = Field(required=True).instance(str)
+            content = Field().instance(str)
+            datetime = Field(default=datetime.utcnow()).instance(datetime)
+
+        note = Note({'title': 'Title'})
+
+    Parameters
+    ----------
+    data: dict
+        Model's data
     """
 
     def __init__(self, data=dict()):
-        field = dict()
-        errors = dict()
-        result = dict()
+        assert isinstance(data, dict),\
+            f"Model initial data shold be instance of dict"
         data = data.copy()
-        for k in self.__dir__():
-            f = self.__getattribute__(k)
-            if isinstance(f, Field):
-                try:
-                    field[k] = f.query(data.get(k))
-                    result[k] = field[k].value
-                except (ValueError, AssertionError) as error:
-                    errors[k] = error
+        self._field = dict()
+        for key in self.__dir__():
+            field = self.__getattribute__(key)
+            # Check if item is Field().
+            if not isinstance(field, Field):
+                continue
+            # If default option is set in Field(), set default value
+            if ('default' in field.option) and (key not in data):
+                data[key] = field.option['default']
+            # If required option is set in Field(), check if it's provided.
+            elif field.option['required']:
+                if key not in data:
+                    raise ModelError({
+                        key: KeyError("This field is required")
+                    })
+            # Keep Field() in self._field for data validation.
+            self._field[key] = field
+        self._validate(data)
+        super().__init__(data)
 
-                # Delete data items() after field verification.
-                try:
-                    del data[k]
-                # Ignore possibility when data doesn't have defined field.
-                # In case when field is not required or have default value.
-                except KeyError:
-                    pass
+    def __delitem__(self, key):
+        """Delete item but also check for Field's default or required option
+        to make sure that Model's data is valid.
+        """
+        if 'default' in self._field[key].option:
+            self[key] = self._field[key].option['default']
+        elif self._field[key].option.get('required'):
+            raise ModelError({key: KeyError("This field is required")})
+        else:
+            return super().__delitem__(key)
 
-        # After verification, If there's data.keys() left,
-        # it means the field is not defined.
-        for k in data.keys():
-            errors[k] = KeyError('Field is not defined')
-        if errors:
-            raise Exception(errors)
-        self._field = field
-        super().__init__(result)
-
-    def __setitem__(self, k, v):
-        """Verify value before `super().__setitem__`."""
+    def __setitem__(self, key, value):
+        """Set item's value if ``value`` is valid."""
+        error = None
         try:
-            value = self._field[k].query(v).value
+            self._field[key].value = value
+            super().__setitem__(key, self._field[key].value)
         except KeyError:
-            raise KeyError('Field is not defined')
+            error = {key: KeyError('Field is not defined')}
+        except (FieldError, ListError) as e:
+            error = {key: e}
+        if error:
+            raise ModelError(error)
 
-        return super().__setitem__(k, value)
+    def _validate(self, data: dict):
+        error = dict()
+        for key in data:
+            try:
+                self._field[key].value = data[key]
+            except KeyError:
+                error[key] = KeyError('Field is not defined')
+            except FieldError as e:
+                error[key] = e
+        if error:
+            raise ModelError(error)
 
     def update(self, data):
-        """Modify `update` method to verify data before update."""
-        errors = dict()
-        for k, v in data.items():
-            try:
-                data[k] = self._field[k].query(v).value
-            except ValueError as e:
-                errors[k] = e
-            except KeyError as e:
-                errors[k] = KeyError('Field is not defined')
-        if errors:
-            raise Exception(errors)
-        return super().update(data)
+        """Update data if ``data`` is valid."""
+        assert isinstance(data, dict)
+        self._validate(data)
+        super().update(data)
