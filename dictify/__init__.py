@@ -13,7 +13,7 @@ def function(func: typing.Callable):
                 func(field, field.default, *args, **kw)
             except AssertionError as error:
                 raise Field.DefaultError(
-                    f"Field(default={field.default}) conflict with "+\
+                    f"Field(default={field.default}) conflict with ",
                     f"{func.__name__}(*{args}, **{kw})", error)
         field._functions.append(
             lambda field, value: func(field, value, *args, **kw))
@@ -29,36 +29,6 @@ class UNDEF:
 
 #: undefined value
 UNDEF = UNDEF()
-
-
-class ModelError(Exception):
-    """``Exception`` when data doesn't pass ``Model`` validation.
-
-    Parameters
-    ----------
-    message: str
-        Error message. Format: ``{'field': FieldError([Exception,])}``
-    """
-    pass
-
-
-class FieldError(Exception):
-    """``Exception`` when data doesn't pass ``Field`` validation.
-
-    Parameters
-    ----------
-    message: str
-        Error message. Format: ``FieldError([Exception,])``
-    """
-    pass
-
-
-class ListError(Exception):
-    """
-    ListError message format:
-    ListError([Exception,])
-    """
-    pass
 
 
 class ListOf(list):
@@ -80,8 +50,11 @@ class ListOf(list):
                     AssertionError(f"'{v}' is not instance of {self._type}")
                 )
         if errors:
-            raise ListError(errors)
+            raise ListOf.ValueError(errors)
         super().__init__(value)
+
+    class ValueError(Exception):
+        pass
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
@@ -107,12 +80,12 @@ class Field:
         # Use with validators.
         field = Field(required=True).anyof(['AM','PM'])
         field.value = 'AM'
-        field.value = 'A'  # This will raise FieldError
+        field.value = 'A'  # This will raise Field.ValueError
 
         # Chained validators.
         field = Field(default=0).instance(int).min(0).max(10)
         field.value = 5
-        field.value = -1  # This will raise FieldError
+        field.value = -1  # This will raise Field.ValueError
 
     Notes
     -----
@@ -143,13 +116,16 @@ class Field:
         self._functions = list()
         self._value = self.default
 
-    class Error(Exception):
+    class ValueError(Exception):
         pass
 
     class DefaultError(Exception):
         pass
 
     class RequiredError(Exception):
+        pass
+
+    class DisallowError(Exception):
         pass
 
     @property
@@ -177,9 +153,9 @@ class Field:
         if self.required and value == UNDEF:
             raise Field.RequiredError('Field is required')
         if value in self.disallow:
-            raise FieldError([
+            raise Field.ValueError([
                 AssertionError(
-                    f"Value({value}) is not allowed. " +\
+                    f"Value({value}) is not allowed. ",
                     f"Disallow {self.disallow}")
             ])
         for function in self._functions:
@@ -188,7 +164,7 @@ class Field:
             except AssertionError as e:
                 errors.append(e)
         if errors:
-            raise FieldError(errors)
+            raise Field.ValueError(errors)
         self._value = value
 
     @function
@@ -326,13 +302,23 @@ class Model(dict):
             # If required option is set in Field(), check if it's provided.
             elif field.required:
                 if key not in data:
-                    raise ModelError({
+                    raise Model.Error({
                         key: KeyError("This field is required")
                     })
             # Keep Field() in self._field for data validation.
             self._field[key] = field
         self._validate(data)
         super().__init__(data)
+
+    class Error(Exception):
+        """``Exception`` when data doesn't pass ``Model`` validation.
+
+        Parameters
+        ----------
+        message: str
+            Error message. Format: ``{'field': Field.Error([Exception,])}``
+        """
+        pass
 
     def __delitem__(self, key):
         """Delete item but also check for Field's default or required option
@@ -343,7 +329,7 @@ class Model(dict):
         if self._field[key].default != UNDEF:
             self[key] = self._field[key].default
         elif self._field[key].required:
-            raise ModelError({key: KeyError("This field is required")})
+            raise Model.Error({key: KeyError("This field is required")})
         else:
             return super().__delitem__(key)
 
@@ -355,10 +341,10 @@ class Model(dict):
             super().__setitem__(key, self._field[key].value)
         except KeyError:
             error = {key: KeyError('Field is not defined')}
-        except (FieldError, ListError) as e:
+        except (Field.ValueError, ListOf.ValueError) as e:
             error = {key: e}
         if error:
-            raise ModelError(error)
+            raise Model.Error(error)
 
     def _validate(self, data: dict):
         error = dict()
@@ -368,10 +354,10 @@ class Model(dict):
                 self._field[key].reset()
             except KeyError:
                 error[key] = KeyError('Field is not defined')
-            except FieldError as e:
+            except Field.ValueError as e:
                 error[key] = e
         if error:
-            raise ModelError(error)
+            raise Model.Error(error)
 
     def update(self, data):
         """Update ``data`` if is valid."""
