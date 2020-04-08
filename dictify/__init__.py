@@ -104,18 +104,6 @@ class Field:
         Field's default value
     """
 
-    def __init__(
-            self, required: bool = False,
-            default=UNDEF, disallow: list = []):
-        self.required = required
-        self.default = default
-        self.disallow = disallow
-        assert self.default not in self.disallow, f"Default value is disallowed. " +\
-            f"default({self.default}), " +\
-            f"disallow({self.disallow})"
-        self._functions = list()
-        self._value = self.default
-
     class ValueError(Exception):
         pass
 
@@ -125,8 +113,23 @@ class Field:
     class RequiredError(Exception):
         pass
 
-    class DisallowError(Exception):
+    class DefineError(Exception):
         pass
+
+    def __init__(
+            self, required: bool = False,
+            default=UNDEF, disallow: list = []):
+        self.required = required
+        self._default = default
+        self.disallow = disallow
+        if self.default in self.disallow:
+            raise Field.DefineError(
+                f"Default value is disallowed. " +\
+                f"default({self.default}), " +\
+                f"disallow({self.disallow})"
+            )
+        self._functions = list()
+        self._value = self.default
 
     @property
     def default(self):
@@ -135,10 +138,6 @@ class Field:
             return self._default()
         else:
             return self._default
-
-    @default.setter
-    def default(self, value):
-        self._default = value
 
     @property
     def value(self):
@@ -153,11 +152,9 @@ class Field:
         if self.required and value == UNDEF:
             raise Field.RequiredError('Field is required')
         if value in self.disallow:
-            raise Field.ValueError([
-                AssertionError(
-                    f"Value({value}) is not allowed. ",
-                    f"Disallow {self.disallow}")
-            ])
+            raise Field.ValueError(
+                f"Value ({value}) is not allowed. " +\
+                f"Disallow {self.disallow}")
         for function in self._functions:
             try:
                 function(self, value)
@@ -223,6 +220,8 @@ class Field:
         - Check if ``value`` <= ``max_`` when ``equal`` is ``True``
         - Check if ``value`` < ``max_`` when ``equal`` is ``False``
         """
+        assert isinstance(value, (int, float, complex)),\
+            f"{type(value)} is not instance of int, float or complex"
         if equal is True:
             assert value <= max_,\
                 f"Value({value}) <= Max({max_}) is False"
@@ -236,6 +235,8 @@ class Field:
         - Check if ``value`` >= ``min_`` when ``equal`` is ``True``
         - Check if ``value`` > ``min_`` when ``equal`` is ``False``
         """
+        assert isinstance(value, (int, float, complex)),\
+            f"{type(value)} is not instance of int, float or complex"
         if equal is True:
             assert value >= min_,\
                 f"Value({value}) >= Min({min_}) is False"
