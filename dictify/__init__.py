@@ -4,6 +4,19 @@ import typing
 from functools import wraps
 
 
+class Function:
+    def __init__(self, func, *args, **kw):
+        self.func = func
+        self.args = args
+        self.kw = kw
+    
+    def __call__(self, field, value):
+        self.func(field, value, *self.args, **self.kw)
+
+    def __repr__(self):
+        return f"{self.func.__name__}{self.args}{self.kw}"
+
+
 def function(func: typing.Callable):
     """Decorator to add ``Field`` methods for value validation."""
     @wraps(func)
@@ -16,7 +29,9 @@ def function(func: typing.Callable):
                     f"Field(default={field.default}) conflict with ",
                     f"{func.__name__}(*{args}, **{kw})", error)
         field._functions.append(
-            lambda field, value: func(field, value, *args, **kw))
+            Function(func, *args, **kw)
+            # lambda field, value: func(field, value, *args, **kw)
+        )
         return field
     return wrapper
 
@@ -159,7 +174,7 @@ class Field:
             try:
                 function(self, value)
             except AssertionError as e:
-                errors.append(e)
+                errors.append((function, e))
         if errors:
             raise Field.ValueError(errors)
         self._value = value

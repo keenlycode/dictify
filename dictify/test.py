@@ -233,13 +233,20 @@ class TestField(unittest.TestCase):
         self.assertIsInstance(field.default, datetime)
 
     def test_value(self):
+
+
         field = Field(required=True, disallow=[None]).instance(int).max(10).min(0)
+        # Required Field should raise RequiredError if ask for value
+        # before assigned.
         with self.assertRaises(Field.RequiredError):
             field.value
+
+        # Assign disallowed value
         with self.assertRaises(Field.ValueError):
             field.value = None
-        field.value = '1'
-        continue here
+        
+        with self.assertRaises(Field.ValueError):
+            field.value = '1'
 
     # def test_anyof(self):
     #     anyof = Field().anyof([1, 2, 3])
