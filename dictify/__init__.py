@@ -122,9 +122,6 @@ class Field:
     class ValueError(Exception):
         pass
 
-    class DefaultError(Exception):
-        pass
-
     class RequiredError(Exception):
         pass
 
@@ -173,7 +170,7 @@ class Field:
         for function in self._functions:
             try:
                 function(self, value)
-            except AssertionError as e:
+            except Exception as e:
                 errors.append((function, e))
         if errors:
             raise Field.ValueError(errors)
@@ -216,48 +213,16 @@ class Field:
             f'{type(value)} is not instance of {type_}'
 
     @function
-    def length(self, value, min: int = 0, max: int = math.inf):
+    def length(self, value, max: int = math.inf):
         """Set value's min/max length. ``assert min <= len(value) <= max``"""
-        assert isinstance(value, (str, list)),\
-            f"{value} is not instance of `str` or `list`"
         length_ = len(value)
-        assert min <= length_ <= max,\
-            f"Value's length is {length_}. Must be {min} to {max}"
+        assert length_ <= max,\
+            f"Value's length is {length_}. Must less than {max}"
 
     @function
     def listof(self, value, type_):
         """Check if ``Field()`` value is a list of ``type_``"""
         ListOf(value, type_)
-
-    @function
-    def max(self, value, max_: typing.Union[int, float, complex] = -math.inf, equal=True):
-        """
-        - Check if ``value`` <= ``max_`` when ``equal`` is ``True``
-        - Check if ``value`` < ``max_`` when ``equal`` is ``False``
-        """
-        assert isinstance(value, (int, float, complex)),\
-            f"{type(value)} is not instance of int, float or complex"
-        if equal is True:
-            assert value <= max_,\
-                f"Value({value}) <= Max({max_}) is False"
-        else:
-            assert value < max_,\
-                f"Value({value}) < Max({max_}) is False"
-
-    @function
-    def min(self, value, min_: typing.Union[int, float, complex] = -math.inf, equal=True):
-        """
-        - Check if ``value`` >= ``min_`` when ``equal`` is ``True``
-        - Check if ``value`` > ``min_`` when ``equal`` is ``False``
-        """
-        assert isinstance(value, (int, float, complex)),\
-            f"{type(value)} is not instance of int, float or complex"
-        if equal is True:
-            assert value >= min_,\
-                f"Value({value}) >= Min({min_}) is False"
-        else:
-            assert value > min_,\
-                f"Value({value}) > Min({min_}) is False"
 
     @function
     def model(self, value, model_cls: 'Model'):
@@ -266,9 +231,9 @@ class Field:
         model_cls(value)
 
     @function
-    def search(self, value, re_: str):
-        """Check value matching with regular expression string ``re_``."""
-        assert re.search(re_, value),\
+    def search(self, value, re_: str, flags=0):
+        """Check if value is matched with regular expression string ``re_``."""
+        assert re.search(re_, value, flags),\
             f"re.search('{re_}', '{value}') is None"
 
     def reset(self):

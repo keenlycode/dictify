@@ -1,6 +1,8 @@
 import unittest
 import json
 import uuid
+import math
+import decimal
 from datetime import datetime
 from dictify import Model, Field, UNDEF
 
@@ -189,27 +191,7 @@ class TestModel(unittest.TestCase):
         self.assertDictEqual(data, note)
 
 
-class FieldMockUp:
-    anyof = Field().anyof([1, 2, 3])
-    default = Field(default='default')
-    default_function = Field(default=lambda: datetime.utcnow())
-    func = Field().func(uuid4_verify)
-    instance = Field().instance(str)
-    length = Field().length(min=2, max=10)
-    listof = Field().listof(str)
-    max = Field().max(10)
-    min = Field().min(0)
-    model = Field().model(NoteJSON)
-    required = Field(required=True)
-    search = Field().search('[0-9]+')
-    subset = Field().subset([1, 2, 3])
-
-
 class TestField(unittest.TestCase):
-
-    def setUp(self):
-        self.field = FieldMockUp()
-
     def test_init(self):
         # 1. Field with no options
         field = Field()
@@ -233,86 +215,88 @@ class TestField(unittest.TestCase):
         self.assertIsInstance(field.default, datetime)
 
     def test_value(self):
+        field = Field(required=True, disallow=[None])\
+            .instance(str).length(10)
 
-
-        field = Field(required=True, disallow=[None]).instance(int).max(10).min(0)
         # Required Field should raise RequiredError if ask for value
         # before assigned.
         with self.assertRaises(Field.RequiredError):
             field.value
 
-        # Assign disallowed value
+        # Assign valid value.
+        field.value = 'test'
+        self.assertEqual(field.value, 'test')
+
+        # Assign disallowed value.
         with self.assertRaises(Field.ValueError):
             field.value = None
-        
+
+        # Assign not valid value.
         with self.assertRaises(Field.ValueError):
-            field.value = '1'
+            field.value = 'word-length-more-than-ten'
 
-    # def test_anyof(self):
-    #     anyof = Field().anyof([1, 2, 3])
-    #     anyof.value = 1
-    #     with self.assertRaises(Field.ValueError):
-    #         anyof.value = 5
+        # field.value should be unmodifed if errors.
+        self.assertEqual(field.value, 'test')
 
-    # def test_func(self):
-    #     self.model['func'] = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
+    def test_anyof(self):
+        field = Field().anyof([1, 2, 3])
+        # Assign valid value.
+        field.value = 1
+        # Assign not valid value.
+        with self.assertRaises(Field.ValueError):
+            field.value = 5
 
-    # def test_instance(self):
-    #     string = 'test'
-    #     self.model['instance'] = string
-    #     with self.assertRaises(Model.Error):
-    #         self.model['instance'] = 1
-    #     self.assertEqual(self.model['instance'], string)
+    def test_func(self):
+        field = Field().func(uuid4_verify)
+        # Assign valid value.
+        field.value = str(uuid.uuid4())
+        # Assign not valid value.
+        with self.assertRaises(Field.ValueError):
+            field.value = 1
 
-    # def test_length(self):
-    #     self.model['length'] = 'hello'
-    #     with self.assertRaises(Model.Error):
-    #         self.model['length'] = 'length-more-than-10'
+    def test_instance(self):
+        field = Field().instance(str)
+        field.value = 'test'
+        with self.assertRaises(Field.ValueError):
+            field.value = 1
 
-    # def test_listof(self):
-    #     str_list = ['ab', 'cd']
-    #     self.model['listof'] = str_list
-    #     with self.assertRaises(Model.Error):
-    #         self.model['listof'] = [1, 2]
-    #     self.assertEqual(self.model['listof'], str_list)
+    def test_length(self):
+        field = Field().length(10)
+        field.value = 'test'
+        with self.assertRaises(Field.ValueError):
+            field.value = 'length-more-than-10'
 
-    # def test_max(self):
-    #     self.model['max'] = 10
-    #     with self.assertRaises(Model.Error):
-    #         self.model['max'] = 11
-    #     self.assertEqual(self.model['max'], 10)
+    def test_listof(self):
+        field = Field().listof(str)
+        str_list = ['ab', 'cd']
+        field.value = str_list
+        with self.assertRaises(Field.ValueError):
+            field.value = [1, 2]
 
-    # def test_min(self):
-    #     self.model['min'] = 1
-    #     with self.assertRaises(Model.Error):
-    #         self.model['min'] = -1
-    #     self.assertEqual(self.model['min'], 1)
+    def test_model(self):
+        field = Field().model(NoteJSON)
+        note = NoteJSON({
+            'title': 'Note',
+            'user': UserJSON({'name': 'user-1'})
+        })
+        # 1. Set field value to NoteJSON() instance
+        field.value = note
 
-    # def test_model(self):
-    #     note = NoteJSON({
-    #         'title': 'Note',
-    #         'user': UserJSON({'name': 'user-1'})
-    #     })
-    #     # 1. Set field value to NoteJSON() instance
-    #     self.model['model'] = note
+        # 2. Set field value to dict() which is JSON compatible.
+        note = json.dumps(note)
+        note = json.loads(note)
+        field.value = note
 
-    #     # 2. Set field value to dict() which is JSON compatible.
-    #     note = json.dumps(note)
-    #     note = json.loads(note)
-    #     self.model['model'] = note
+        # 3. Error if assign invalid value.
+        with self.assertRaises(Field.ValueError):
+            field.value = 1
 
-    # def test_required(self):
-    #     required = self.model['required']
-    #     with self.assertRaises(Model.Error):
-    #         del self.model['required']
-    #     self.assertEqual(self.model['required'], required)
-
-    # def test_search(self):
-    #     self.model['search'] = '0123456789'
-    #     search = self.model['search']
-    #     with self.assertRaises(Model.Error):
-    #         self.model['search'] = 'a'
-    #     self.assertEqual(self.model['search'], search)
+    def test_search(self):
+        field = Field().search('\w+')
+        field.value = '0123456789'
+        with self.assertRaises(Field.ValueError):
+            field.value = '?'
+        self.assertEqual(field.value, '0123456789')
 
     # def test_subset(self):
     #     subset = [1, 2]
