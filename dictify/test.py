@@ -1,8 +1,7 @@
 import unittest
 import json
 import uuid
-import math
-import decimal
+import re
 from datetime import datetime
 from dictify import Model, Field, UNDEF
 
@@ -238,6 +237,12 @@ class TestField(unittest.TestCase):
         # field.value should be unmodifed if errors.
         self.assertEqual(field.value, 'test')
 
+    def test_reset(self):
+        field = Field(default='default')
+        field.value = 1
+        field.reset()
+        self.assertEqual(field.value, 'default')
+
     def test_anyof(self):
         field = Field().anyof([1, 2, 3])
         # Assign valid value.
@@ -273,6 +278,13 @@ class TestField(unittest.TestCase):
         with self.assertRaises(Field.ValueError):
             field.value = [1, 2]
 
+    def test_match(self):
+        field = Field().match('012', re.I)
+        field.value = '0123456789'
+        with self.assertRaises(Field.ValueError):
+            field.value = '123'
+        self.assertEqual(field.value, '0123456789')
+
     def test_model(self):
         field = Field().model(NoteJSON)
         note = NoteJSON({
@@ -292,18 +304,19 @@ class TestField(unittest.TestCase):
             field.value = 1
 
     def test_search(self):
-        field = Field().search('\w+')
+        field = Field().search('\w+', re.I)
         field.value = '0123456789'
         with self.assertRaises(Field.ValueError):
             field.value = '?'
         self.assertEqual(field.value, '0123456789')
 
-    # def test_subset(self):
-    #     subset = [1, 2]
-    #     self.model['subset'] = subset
-    #     with self.assertRaises(Model.Error):
-    #         self.model['subset'] = [3, 4]
-    #     self.assertEqual(self.model['subset'], subset)
+    def test_subset(self):
+        numbers = [1, 2]
+        field = Field().subset(numbers)
+        field.value = numbers
+        with self.assertRaises(Field.ValueError):
+            field.value = [3, 4]
+        self.assertEqual(field.value, numbers)
 
 
 class TestSubClass(unittest.TestCase):

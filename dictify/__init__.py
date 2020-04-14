@@ -176,6 +176,10 @@ class Field:
             raise Field.ValueError(errors)
         self._value = value
 
+    def reset(self):
+        """Reset ``Field().value`` to default or ``UNDEF``"""
+        self._value = self.default
+
     @function
     def anyof(self, value, members: list):
         """Check if ``value`` is in ``members`` list.
@@ -225,6 +229,12 @@ class Field:
         ListOf(value, type_)
 
     @function
+    def match(self, value, re_: str, flags=0):
+        """Match value with regular expression string ``re_``."""
+        assert re.match(re_, value, flags),\
+            f"Matching with re.match('{re_}', '{value}') is None"
+
+    @function
     def model(self, value, model_cls: 'Model'):
         """Check if value pass validation by ``model_cls``.
         Useful for nested data."""
@@ -232,13 +242,9 @@ class Field:
 
     @function
     def search(self, value, re_: str, flags=0):
-        """Check if value is matched with regular expression string ``re_``."""
+        """Search value with with regular expression string ``re_``."""
         assert re.search(re_, value, flags),\
-            f"re.search('{re_}', '{value}') is None"
-
-    def reset(self):
-        """Reset ``Field().value`` to default or ``UNDEF``"""
-        self._value = self.default
+            f"Searching with re.search('{re_}', '{value}') is None"
 
     @function
     def subset(self, value, members: list):
