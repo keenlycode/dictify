@@ -24,8 +24,8 @@ def function(func: typing.Callable):
         if field.default != UNDEF:
             try:
                 func(field, field.default, *args, **kw)
-            except AssertionError as error:
-                raise Field.DefaultError(
+            except Exception as error:
+                raise Field.DefineError(
                     f"Field(default={field.default}) conflict with ",
                     f"{func.__name__}(*{args}, **{kw})", error)
         field._functions.append(
@@ -98,7 +98,7 @@ class Field:
         field.value = 'A'  # This will raise Field.ValueError
 
         # Chained validators.
-        field = Field(default=0).instance(int).min(0).max(10)
+        field = Field(default=0).instance(str).search('.*@.*)
         field.value = 5
         field.value = -1  # This will raise Field.ValueError
 

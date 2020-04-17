@@ -213,6 +213,10 @@ class TestField(unittest.TestCase):
         field = Field(default=datetime.utcnow)
         self.assertIsInstance(field.default, datetime)
 
+    def test_define_error(self):
+        with self.assertRaises(Field.DefineError):
+            field = Field(default=0).instance(str)
+
     def test_value(self):
         field = Field(required=True, disallow=[None])\
             .instance(str).length(10)
