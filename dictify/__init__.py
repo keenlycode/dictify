@@ -1,6 +1,6 @@
 import math
 import re
-import typing
+from typing import Callable, Any
 from functools import wraps
 
 
@@ -17,7 +17,7 @@ class Function:
         return f"{self.func.__name__}{self.args}{self.kw}"
 
 
-def function(func: typing.Callable):
+def function(func: Callable):
     """Decorator to add ``Field`` methods for value validation."""
     @wraps(func)
     def wrapper(field, *args, **kw):
@@ -95,12 +95,12 @@ class Field:
         # Use with validators.
         field = Field(required=True).anyof(['AM','PM'])
         field.value = 'AM'
-        field.value = 'A'  # This will raise Field.ValueError
+        field.value = 'A'  # This will raise Field.VerifyError
 
         # Chained validators.
         field = Field(default=0).instance(str).search('.*@.*)
         field.value = 5
-        field.value = -1  # This will raise Field.ValueError
+        field.value = -1  # This will raise Field.VerifyError
 
     Notes
     -----
@@ -115,17 +115,23 @@ class Field:
         Required option. Only useful when define ``Field()`` in ``Model`` class
     disallow: list=[]
         List of disallowed value.
-    default=UNDEF
+    default: any=UNDEF
         Field's default value
     """
 
-    class ValueError(Exception):
+    class VerifyError(Exception):
+        """Error to be raised if ``Field().value`` doesn't pass validation.
+        """
         pass
 
     class RequiredError(Exception):
+        """Error to be raised if ``Field(required=True)``
+        but no value provided.
+        """
         pass
 
     class DefineError(Exception):
+        """Error to be raised when defining ``Field()``."""
         pass
 
     def __init__(
@@ -164,7 +170,7 @@ class Field:
         if self.required and value == UNDEF:
             raise Field.RequiredError('Field is required')
         if value in self.disallow:
-            raise Field.ValueError(
+            raise Field.VerifyError(
                 f"Value ({value}) is not allowed. " +\
                 f"Disallow {self.disallow}")
         for function in self._functions:
@@ -173,7 +179,7 @@ class Field:
             except Exception as e:
                 errors.append((function, e))
         if errors:
-            raise Field.ValueError(errors)
+            raise Field.VerifyError(errors)
         self._value = value
 
     def reset(self):
@@ -182,30 +188,8 @@ class Field:
 
     @function
     def anyof(self, value, members: list):
-        """Check if ``value`` is in ``members`` list.
-
-        ``assert value in members``
-        """
+        """Check if ``value`` is in ``members`` list."""
         assert value in members, f'{value} is not in {members}'
-
-    @function
-    def func(self, value, fn):
-        """Use custom function for value validation.
-
-        - ``fn`` should have call signature as ``fn(field, value)``
-        - ``fn`` should raise ``AssertionError`` if value doesn't pass validation.
-
-        Examples
-        --------
-        ::
-
-            def is_uuid4(field, value):
-                id = uuid.UUID(value)
-                assert id.version == 4
-
-            field = Field().func(is_uuid4)
-        """
-        fn(self, value)
 
     @function
     def instance(self, value, type_: type):
@@ -215,13 +199,6 @@ class Field:
         """
         assert isinstance(value, type_),\
             f'{type(value)} is not instance of {type_}'
-
-    @function
-    def length(self, value, max: int = math.inf):
-        """Set value's min/max length. ``assert min <= len(value) <= max``"""
-        length_ = len(value)
-        assert length_ <= max,\
-            f"Value's length is {length_}. Must less than {max}"
 
     @function
     def listof(self, value, type_):
@@ -247,10 +224,49 @@ class Field:
             f"Searching with re.search('{re_}', '{value}') is None"
 
     @function
-    def subset(self, value, members: list):
-        """Check if value is subset of ``members``."""
-        assert set(value) <= set(members),\
-            f"{value} is not a subset of {members}"
+    def verify(self, value, func, message=None):
+        """Designed to use with ``lambda`` for simple syntax since ``lambda``
+        can't use ``assert`` statement.
+        
+        The callable must return ``True`` or ``False``.
+
+        If return ``False``, It will be raised as ``AssertionError``.
+
+        Example
+        -------
+        ::
+
+            # Check if username is `str` instance and has length <= 20
+            username = Field().instance(str).verify(
+                lambda field, value: len(value) <= 20,
+                f'username has length more than 20'
+            )
+
+            username.value = 'user-1'  # Valid.
+            username.value = 1  # Invalid.
+            username.value = 'username-which-longer-than-20-characters'  # Invalid.
+        """
+        assert func(self, value), message
+
+    @function
+    def func(self, value, fn):
+        """Use callable function to process ``Field()`` and it's value.
+        
+        ``fn(field, value)`` should return any ``Exception``
+        if value is invalid to comply with ``Field`` verification process.
+
+        Examples
+        --------
+        ::
+
+            def is_uuid4(field, value):
+                id = uuid.UUID(value)
+                # Raise AssertionError if id.version != 4
+                assert id.version == 4
+
+            field = Field().func(is_uuid4)
+        """
+        fn(self, value)
 
 
 class Model(dict):
@@ -328,7 +344,7 @@ class Model(dict):
             super().__setitem__(key, self._field[key].value)
         except KeyError:
             error = {key: KeyError('Field is not defined')}
-        except (Field.ValueError, ListOf.ValueError) as e:
+        except (Field.VerifyError, ListOf.ValueError) as e:
             error = {key: e}
         if error:
             raise Model.Error(error)
@@ -341,7 +357,7 @@ class Model(dict):
                 self._field[key].reset()
             except KeyError:
                 error[key] = KeyError('Field is not defined')
-            except Field.ValueError as e:
+            except Field.VerifyError as e:
                 error[key] = e
         if error:
             raise Model.Error(error)

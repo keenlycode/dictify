@@ -215,11 +215,11 @@ class TestField(unittest.TestCase):
 
     def test_define_error(self):
         with self.assertRaises(Field.DefineError):
-            field = Field(default=0).instance(str)
+            Field(default=0).instance(str)
 
     def test_value(self):
         field = Field(required=True, disallow=[None])\
-            .instance(str).length(10)
+            .instance(str).verify(lambda field, value: len(value) <= 10)
 
         # Required Field should raise RequiredError if ask for value
         # before assigned.
@@ -231,11 +231,11 @@ class TestField(unittest.TestCase):
         self.assertEqual(field.value, 'test')
 
         # Assign disallowed value.
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = None
 
         # Assign not valid value.
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = 'word-length-more-than-ten'
 
         # field.value should be unmodifed if errors.
@@ -252,7 +252,7 @@ class TestField(unittest.TestCase):
         # Assign valid value.
         field.value = 1
         # Assign not valid value.
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = 5
 
     def test_func(self):
@@ -260,32 +260,26 @@ class TestField(unittest.TestCase):
         # Assign valid value.
         field.value = str(uuid.uuid4())
         # Assign not valid value.
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = 1
 
     def test_instance(self):
         field = Field().instance(str)
         field.value = 'test'
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = 1
-
-    def test_length(self):
-        field = Field().length(10)
-        field.value = 'test'
-        with self.assertRaises(Field.ValueError):
-            field.value = 'length-more-than-10'
 
     def test_listof(self):
         field = Field().listof(str)
         str_list = ['ab', 'cd']
         field.value = str_list
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = [1, 2]
 
     def test_match(self):
         field = Field().match('012', re.I)
         field.value = '0123456789'
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = '123'
         self.assertEqual(field.value, '0123456789')
 
@@ -304,23 +298,15 @@ class TestField(unittest.TestCase):
         field.value = note
 
         # 3. Error if assign invalid value.
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = 1
 
     def test_search(self):
         field = Field().search('\w+', re.I)
         field.value = '0123456789'
-        with self.assertRaises(Field.ValueError):
+        with self.assertRaises(Field.VerifyError):
             field.value = '?'
         self.assertEqual(field.value, '0123456789')
-
-    def test_subset(self):
-        numbers = [1, 2]
-        field = Field().subset(numbers)
-        field.value = numbers
-        with self.assertRaises(Field.ValueError):
-            field.value = [3, 4]
-        self.assertEqual(field.value, numbers)
 
 
 class TestSubClass(unittest.TestCase):
