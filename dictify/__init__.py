@@ -1,6 +1,5 @@
-import math
 import re
-from typing import Callable, Any
+from typing import Callable
 from functools import wraps
 
 
@@ -30,7 +29,6 @@ def function(func: Callable):
                     f"{func.__name__}(*{args}, **{kw})", error)
         field._functions.append(
             Function(func, *args, **kw)
-            # lambda field, value: func(field, value, *args, **kw)
         )
         return field
     return wrapper
