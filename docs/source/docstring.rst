@@ -1,5 +1,5 @@
-API Reference
-=============
+Docstring
+=========
 
 ..  autoclass:: dictify.Model
     :members:

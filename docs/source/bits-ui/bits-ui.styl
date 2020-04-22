@@ -1,0 +1,35 @@
+$bits_ui_path = '../../../node_modules/bits-ui/'
+
+@require '_require'
+@require 'default'
+@require 'typography'
+@require 'ui-class'
+
+@font-face
+    font-family: bits-ui
+    src: url('../Fira_Sans/FiraSans-Regular.ttf')
+
+@font-face
+    font-family: 'Fira Sans'
+    src: url('../Fira_Sans/FiraSans-Regular.ttf')
+
+body
+    font-family: 'Fira Sans'
+
+h1, h2, h3, h4, h5, h6
+    font-family: 'Fira Sans'
+    margin-bottom: 0.5em
+
+h2, h3, h4, h5, h6
+    font-weight: normal
+
+p
+    margin-top: 0.8em
+
+.rst-content div[class^='highlight'] pre
+    font-size: 0.9rem
+    padding: 0.1rem 0.3rem
+    border-radius: 2px
+
+.rst-content code.literal
+    font-size: 0.9rem

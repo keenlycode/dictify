@@ -27,9 +27,7 @@ def function(func: Callable):
                 raise Field.DefineError(
                     f"Field(default={field.default}) conflict with ",
                     f"{func.__name__}(*{args}, **{kw})", error)
-        field._functions.append(
-            Function(func, *args, **kw)
-        )
+        field._functions.append(Function(func, *args, **kw))
         return field
     return wrapper
 

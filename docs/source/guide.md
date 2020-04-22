@@ -1,3 +1,0 @@
-# Guide
-
-<button>OK</button>
