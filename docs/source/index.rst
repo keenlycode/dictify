@@ -33,9 +33,8 @@ Schema
     from dictify import Model, Field
 
     class User(Model):
-        name = Field(required=True)\
-            .instance(str)\
-            .verify(lambda field, name: len(name) <= 20)  # [1]
+        name = Field(required=True).instance(str).match('^[a-zA-Z_- ]+$')
+        email = Field(required=True).instance(str).match('.+@.+')
 
     class Note(Model):
         title = Field(required=True).instance(str)
@@ -43,7 +42,7 @@ Schema
         user = Field(required=True).instance(User)
 
     # Use defined schema (Model) to validate data and keeps in variables.
-    user = User({'name': 'user-1'})
+    user = User({'name': 'user'})
     note = Note({'title': 'Title', 'user': user})
 
 Convert to Dict or JSON
@@ -63,6 +62,7 @@ Convert to Dict or JSON
     :hidden:
     
     usage
+    field
     docstring
 
 Indices and tables

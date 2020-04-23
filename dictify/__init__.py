@@ -82,7 +82,7 @@ class ListOf(list):
 
 class Field:
     """Create ``Field()`` object which can validate it's value.
-    Can be defined in ``class Model``.
+    Can be defined in class ``Model``.
 
     Examples
     --------
@@ -108,7 +108,8 @@ class Field:
     Parameters
     ----------
     required: bool=False
-        Required option. Only useful when define ``Field()`` in ``Model`` class
+        Required option. If set to ``True``, call ``Field().value`` without
+        assigned value will raise ``Field.RequiredError``
     disallow: list=[]
         List of disallowed value.
     default: any=UNDEF
@@ -183,13 +184,8 @@ class Field:
         self._value = self.default
 
     @function
-    def anyof(self, value, members: list):
-        """Check if ``value`` is in ``members`` list."""
-        assert value in members, f'{value} is not in {members}'
-
-    @function
     def instance(self, value, type_: type):
-        """Check if ``value`` is instance to ``type_``
+        """Verify that ``value`` is instance to ``type_``
         
         ``assert isinstance(value, type_)``
         """
@@ -198,7 +194,7 @@ class Field:
 
     @function
     def listof(self, value, type_):
-        """Check if ``Field()`` value is a list of ``type_``"""
+        """Verify that ``Field()`` value is a list of ``type_``"""
         ListOf(value, type_)
 
     @function
@@ -209,7 +205,7 @@ class Field:
 
     @function
     def model(self, value, model_cls: 'Model'):
-        """Check if value pass ``model_cls`` validation."""
+        """Verify that value pass ``model_cls`` validation."""
         model_cls(value)
 
     @function
@@ -231,7 +227,7 @@ class Field:
         -------
         ::
 
-            # Check if username is `str` instance and has length <= 20
+            # Verify that username is `str` instance and has length <= 20
             username = Field().instance(str).verify(
                 lambda field, value: len(value) <= 20,
                 f'username has length more than 20'
@@ -291,7 +287,7 @@ class Model(dict):
         self._field = dict()
         for key in self.__dir__():
             field = self.__getattribute__(key)
-            # Check if item is Field().
+            # Verify that item is Field().
             if not isinstance(field, Field):
                 continue
             # If default option is set in Field(), set default value
