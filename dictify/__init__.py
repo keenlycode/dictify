@@ -209,8 +209,7 @@ class Field:
 
     @function
     def model(self, value, model_cls: 'Model'):
-        """Check if value pass validation by ``model_cls``.
-        Useful for nested data."""
+        """Check if value pass ``model_cls`` validation."""
         model_cls(value)
 
     @function
