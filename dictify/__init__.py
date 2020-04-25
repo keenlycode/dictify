@@ -244,23 +244,23 @@ class Field:
 
     @function
     def func(self, value, fn):
-        """Use callable function to process ``Field()`` and it's value.
+        """Use callable function to validate value.
         
-        ``fn(field, value)`` should return any ``Exception``
-        if value is invalid to comply with ``Field`` verification process.
+        ``fn`` will be called later as ``fn(value: Field.value)`` and
+        should return ``Exception`` if value is invalid.
 
         Examples
         --------
         ::
 
-            def is_uuid4(field, value):
+            def is_uuid4(value):
                 id = uuid.UUID(value)
                 # Raise AssertionError if id.version != 4
                 assert id.version == 4
 
-            field = Field().func(is_uuid4)
+            uuid4 = Field().func(is_uuid4)
         """
-        fn(self, value)
+        fn(value)
 
 
 class Model(dict):

@@ -6,11 +6,11 @@ from datetime import datetime
 from dictify import Model, Field, UNDEF
 
 
-def datetime_verify(field, value):
+def datetime_verify(value):
     datetime.fromisoformat(value)
 
 
-def uuid4_verify(field, value):
+def uuid4_verify(value):
     try:
         id_ = uuid.UUID(value)
     except AttributeError:

@@ -115,11 +115,34 @@ accept native ``dict`` instance for the whole tree.
 
 verify(lambda, message)
 ***********************
-Verify value using lambda
+Verify value using ``lambda``
 
 .. code-block:: python
 
-    age = Field().instance(int).verify(lambda value: 0 <= value <= 150)
+    age = Field().instance(int).verify(
+        lambda value: 0 <= value <= 150,
+        "Age range must be 0 - 150"
+    )
 
 func(callable)
 **************
+Use ``callable`` function with **value** as an argument.
+
+``callable`` should return ``Exception`` if **value** is invalid.
+
+.. code-block:: python
+
+    import uuid
+    from dictify import Field
+
+    # callable function to verify uuid4 value
+    def is_uuid4(value):
+        assert isinstance(value, str), "Value must be instance of `str`"
+        id = uuid.UUID(value)
+        # Raise AssertionError if id.version != 4
+        assert id.version == 4, "Value must be UUID version 4 format"
+
+    uuid4 = Field().func(is_uuid4)
+
+    uuid4.value = str(uuid.uuid4())
+    uuid4.value = 1  # invalid, raise Exception
