@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dictify",
-    version="2.0.0dev",
+    version="2.0.0",
     author="Nitipit Nontasuwan",
     author_email="nitipit@gmail.com",
     description="Python `dict` and `json` verification for humankind :)",
@@ -18,4 +18,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    python_requires='>=3'
 )
