@@ -25,7 +25,7 @@ async def sphinx_dir_src_watch():
         await asyncio.create_subprocess_shell('make html')
 
 
-async def bits_ui():
+async def bits_ui_lib():
     src_dir = base_dir.joinpath('node_modules/bits-ui/dist/')
     dest_dir = base_dir.joinpath('docs/build/html/_static/lib/bits-ui/')
     try:
@@ -35,7 +35,13 @@ async def bits_ui():
     shutil.copytree(src_dir, dest_dir)
 
 
-async def bits_ui_stylus():
+async def bits_ui_stylus_build():
+    src = base_dir.joinpath('docs/source/bits-ui/bits-ui.styl')
+    dest = base_dir.joinpath('docs/source/_static/bits-ui/bits-ui.css')
+    await asyncio.create_subprocess_shell(f'stylus {src} -o {dest}')
+
+
+async def bits_ui_stylus_watch():
     src = base_dir.joinpath('docs/source/bits-ui/bits-ui.styl')
     dest = base_dir.joinpath('docs/build/html/_static/bits-ui/bits-ui.css')
     await asyncio.create_subprocess_shell(f'stylus {src} -o {dest}')
@@ -45,8 +51,13 @@ async def bits_ui_stylus():
 
 
 async def main():
+    await bits_ui_lib()
+    await bits_ui_stylus_build()
+    await make()
     await asyncio.gather(
-        make(), py_watch(), sphinx_dir_src_watch(), bits_ui(), bits_ui_stylus()
+        py_watch(),
+        sphinx_dir_src_watch(),
+        bits_ui_stylus_watch()
     )
 
 asyncio.run(main())
