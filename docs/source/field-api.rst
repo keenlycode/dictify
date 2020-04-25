@@ -108,25 +108,18 @@ Verify that value pass given **Model** validation. (defined in code line: 8)
     user = {'name': 'user-1', 'email': 'user@example.com'}
     note = Note({'title': 'Title-1', 'user': user})
 
-We might notice that, using:
-
-.. code-block:: python
-
-    user = Field().model(User)
-
-is similar to:
-
-.. code-block:: python
-
-    user = Field().instance(User)
-
-except that ``model(User)`` can accept native ``dict`` without casting it to
-``User`` instance, which is much easier to handle complex data comes in
-**JSON** format.
+We can notice that we might use ``Field.instance()`` in this case. However,
+Using ``Field.model()`` is easier to validate complex **JSON** data since it can
+accept native ``dict`` instance for the whole tree.
     
 
 verify(lambda, message)
 ***********************
+Verify value using lambda
+
+.. code-block:: python
+
+    age = Field().instance(int).verify(lambda field, value: 0 <= value <= 150)
 
 func(callable)
 **************
