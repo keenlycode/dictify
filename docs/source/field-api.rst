@@ -119,7 +119,7 @@ Verify value using lambda
 
 .. code-block:: python
 
-    age = Field().instance(int).verify(lambda field, value: 0 <= value <= 150)
+    age = Field().instance(int).verify(lambda value: 0 <= value <= 150)
 
 func(callable)
 **************

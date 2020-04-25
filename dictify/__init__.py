@@ -17,18 +17,21 @@ class Function:
 
 
 def function(func: Callable):
-    """Decorator to add ``Field`` methods for value validation."""
+    """Decorator used in Field class to add methods in validation chain"""
     @wraps(func)
-    def wrapper(field, *args, **kw):
-        if field.default != UNDEF:
+    def wrapper(self, *args, **kw):
+        # Test default value.
+        if self.default != UNDEF:
             try:
-                func(field, field.default, *args, **kw)
+                func(self, self.default, *args, **kw)
             except Exception as error:
                 raise Field.DefineError(
-                    f"Field(default={field.default}) conflict with ",
+                    f"Field(default={self.default}) conflict with ",
                     f"{func.__name__}(*{args}, **{kw})", error)
-        field._functions.append(Function(func, *args, **kw))
-        return field
+        
+        # Keep function in chain.
+        self._functions.append(Function(func, *args, **kw))
+        return self
     return wrapper
 
 
@@ -237,7 +240,7 @@ class Field:
             username.value = 1  # Invalid.
             username.value = 'username-which-longer-than-20-characters'  # Invalid.
         """
-        assert func(self, value), message
+        assert func(value), message
 
     @function
     def func(self, value, fn):

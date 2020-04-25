@@ -219,7 +219,7 @@ class TestField(unittest.TestCase):
 
     def test_value(self):
         field = Field(required=True, disallow=[None])\
-            .instance(str).verify(lambda field, value: len(value) <= 10)
+            .instance(str).verify(lambda value: len(value) <= 10)
 
         # Required Field should raise RequiredError if ask for value
         # before assigned.
@@ -294,7 +294,7 @@ class TestField(unittest.TestCase):
             field.value = 1
 
     def test_search(self):
-        field = Field().search('\w+', re.I)
+        field = Field().search(r'\w+', re.I)
         field.value = '0123456789'
         with self.assertRaises(Field.VerifyError):
             field.value = '?'
