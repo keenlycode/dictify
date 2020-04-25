@@ -1,8 +1,8 @@
 Field and Model
 ===============
 
-**Field** can be defined with validation chain, and can be validated
-by ``Field`` itself. For example:
+**Field** can be defined with validation chain, and can validated it's value.
+For example:
 
 .. code-block:: python
 
@@ -26,5 +26,5 @@ and validate ``Field`` to python native ``dict`` instance. For example:
         email = Field(required=True).instance(str).match('.+@.+')
 
     user = User({'name': 'user', 'email': 'user@example.com'})
-    user['name'] = '0' # Invalid, value is not assigned.
-    user['email'] = 'user' # Invalid, value is not assigned.
+    user['name'] = '0' # Invalid, value won't be assigned.
+    user['email'] = 'user' # Invalid, won't be assigned.

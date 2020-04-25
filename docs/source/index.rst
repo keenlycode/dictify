@@ -68,8 +68,8 @@ Furthur data modification will be validated.
 
 Use like Python dict()
 **********************
-``dictify.Model`` is a subclass of ``dict`` which controlled by schema
-definition.
+``dictify.Model`` is a subclass of ``dict`` which is validated by
+defined schema.
 
 .. code-block:: python
 
@@ -81,7 +81,7 @@ definition.
         'user': user
     })
 
-    # Code below will raise `Model.Error` which collect errors of all fields.
+    # Code below will raise `Model.Error`.
     note.update({'title': 0, 'user': 0})
 
 

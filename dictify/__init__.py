@@ -232,8 +232,8 @@ class Field:
 
             # Verify that username is `str` instance and has length <= 20
             username = Field().instance(str).verify(
-                lambda field, value: len(value) <= 20,
-                f'username has length more than 20'
+                lambda value: len(value) <= 20,
+                f'username length must <= 20'
             )
 
             username.value = 'user-1'  # Valid.
@@ -246,8 +246,8 @@ class Field:
     def func(self, value, fn):
         """Use callable function to validate value.
         
-        ``fn`` will be called later as ``fn(value: Field.value)`` and
-        should return ``Exception`` if value is invalid.
+        ``fn`` will be called later as ``fn(value)`` and should return
+        ``Exception`` if value is invalid.
 
         Examples
         --------

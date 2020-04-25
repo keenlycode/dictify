@@ -91,7 +91,7 @@ Match value with regular expression pattern.
 
 model(Model)
 ************
-Verify that value pass given **Model** validation. (defined in code line: 8)
+Verify that value pass given **Model** validation. (used in code line: 8)
 
 .. code-block:: python
     :linenos:
@@ -109,8 +109,7 @@ Verify that value pass given **Model** validation. (defined in code line: 8)
     note = Note({'title': 'Title-1', 'user': user})
 
 We can notice that we might use ``Field.instance()`` in this case. However,
-Using ``Field.model()`` is easier to validate complex **JSON** data since it can
-accept native ``dict`` instance for the whole tree.
+Using ``Field.model()`` is easier to validate complex **dict** or **JSON** data.
     
 
 verify(lambda, message)
@@ -146,3 +145,15 @@ Use ``callable`` function with **value** as an argument.
 
     uuid4.value = str(uuid.uuid4())
     uuid4.value = 1  # invalid, raise Exception
+
+``func()`` provide more control to verify value since it can use statements
+and raise ``Exception``
+
+.. epigraph::
+
+    Understanding ``try..except`` and ``assert`` will leverage usage benefits.
+
+    See links here to learn more about Python ``assert`` statement.
+
+    - https://www.w3schools.com/python/ref_keyword_assert.asp
+    - https://www.google.com/search?q=python+assert&oq=python+assert
