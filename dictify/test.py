@@ -247,14 +247,6 @@ class TestField(unittest.TestCase):
         field.reset()
         self.assertEqual(field.value, 'default')
 
-    def test_anyof(self):
-        field = Field().anyof([1, 2, 3])
-        # Assign valid value.
-        field.value = 1
-        # Assign not valid value.
-        with self.assertRaises(Field.VerifyError):
-            field.value = 5
-
     def test_func(self):
         field = Field().func(uuid4_verify)
         # Assign valid value.
