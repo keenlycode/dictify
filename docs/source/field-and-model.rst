@@ -1,7 +1,7 @@
 Field and Model
 ===============
 
-**Field** can be defined with validation chain, and can validated it's value.
+``Field`` can be defined with validation chain, and can validated it's value.
 For example:
 
 .. code-block:: python
