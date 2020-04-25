@@ -321,12 +321,11 @@ class Model(dict):
         """Delete item but also check for Field's default or required option
         to make sure that Model's data is valid.
         """
-        # if 'default' in self._field[key].option:
-        #     self[key] = self._field[key].option['default']
         if self._field[key].default != UNDEF:
             self[key] = self._field[key].default
         elif self._field[key].required:
-            raise Model.Error({key: KeyError("This field is required")})
+            raise Model.Error({
+                key: Field.RequiredError("Field is required")})
         else:
             return super().__delitem__(key)
 

@@ -64,7 +64,7 @@ Furthur data modification will be validated.
 
 .. epigraph::
 
-    **Note :** Use ``try`` .. ``except`` to cactch errors if needed.
+    **Note :** Use ``try..except`` to catch errors if needed.
 
 Use like Python dict()
 **********************
