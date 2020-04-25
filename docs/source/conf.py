@@ -58,4 +58,16 @@ html_theme = 'sphinx_rtd_theme'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+html_css_files = [
+    'bits-ui/bits-ui.css'
+]
+
+html_js_files = [
+    'lib/bits-ui/bits-ui.js'
+]
+
 master_doc = 'index'
+
+autodoc_default_options = {
+    'member-order': 'bysource'
+}

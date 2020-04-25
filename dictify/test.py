@@ -1,15 +1,16 @@
 import unittest
 import json
 import uuid
+import re
 from datetime import datetime
-from dictify import Model, Field, ModelError
+from dictify import Model, Field, UNDEF
 
 
-def datetime_verify(field, value):
+def datetime_verify(value):
     datetime.fromisoformat(value)
 
 
-def uuid4_verify(field, value):
+def uuid4_verify(value):
     try:
         id_ = uuid.UUID(value)
     except AttributeError:
@@ -18,32 +19,32 @@ def uuid4_verify(field, value):
 
 
 class User(Model):
-    id = Field(default=uuid.uuid4()).instance(uuid.UUID)
+    id = Field(default=lambda: uuid.uuid4()).instance(uuid.UUID)
     name = Field(required=True).instance(str)
 
 
 class Comment(Model):
     content = Field().instance(str)
-    datetime = Field(default=datetime.utcnow()).instance(datetime)
+    datetime = Field(default=lambda: datetime.utcnow()).instance(datetime)
     user = Field(required=True).instance(User)
 
 
 class Note(Model):
     title = Field(required=True).instance(str)
     content = Field().instance(str)
-    datetime = Field(default=datetime.utcnow()).instance(datetime)
+    datetime = Field(default=lambda: datetime.utcnow()).instance(datetime)
     user = Field(required=True).instance(User)
     comments = Field().listof(Comment)
 
 
 class UserJSON(Model):
-    id = Field(default=str(uuid.uuid4())).func(uuid4_verify)
+    id = Field(default=lambda: str(uuid.uuid4())).func(uuid4_verify)
     name = Field(required=True).instance(str)
 
 
 class CommentJSON(Model):
     content = Field(required=True).instance(str)
-    datetime = Field(default=datetime.utcnow().isoformat())\
+    datetime = Field(default=lambda: datetime.utcnow().isoformat())\
         .func(datetime_verify)
     user = Field(required=True).model(UserJSON)
 
@@ -51,25 +52,10 @@ class CommentJSON(Model):
 class NoteJSON(Model):
     title = Field(required=True).instance(str)
     content = Field().instance(str)
-    datetime = Field(default=datetime.utcnow().isoformat())\
+    datetime = Field(default=lambda: datetime.utcnow().isoformat())\
         .func(datetime_verify)
     user = Field(required=True).model(UserJSON)
     comments = Field().listof(CommentJSON)
-
-
-class MockUp(Model):
-    default = Field(default='default')
-    required = Field(required=True)
-    anyof = Field().anyof([1, 2, 3])
-    length = Field().length(min=2, max=10)
-    listof = Field().listof(str)
-    min = Field().min(0)
-    max = Field().max(10)
-    model = Field().model(NoteJSON)
-    search = Field().search('[0-9]+')
-    subset = Field().subset([1, 2, 3])
-    instance = Field().instance(str)
-    func = Field().func(uuid4_verify)
     
 
 class TestModel(unittest.TestCase):
@@ -101,13 +87,12 @@ class TestModel(unittest.TestCase):
             Note([])
         
         # Test required field.
-        with self.assertRaises(ModelError):
-            note = Note({})
-            print(note)
+        with self.assertRaises(Model.Error):
+            Note({})
 
         note = Note({
             'title': 'Title',
-            'user': User({'name': 'user example'})
+            'user': User({'name': 'user1'})
         })
 
         # Test default value.
@@ -120,7 +105,7 @@ class TestModel(unittest.TestCase):
             'datetime': datetime.utcnow(),
             'user': User({
                 'id': uuid.uuid4(),
-                'name': 'user example'
+                'name': 'user-1'
             })
         }
         note = Note(data)
@@ -138,7 +123,7 @@ class TestModel(unittest.TestCase):
 
         # 2. Delete field with required option.
         title = self.note['title']
-        with self.assertRaises(ModelError):
+        with self.assertRaises(Model.Error):
             del self.note['title']
         self.assertEqual(title, self.note['title'])
 
@@ -148,24 +133,24 @@ class TestModel(unittest.TestCase):
 
     def test_setitem(self):
         """Test `__setitem__` for 4 cases:
-        1. FieldError,
+        1. Model.Error,
         2. Key Error
         3. Data unmodified if there is any error.
         4. Success.
         """
         data = self.note.copy()
 
-        # 1. FieldError.
-        with self.assertRaises(ModelError):
+        # 1. Model.Error
+        with self.assertRaises(Model.Error):
             self.note['title'] = 0
 
-        # 2. KeyError.
-        with self.assertRaises(ModelError):
+        # 2. KeyError
+        with self.assertRaises(Model.Error):
             self.note['datetime'] = 'today'
 
         # 3. Data unmodified if there is any error.
         self.assertDictEqual(
-            self.note, data, "Data must be the same if there is any error")
+            self.note, data, "Data must be unmodified if error")
 
         # 4. Success.
         title = 'New Title'
@@ -189,15 +174,15 @@ class TestModel(unittest.TestCase):
         data = note.copy()
         self.assertIsInstance(data['user'], dict)
         
-        with self.assertRaises(ModelError):
+        with self.assertRaises(Model.Error):
             note.update({'title': 1})
 
-        with self.assertRaises(ModelError):
+        with self.assertRaises(Model.Error):
             note.update({'datetime': 1})
 
         self.assertDictEqual(
             data, note,
-            f"Data must be the same if there is any error")
+            f"Data must be unmodified if error")
 
         update = {'title': 'New Title', 'content': 'New Note'}
         data.update(update)
@@ -206,84 +191,114 @@ class TestModel(unittest.TestCase):
 
 
 class TestField(unittest.TestCase):
+    def test_init(self):
+        # 1. Field with no options
+        field = Field()
+        self.assertIsInstance(field, Field)
+        self.assertEqual(field._value, UNDEF)
 
-    def setUp(self):
-        self.model = MockUp({'required': True})
+        # 2. Field with options.
+        field = Field(required=True, default='default', disallow=[])
+        self.assertEqual(field.required, True)
+        self.assertEqual(field._default, 'default')
+        self.assertEqual(field.disallow, [])
 
-    def test_anyof(self):
-        self.model['anyof'] = 1
-        with self.assertRaises(ModelError):
-            self.model['anyof'] = 5
-
-    def test_func(self):
-        self.model['func'] = '11fadebb-3c70-47a9-a3f0-ebf2a3815993'
+        # 3. Field with default that conflict with disallow
+        with self.assertRaises(Field.DefineError):
+            field = Field(default=None, disallow=[None])
 
     def test_default(self):
-        self.assertEqual(self.model['default'], 'default')
+        field = Field(default='default')
+        self.assertEqual(field.value, 'default')
+        field = Field(default=datetime.utcnow)
+        self.assertIsInstance(field.default, datetime)
 
-    def test_length(self):
-        self.model['length'] = 'hello'
-        with self.assertRaises(ModelError):
-            self.model['length'] = 'length-more-than-10'
+    def test_define_error(self):
+        with self.assertRaises(Field.DefineError):
+            Field(default=0).instance(str)
+
+    def test_value(self):
+        field = Field(required=True, disallow=[None])\
+            .instance(str).verify(lambda value: len(value) <= 10)
+
+        # Required Field should raise RequiredError if ask for value
+        # before assigned.
+        with self.assertRaises(Field.RequiredError):
+            field.value
+
+        # Assign valid value.
+        field.value = 'test'
+        self.assertEqual(field.value, 'test')
+
+        # Assign disallowed value.
+        with self.assertRaises(Field.VerifyError):
+            field.value = None
+
+        # Assign not valid value.
+        with self.assertRaises(Field.VerifyError):
+            field.value = 'word-length-more-than-ten'
+
+        # field.value should be unmodifed if errors.
+        self.assertEqual(field.value, 'test')
+
+    def test_reset(self):
+        field = Field(default='default')
+        field.value = 1
+        field.reset()
+        self.assertEqual(field.value, 'default')
+
+    def test_func(self):
+        field = Field().func(uuid4_verify)
+        # Assign valid value.
+        field.value = str(uuid.uuid4())
+        # Assign not valid value.
+        with self.assertRaises(Field.VerifyError):
+            field.value = 1
+
+    def test_instance(self):
+        field = Field().instance(str)
+        field.value = 'test'
+        with self.assertRaises(Field.VerifyError):
+            field.value = 1
 
     def test_listof(self):
+        field = Field().listof(str)
         str_list = ['ab', 'cd']
-        self.model['listof'] = str_list
-        with self.assertRaises(ModelError):
-            self.model['listof'] = [1, 2]
-        self.assertEqual(self.model['listof'], str_list)
+        field.value = str_list
+        with self.assertRaises(Field.VerifyError):
+            field.value = [1, 2]
+
+    def test_match(self):
+        field = Field().match('012', re.I)
+        field.value = '0123456789'
+        with self.assertRaises(Field.VerifyError):
+            field.value = '123'
+        self.assertEqual(field.value, '0123456789')
 
     def test_model(self):
+        field = Field().model(NoteJSON)
         note = NoteJSON({
             'title': 'Note',
             'user': UserJSON({'name': 'user-1'})
         })
         # 1. Set field value to NoteJSON() instance
-        self.model['model'] = note
+        field.value = note
 
         # 2. Set field value to dict() which is JSON compatible.
         note = json.dumps(note)
         note = json.loads(note)
-        self.model['model'] = note
+        field.value = note
+
+        # 3. Error if assign invalid value.
+        with self.assertRaises(Field.VerifyError):
+            field.value = 1
 
     def test_search(self):
-        self.model['search'] = '0123456789'
-        search = self.model['search']
-        with self.assertRaises(ModelError):
-            self.model['search'] = 'a'
-        self.assertEqual(self.model['search'], search)
-
-    def test_min(self):
-        self.model['min'] = 1
-        with self.assertRaises(ModelError):
-            self.model['min'] = -1
-        self.assertEqual(self.model['min'], 1)
-
-    def test_max(self):
-        self.model['max'] = 10
-        with self.assertRaises(ModelError):
-            self.model['max'] = 11
-        self.assertEqual(self.model['max'], 10)
-
-    def test_required(self):
-        required = self.model['required']
-        with self.assertRaises(ModelError):
-            self.model['required'] = None
-        self.assertEqual(self.model['required'], required)
-
-    def test_subset(self):
-        subset = [1, 2]
-        self.model['subset'] = subset
-        with self.assertRaises(ModelError):
-            self.model['subset'] = [3, 4]
-        self.assertEqual(self.model['subset'], subset)
-
-    def test_instance(self):
-        string = 'test'
-        self.model['instance'] = string
-        with self.assertRaises(ModelError):
-            self.model['instance'] = 1
-        self.assertEqual(self.model['instance'], string)
+        field = Field().search(r'\w+', re.I)
+        field.value = '0123456789'
+        with self.assertRaises(Field.VerifyError):
+            field.value = '?'
+        self.assertEqual(field.value, '0123456789')
 
 
 class TestSubClass(unittest.TestCase):
@@ -297,7 +312,7 @@ class TestSubClass(unittest.TestCase):
         self.html = HTML()
 
     def test_subclass(self):
-        with self.assertRaises(ModelError):
+        with self.assertRaises(Model.Error):
             self.html['content_type'] = 1
 
 

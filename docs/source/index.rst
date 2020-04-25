@@ -1,54 +1,116 @@
 ..  dictify documentation master file, created by
-   sphinx-quickstart on Tue Apr  7 21:18:31 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+    sphinx-quickstart on Tue Apr  7 21:18:31 2020.
+    You can adapt this file completely to your liking, but it should at least
+    contain the root `toctree` directive.
 
 ..  raw:: html
 
-    <img src="./_static/dictify.svg" alt="dictify">
-    <h2><code>dict()</code> schema and validation just like eating banana.</h2>
+    <img src="./_static/dictify.svg" alt="dictify" style="margin-bottom: 1rem;">
+    
 
-Example
-=======
-..  code-block:: python
+Dictify : Data schema / validation.
+===================================
+**{dictify}** is a python library to define data schema and validation
+with simple syntax, suitable for handling **Python Dict**, **JSON**
+or **Document Oriented** data structure.
 
-    import uuid
-    from datetime import datetime
+Get it
+******
+..  code-block::
+
+    pip install dictify
+
+Schema Definition
+*****************
+
+For general usage with nested data structure, use ``Model`` and ``Field``
+classes to define schemas as example below:
+
+.. code-block:: python
+
     from dictify import Model, Field
 
     class User(Model):
-        id = Field(default=lambda: uuid.uuid4()).instance(uuid.UUID)
-        name = Field(required=True).instance(str)
+        name = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')  # [1]
+        email = Field(required=True).instance(str).match('.+@.+')  # [1]
 
     class Note(Model):
         title = Field(required=True).instance(str)
         content = Field().instance(str)
-        datetime = Field(default=datetime.utcnow()).instance(datetime)
         user = Field(required=True).instance(User)
 
-    user = User({'name': 'user-1'})
-    note = Note({'title': 'Title', 'user': user})
+.. epigraph::
+
+    [1] Field validation can be chained.
+
+Data Assignment and Validation
+******************************
+
+After schema definition, we can use it by creating ``Model`` instance with
+required data.
+
+.. code-block:: python
+
+    user = User({'name': 'user-1', 'email': 'user@example.com'})
+    note = Note({'title': 'Title-1', 'user': user})
+
+Furthur data modification will be validated.
+
+.. code-block:: python
     
-    # print(note)
-    # {
-    #     'datetime': datetime.datetime(2020, 4, 7, 15, 5, 4, 800777),
-    #     'title': 'Title',
-    #     'user': {
-    #         'id': UUID('5d4ad959-ac18-4e47-99ef-13b3e6797d17'),
-    #         'name': 'user-1'
-    #     }
-    # }
+    note['title'] = 'Title-2'  # pass validation.
+    note['title'] = 0  # Raise Model.Error, require `str` instance.
+    note['user']['name'] = 0  # Raise Model.Error, require `str` instance.
+
+.. epigraph::
+
+    **Note :** Use ``try..except`` to catch errors if needed.
+
+Use like Python dict()
+**********************
+``dictify.Model`` is a subclass of ``dict`` which is validated by
+defined schema.
+
+.. code-block:: python
+
+    user.update({'name': 'user-2'})
+
+    note.update({
+        'title': 'Title-3',
+        'content': 'Content-1',
+        'user': user
+    })
+
+    # Code below will raise `Model.Error`.
+    note.update({'title': 0, 'user': 0})
+
+
+Convert data to dict() or JSON
+******************************
+
+..  code-block:: python
+
+    import json
+
+    note_dict = dict(note)
+    note_json = json.dumps(note)
+
+..  epigraph::
+
+    **Note :** For converting to JSON, all data must be instance of ``str``, ``int``,
+    ``bool``, ``dict``, ``list``, ``dictify.Model``, ``dictify.ListOf`` or **None** which are **JSON** compatible.
+
 
 ..  toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :hidden:
-
-    guide
-    reference
+    
+    field-and-model
+    field-api
+    docstring
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
