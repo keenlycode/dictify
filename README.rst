@@ -1,8 +1,7 @@
-Dictify : Data schema / validation.
-===================================
-**{dictify}** is a python library to define data schema and validation
-with simple syntax, suitable for handling **Python Dict**, **JSON**
-or **Document Oriented** data structure.
+Dictify : Document oriented schema / validation.
+================================================
+**{dictify}** is a python library for **Document Oriented** schema and validation
+with simple syntax, suitable for handling **Python Dict**, **JSON**.
 
 Get it
 ******

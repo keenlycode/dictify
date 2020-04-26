@@ -8,11 +8,23 @@
     <img src="./_static/dictify.svg" alt="dictify" style="margin-bottom: 1rem;">
     
 
-Dictify : Data schema / validation.
-===================================
-**{dictify}** is a python library to define data schema and validation
-with simple syntax, suitable for handling **Python Dict**, **JSON**
-or **Document Oriented** data structure.
+Dictify : Documents schema / validation.
+================================================
+**{dictify}** is a python library for **Documents** schema
+and validation with simple syntax.
+
+What for ?
+**********
+Nowadays, **JSON** becomes popular and use a lot in many applications to
+store and exchange data. Howevery, there isn't easy way to validate **JSON**
+data and structure.
+
+Unlike `JSON Schema <https://json-schema.org/>`_, **{dictify}** takes
+another approach to define schema. Inspired by
+`Django Forms <https://docs.djangoproject.com/en/3.0/topics/forms/>`_ and
+`WTForms <https://wtforms.readthedocs.io/>`_, **{dictify}** use **class** and
+it's **attributes** combined with chained methods to make syntax easier to
+learn, use and suitable for **JSON** or similar **Documents**.
 
 Get it
 ******
