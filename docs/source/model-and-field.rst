@@ -1,5 +1,8 @@
-Field and Model
+Model and Field
 ===============
+
+**Model** and **Field** are fundamental classes of **{dictify}**. Understanding
+a bit about them is recommended to leverage and extend their usage.
 
 ``Field`` can be defined with validation chain, and can validated it's value.
 For example:

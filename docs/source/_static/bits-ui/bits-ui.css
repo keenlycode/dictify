@@ -2140,13 +2140,6 @@ h6 {
   margin-top: 1.2em;
   margin-bottom: 1em;
 }
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: bold;
-}
 p {
   margin-top: 0.8em;
   margin-bottom: 0.8em;
@@ -2163,8 +2156,8 @@ ul li p {
 }
 .rst-content div[class^='highlight'] pre {
   font-size: 0.9rem;
-  padding: 0.5rem;
-  border-radius: 2px;
+  padding: 0.8rem;
+  border-radius: 4px;
 }
 .rst-content code.literal {
   font-size: 0.9rem;

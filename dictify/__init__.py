@@ -300,7 +300,7 @@ class Model(dict):
             elif field.required:
                 if key not in data:
                     raise Model.Error({
-                        key: KeyError("This field is required")
+                        key: Field.RequiredError("This field is required")
                     })
             # Keep Field() in self._field for data validation.
             self._field[key] = field

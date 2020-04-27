@@ -8,23 +8,16 @@
     <img src="./_static/dictify.svg" alt="dictify" style="margin-bottom: 1rem;">
     
 
-Dictify : Documents schema / validation.
-================================================
-**{dictify}** is a python library for **Documents** schema
-and validation with simple syntax.
+Dictify : Documents Schema / Validation made simple
+===================================================
 
 What for ?
 **********
-Nowadays, **JSON** becomes popular and use a lot in many applications to
-store and exchange data. Howevery, there isn't easy way to validate **JSON**
-data and structure.
-
-Unlike `JSON Schema <https://json-schema.org/>`_, **{dictify}** takes
-another approach to define schema. Inspired by
-`Django Forms <https://docs.djangoproject.com/en/3.0/topics/forms/>`_ and
-`WTForms <https://wtforms.readthedocs.io/>`_, **{dictify}** use **class** and
-it's **attributes** combined with chained methods to make syntax easier to
-learn, use and suitable for **JSON** or similar **Documents**.
+**{dictify}** is a python library to define data schema
+and validation with simple syntax. It's designed
+to use with **documents** data type especially for **JSON** and
+**Python Dictionaries**. **{dictify}** use **classes**, **attributes** and
+chained methods to make syntax easier to learn and use.
 
 Get it
 ******
@@ -78,8 +71,8 @@ Furthur data modification will be validated.
 
     **Note :** Use ``try..except`` to catch errors if needed.
 
-Use like Python dict()
-**********************
+Use like Python Dictionaries
+****************************
 ``dictify.Model`` is a subclass of ``dict`` which is validated by
 defined schema.
 
@@ -117,8 +110,9 @@ Convert data to dict() or JSON
     :maxdepth: 3
     :hidden:
     
-    field-and-model
+    model-and-field
     field-api
+    validations
     docstring
 
 Indices and tables

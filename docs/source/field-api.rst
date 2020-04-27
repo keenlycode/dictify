@@ -1,64 +1,56 @@
-Field Validation API
-====================
+Field API
+=========
 
-Field(required=False, disallow=[], default=UNDEF)
-*************************************************
-Init ``Field`` instance with options:
-
-.. raw:: html
-
-    <style>
-    table[el="field"] td.center {
-        text-align: center;
-    }
-    table[el="field"] code {
-        color: blue;
-        vertical-align: middle;
-    }
-    </style>
-
-    <table el="field" class="bits-ui" style="margin-bottom: 2rem;">
-        <thead>
-            <tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="center">required</td>
-                <td class="center">bool</td>
-                <td class="center">False</td>
-                <td>
-                    If set to <code>True</code>, getting value from the field
-                    without value assinged will raise <code>Field.RequiredError</code>
-                </td>
-            </tr>
-            <tr>
-                <td class="center">disallow</td>
-                <td class="center">list</td>
-                <td class="center">[]</td>
-                <td>
-                    List of disallow value. Raise <code>Field.VerifyError</code>
-                    if disallowed value is assinged.
-                </td>
-            </tr>
-            <tr>
-                <td class="center">default</td>
-                <td class="center">Any</td>
-                <td class="center">UNDEF</td>
-                <td>
-                    Default value when creating Field or call
-                    <code>Field.reset()</code>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-**Example :**
+Field()
+*******
 
 .. code-block:: python
 
-    email = Field(required=True, disallow=[None, ''])
-    value = email.value  # Field.RequiredError, since value has not assigned.
-    email.value = None  # Field.VerifyError, assigned value is disallowed.
+    Field(required=False, default=UNDEF, disallow=[])
+
+# Required Field
+----------------
+
+.. code-block:: python
+
+    Field(required=True)
+
+Required field will raise ``Field.RequiredError`` when
+
+1. Get field's value before assign valid value.
+2. Create **Model** containing required field but not provide field's value.
+3. Delete required field data form **Model** instance.
+
+# Default Value
+---------------
+
+Default value can be set as static or dynamic (generated) value.
+
+.. code-block:: python
+
+    # static value
+    Field(default=0)
+
+    # dynamic or generated value
+    # make sure you assign function, not it's result.
+    Field(default=uuid.uuid4)
+
+Default value will be set when
+
+1. Create **Field** instance
+2. Call ``Field().reset()``
+3. Create **Model** containing **Field** but doesn't provide field's value
+   on creation
+4. Delete field's data from ``Model`` instance
+
+# Disallowed Value
+------------------
+
+.. code-block:: python
+
+    Field(disallow=[None, ''])
+
+**Field** will raise ``Field.VerifyError`` when assign disallowed value.
 
 instance(type)
 **************
