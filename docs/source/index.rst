@@ -34,7 +34,7 @@ chained methods to make syntax easier to learn and use.
 Get it
 ******
 
-..  code-block::
+..  code-block:: shell
 
     pip install dictify
 
