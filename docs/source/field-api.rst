@@ -17,7 +17,7 @@ Field()
 
 Required field will raise ``Field.RequiredError`` when
 
-1. Get field's value before assign valid value.
+1. Get field's value before assign a valid value.
 2. Create **Model** containing required field but not provide field's value.
 3. Delete required field data form **Model** instance.
 
@@ -32,7 +32,7 @@ Default value can be set as static or dynamic (generated) value.
     Field(default=0)
 
     # dynamic or generated value
-    # make sure you assign function, not it's result.
+    # make sure to assign function, not it's result.
     Field(default=uuid.uuid4)
 
 Default value will be set when
