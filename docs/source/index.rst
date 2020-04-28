@@ -11,6 +11,18 @@
 Dictify : Documents Schema / Validation made simple
 ===================================================
 
+.. raw:: html
+
+    <!-- Place this tag in your head or just before your close body tag. -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <!-- Place this tag where you want the button to render. -->
+    <!-- Place this tag where you want the button to render. -->
+    <a class="github-button" href="https://github.com/nitipit/dictify"
+            data-size="large" data-show-count="true"
+            aria-label="Star nitipit/dictify on GitHub">
+        Star
+    </a>   
+
 What for ?
 **********
 **{dictify}** is a python library to define data schema
