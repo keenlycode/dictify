@@ -21,6 +21,7 @@ chained methods to make syntax easier to learn and use.
 
 Get it
 ******
+
 ..  code-block::
 
     pip install dictify
