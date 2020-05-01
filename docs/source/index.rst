@@ -5,8 +5,8 @@
 
 ..  raw:: html
 
-    <img src="./_static/dictify.svg" alt="dictify" style="margin-bottom: 1rem;">
-    
+    <img src="./_static/dictify.png" alt="dictify" style="margin-bottom: 1rem;">
+
 
 Dictify : Documents Schema / Validation made simple
 ===================================================
@@ -21,7 +21,7 @@ Dictify : Documents Schema / Validation made simple
             data-size="large" data-show-count="true"
             aria-label="Star nitipit/dictify on GitHub">
         Star
-    </a>   
+    </a>
 
 What for ?
 **********
@@ -75,7 +75,7 @@ required data.
 Furthur data modification will be validated.
 
 .. code-block:: python
-    
+
     note['title'] = 'Title-2'  # pass validation.
     note['title'] = 0  # Raise Model.Error, require `str` instance.
     note['user']['name'] = 0  # Raise Model.Error, require `str` instance.
@@ -122,7 +122,7 @@ Convert data to dict() or JSON
 ..  toctree::
     :maxdepth: 3
     :hidden:
-    
+
     model-and-field
     field-api
     validations
