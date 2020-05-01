@@ -103,8 +103,8 @@ defined schema.
     note.update({'title': 0, 'user': 0})
 
 
-Convert data to dict() or JSON
-******************************
+Convert data to Dictionaries or JSON
+************************************
 
 ..  code-block:: python
 
