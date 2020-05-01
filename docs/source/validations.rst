@@ -5,8 +5,8 @@ This recipe contains example of field validation on many type of data which
 could give enough idea about how to use **Field**
 
 .. epigraph::
-    
-    For text validation, you can use ``match()`` or ``search()`` 
+
+    For text validation, you can use ``match()`` or ``search()``
     with appropriate **Regular Expression** patterns.
 
     - `regexr.com <https://regexr.com/>`_ Lean, Build & Test RegEx
@@ -91,7 +91,7 @@ Images
 
     Field()\
         .instance(io.BytesIO)\
-        .verify(lambda img: 
+        .verify(lambda img:
             Image.open(img).format == 'PNG' or 'JPEG' or 'WEBP' or 'GIF')
 
 UUID

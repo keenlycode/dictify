@@ -1,10 +1,10 @@
 Docstring
 =========
 
-..  autoclass:: dictify.Model
+.. autoclass:: dictify.Model
     :members:
 
-..  autoclass:: dictify.Field
+.. autoclass:: dictify.Field
     :members:
 
-..  autodecorator:: dictify.function
+.. autodecorator:: dictify.function

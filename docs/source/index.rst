@@ -1,9 +1,9 @@
-..  dictify documentation master file, created by
-    sphinx-quickstart on Tue Apr  7 21:18:31 2020.
-    You can adapt this file completely to your liking, but it should at least
-    contain the root `toctree` directive.
+.. dictify documentation master file, created by
+   sphinx-quickstart on Tue Apr  7 21:18:31 2020.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
-..  raw:: html
+.. raw:: html
 
     <img src="./_static/dictify.png" alt="dictify" style="margin-bottom: 1rem;">
 
@@ -15,7 +15,6 @@ Dictify : Documents Schema / Validation made simple
 
     <!-- Place this tag in your head or just before your close body tag. -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
-    <!-- Place this tag where you want the button to render. -->
     <!-- Place this tag where you want the button to render. -->
     <a class="github-button" href="https://github.com/nitipit/dictify"
             data-size="large" data-show-count="true"
@@ -34,7 +33,7 @@ chained methods to make syntax easier to learn and use.
 Get it
 ******
 
-..  code-block:: shell
+.. code-block:: shell
 
     pip install dictify
 
@@ -106,20 +105,21 @@ defined schema.
 Convert data to Dictionaries or JSON
 ************************************
 
-..  code-block:: python
+.. code-block:: python
 
     import json
 
     note_dict = dict(note)
     note_json = json.dumps(note)
 
-..  epigraph::
+.. epigraph::
 
-    **Note :** For converting to JSON, all data must be instance of ``str``, ``int``,
-    ``bool``, ``dict``, ``list``, ``dictify.Model``, ``dictify.ListOf`` or **None** which are **JSON** compatible.
+    **Note :** For converting to **JSON**, all data must be instance of
+    ``str``, ``int``, ``bool``, ``dict``, ``list``, ``dictify.Model``,
+    ``dictify.ListOf`` or **None** which are **JSON** compatible.
 
 
-..  toctree::
+.. toctree::
     :maxdepth: 3
     :hidden:
 
