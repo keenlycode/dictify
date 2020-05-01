@@ -57,7 +57,7 @@ instance(type)
 Verify that assigned value is an instance of ``type``
 
 .. code-block:: python
-    
+
     email = Field().instance(str)
     email.value = 'user@example.com'
 
@@ -102,7 +102,6 @@ Verify that value pass given **Model** validation. (used in code line: 8)
 
 We can notice that we might use ``Field.instance()`` in this case. However,
 Using ``Field.model()`` is easier to validate complex **dict** or **JSON** data.
-    
 
 verify(lambda, message)
 ***********************
