@@ -198,7 +198,7 @@ class TestField(unittest.TestCase):
         self.assertEqual(field._value, UNDEF)
 
         # 2. Field with options.
-        field = Field(required=True, default='default', ignore=[None])
+        field = Field(required=True, default='default', grant=[None])
         self.assertEqual(field.required, True)
         self.assertEqual(field._default, 'default')
 
@@ -209,7 +209,7 @@ class TestField(unittest.TestCase):
         self.assertIsInstance(field.default, datetime)
 
     def test_value(self):
-        field = Field(required=True, ignore=[None])\
+        field = Field(required=True, grant=[None])\
             .instance(str).verify(lambda value: len(value) <= 10)
 
         # Required Field should raise RequiredError if ask for value

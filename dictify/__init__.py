@@ -128,8 +128,8 @@ class Field:
         assigned value will raise ``Field.RequiredError``
     default: any=UNDEF
         Field's default value
-    ignore: list
-        Values which will be ignored by validators.
+    grant: list
+        Granted values which always valid.
     """
 
     class VerifyError(Exception):
@@ -149,11 +149,11 @@ class Field:
 
     def __init__(
             self, required: bool = False,
-            default=UNDEF, ignore=[]):
+            default=UNDEF, grant=[]):
         self.required = required
         self._default = default
-        assert isinstance(ignore, list)
-        self.ignore = ignore
+        assert isinstance(grant, list)
+        self.grant = grant
         self._functions = list()
         self._value = self.default
 
@@ -177,7 +177,7 @@ class Field:
         errors = list()
         if self.required and value == UNDEF:
             raise Field.RequiredError('Field is required')
-        if value in self.ignore:
+        if value in self.grant:
             self._value = value
             return
         for function in self._functions:
