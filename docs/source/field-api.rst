@@ -52,14 +52,19 @@ Default value will be set when
    on creation
 4. Delete field's data from ``Model`` instance
 
-# Disallowed Value
-------------------
+# Granted Values
+----------------
 
 .. code-block:: python
 
-    Field(disallow=[None, ''])
+    Field(grant=[None, ''])
 
-**Field** will raise ``Field.VerifyError`` when assign disallowed value.
+**Granted Values** will always be valid regardless of validators. For example:
+
+.. code-block:: python
+
+    field = Field(grant=[None]).instance(str)
+    field.value = None
 
 instance(type)
 **************

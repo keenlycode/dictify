@@ -56,7 +56,7 @@ class NoteJSON(Model):
         .func(datetime_verify)
     user = Field(required=True).model(UserJSON)
     comments = Field().listof(CommentJSON)
-    
+
 
 class TestModel(unittest.TestCase):
 
@@ -85,7 +85,7 @@ class TestModel(unittest.TestCase):
         # Test when initial data is not type of dict.
         with self.assertRaises(AssertionError):
             Note([])
-        
+
         # Test required field.
         with self.assertRaises(Model.Error):
             Note({})
@@ -165,7 +165,7 @@ class TestModel(unittest.TestCase):
         note = json.dumps(note)
         note = json.loads(note)
         NoteJSON(note)
-        
+
     def test_update(self):
         note = Note({
             'title': 'Title',
@@ -173,7 +173,7 @@ class TestModel(unittest.TestCase):
         })
         data = note.copy()
         self.assertIsInstance(data['user'], dict)
-        
+
         with self.assertRaises(Model.Error):
             note.update({'title': 1})
 
@@ -198,14 +198,9 @@ class TestField(unittest.TestCase):
         self.assertEqual(field._value, UNDEF)
 
         # 2. Field with options.
-        field = Field(required=True, default='default', disallow=[])
+        field = Field(required=True, default='default', grant=[None])
         self.assertEqual(field.required, True)
         self.assertEqual(field._default, 'default')
-        self.assertEqual(field.disallow, [])
-
-        # 3. Field with default that conflict with disallow
-        with self.assertRaises(Field.DefineError):
-            field = Field(default=None, disallow=[None])
 
     def test_default(self):
         field = Field(default='default')
@@ -213,12 +208,8 @@ class TestField(unittest.TestCase):
         field = Field(default=datetime.utcnow)
         self.assertIsInstance(field.default, datetime)
 
-    def test_define_error(self):
-        with self.assertRaises(Field.DefineError):
-            Field(default=0).instance(str)
-
     def test_value(self):
-        field = Field(required=True, disallow=[None])\
+        field = Field(required=True, grant=[None])\
             .instance(str).verify(lambda value: len(value) <= 10)
 
         # Required Field should raise RequiredError if ask for value
@@ -230,16 +221,16 @@ class TestField(unittest.TestCase):
         field.value = 'test'
         self.assertEqual(field.value, 'test')
 
-        # Assign disallowed value.
-        with self.assertRaises(Field.VerifyError):
-            field.value = None
-
         # Assign not valid value.
         with self.assertRaises(Field.VerifyError):
             field.value = 'word-length-more-than-ten'
 
         # field.value should be unmodifed if errors.
         self.assertEqual(field.value, 'test')
+
+        # Assign ignored value.
+        field.value = None
+        assert field.value is None
 
     def test_reset(self):
         field = Field(default='default')
@@ -267,6 +258,12 @@ class TestField(unittest.TestCase):
         field.value = str_list
         with self.assertRaises(Field.VerifyError):
             field.value = [1, 2]
+
+        # listof(dictify.Model) should also verify dictionaries.
+        field = Field().listof(User)
+        user = User({'name': 'user-1'})
+        user = dict(user)
+        field.value = [user]
 
     def test_match(self):
         field = Field().match('012', re.I)

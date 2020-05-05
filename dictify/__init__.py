@@ -8,7 +8,7 @@ class Function:
         self.func = func
         self.args = args
         self.kw = kw
-    
+
     def __call__(self, field, value):
         self.func(field, value, *self.args, **self.kw)
 
@@ -28,7 +28,7 @@ def function(func: Callable):
                 raise Field.DefineError(
                     f"Field(default={self.default}) conflict with ",
                     f"{func.__name__}(*{args}, **{kw})", error)
-        
+
         # Keep function in chain.
         self._functions.append(Function(func, *args, **kw))
         return self
@@ -37,6 +37,7 @@ def function(func: Callable):
 
 class UNDEF:
     """Create ```UNDEF`` value"""
+
     def __repr__(self):
         return 'UNDEF'
 
@@ -55,25 +56,37 @@ class ListOf(list):
     type_:
         Type for validation with ``value``
     """
-    def __init__(self, value, type_):
-        self._type = type_
-        errors = list()
-        for v in value:
-            if not isinstance(v, self._type):
-                errors.append(
-                    AssertionError(f"'{v}' is not instance of {self._type}")
-                )
-        if errors:
-            raise ListOf.ValueError(errors)
-        super().__init__(value)
 
     class ValueError(Exception):
         pass
 
+    def __init__(self, values, type_):
+        self._type = type_
+        errors = list()
+        for v in values:
+            # Verify if dict value pass Model validation.
+            if issubclass(self._type, Model) and isinstance(v, dict):
+                try:
+                    self._type(v)
+                except Exception as e:
+                    errors.append(e)
+            else:
+                try:
+                    assert isinstance(v, self._type),\
+                        f"'{v}' is not instance of {self._type}"
+                except Exception as e:
+                    errors.append(e)
+        if errors:
+            raise ListOf.ValueError(errors)
+        super().__init__(values)
+
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
-        assert isinstance(value, self._type),\
-            f"'{value}' is not instance of {self._type}"
+        if isinstance(self._type, Model) and isinstance(value, dict):
+            self._type(value)
+        else:
+            assert isinstance(value, self._type),\
+                f"'{value}' is not instance of {self._type}"
         return super().__setitem__(index, value)
 
     def append(self, value):
@@ -113,10 +126,10 @@ class Field:
     required: bool=False
         Required option. If set to ``True``, call ``Field().value`` without
         assigned value will raise ``Field.RequiredError``
-    disallow: list=[]
-        List of disallowed value.
     default: any=UNDEF
         Field's default value
+    grant: list
+        Granted values which always valid.
     """
 
     class VerifyError(Exception):
@@ -136,16 +149,11 @@ class Field:
 
     def __init__(
             self, required: bool = False,
-            default=UNDEF, disallow: list = []):
+            default=UNDEF, grant=[]):
         self.required = required
         self._default = default
-        self.disallow = disallow
-        if self.default in self.disallow:
-            raise Field.DefineError(
-                f"Default value is disallowed. " +\
-                f"default({self.default}), " +\
-                f"disallow({self.disallow})"
-            )
+        assert isinstance(grant, list)
+        self.grant = grant
         self._functions = list()
         self._value = self.default
 
@@ -169,10 +177,9 @@ class Field:
         errors = list()
         if self.required and value == UNDEF:
             raise Field.RequiredError('Field is required')
-        if value in self.disallow:
-            raise Field.VerifyError(
-                f"Value ({value}) is not allowed. " +\
-                f"Disallow {self.disallow}")
+        if value in self.grant:
+            self._value = value
+            return
         for function in self._functions:
             try:
                 function(self, value)
@@ -189,7 +196,7 @@ class Field:
     @function
     def instance(self, value, type_: type):
         """Verify that ``value`` is instance to ``type_``
-        
+
         ``assert isinstance(value, type_)``
         """
         assert isinstance(value, type_),\
@@ -221,7 +228,7 @@ class Field:
     def verify(self, value, func, message=None):
         """Designed to use with ``lambda`` for simple syntax since ``lambda``
         can't use ``assert`` statement.
-        
+
         The callable must return ``True`` or ``False``.
 
         If return ``False``, It will be raised as ``AssertionError``.
@@ -245,7 +252,7 @@ class Field:
     @function
     def func(self, value, fn):
         """Use callable function to validate value.
-        
+
         ``fn`` will be called later as ``fn(value)`` and should return
         ``Exception`` if value is invalid.
 
