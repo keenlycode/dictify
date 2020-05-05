@@ -8,7 +8,7 @@ class Function:
         self.func = func
         self.args = args
         self.kw = kw
-    
+
     def __call__(self, field, value):
         self.func(field, value, *self.args, **self.kw)
 
@@ -28,7 +28,7 @@ def function(func: Callable):
                 raise Field.DefineError(
                     f"Field(default={self.default}) conflict with ",
                     f"{func.__name__}(*{args}, **{kw})", error)
-        
+
         # Keep function in chain.
         self._functions.append(Function(func, *args, **kw))
         return self
@@ -37,6 +37,7 @@ def function(func: Callable):
 
 class UNDEF:
     """Create ```UNDEF`` value"""
+
     def __repr__(self):
         return 'UNDEF'
 
@@ -55,6 +56,7 @@ class ListOf(list):
     type_:
         Type for validation with ``value``
     """
+
     def __init__(self, value, type_):
         self._type = type_
         errors = list()
@@ -113,10 +115,10 @@ class Field:
     required: bool=False
         Required option. If set to ``True``, call ``Field().value`` without
         assigned value will raise ``Field.RequiredError``
-    disallow: list=[]
-        List of disallowed value.
     default: any=UNDEF
         Field's default value
+    ignore: list
+        Values which will be ignored by validators.
     """
 
     class VerifyError(Exception):
@@ -136,16 +138,11 @@ class Field:
 
     def __init__(
             self, required: bool = False,
-            default=UNDEF, disallow: list = []):
+            default=UNDEF, ignore=[]):
         self.required = required
         self._default = default
-        self.disallow = disallow
-        if self.default in self.disallow:
-            raise Field.DefineError(
-                f"Default value is disallowed. " +\
-                f"default({self.default}), " +\
-                f"disallow({self.disallow})"
-            )
+        assert isinstance(ignore, list)
+        self.ignore = ignore
         self._functions = list()
         self._value = self.default
 
@@ -169,10 +166,9 @@ class Field:
         errors = list()
         if self.required and value == UNDEF:
             raise Field.RequiredError('Field is required')
-        if value in self.disallow:
-            raise Field.VerifyError(
-                f"Value ({value}) is not allowed. " +\
-                f"Disallow {self.disallow}")
+        if value in self.ignore:
+            self._value = value
+            return
         for function in self._functions:
             try:
                 function(self, value)
@@ -189,7 +185,7 @@ class Field:
     @function
     def instance(self, value, type_: type):
         """Verify that ``value`` is instance to ``type_``
-        
+
         ``assert isinstance(value, type_)``
         """
         assert isinstance(value, type_),\
@@ -221,7 +217,7 @@ class Field:
     def verify(self, value, func, message=None):
         """Designed to use with ``lambda`` for simple syntax since ``lambda``
         can't use ``assert`` statement.
-        
+
         The callable must return ``True`` or ``False``.
 
         If return ``False``, It will be raised as ``AssertionError``.
@@ -245,7 +241,7 @@ class Field:
     @function
     def func(self, value, fn):
         """Use callable function to validate value.
-        
+
         ``fn`` will be called later as ``fn(value)`` and should return
         ``Exception`` if value is invalid.
 
