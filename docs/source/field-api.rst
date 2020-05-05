@@ -21,6 +21,15 @@ Required field will raise ``Field.RequiredError`` when
 2. Create **Model** containing required field but not provide field's value.
 3. Delete required field data form **Model** instance.
 
+.. code-block:: python
+
+    email = Field(required=True)
+    email.value
+    # Error: `Field.RequiredError`.
+    # Required value has not been assigned.
+
+    email.value = 'user@example.com'
+
 # Default Value
 ---------------
 

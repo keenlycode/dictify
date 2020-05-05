@@ -4,7 +4,8 @@ Model and Field
 **Model** and **Field** are fundamental classes of **{dictify}**. Understanding
 a bit about them is recommended to leverage and extend their usage.
 
-``Field`` can be defined with validation chain, and can validated it's value.
+``Field`` can be defined with validation chain, and can be validated when value
+is assigned.
 For example:
 
 .. code-block:: python
@@ -19,7 +20,7 @@ For example:
     email.value = 'user'  # Invalid, value is not assigned.
 
 However, using ``Field`` alone doesn't give much benefits. For complex data
-structure, ``Feild`` can be defined and managed by ``Model`` which map 
+structure, ``Feild`` can be defined and managed by ``Model`` which map
 and validate ``Field`` to python native ``dict`` instance. For example:
 
 .. code-block:: python
