@@ -18,7 +18,7 @@ async def make():
 async def py_watch():
     async for change in awatch(app_dir):
         await asyncio.create_subprocess_shell('make html')
-        
+
 
 async def sphinx_dir_src_watch():
     async for change in awatch(sphinx_dir_src):

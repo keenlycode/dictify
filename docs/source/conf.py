@@ -16,7 +16,7 @@
 from pathlib import Path
 import sys
 
-path = Path('../').resolve()
+path = Path(__file__).parent.parent.parent
 sys.path.insert(0, path)
 
 # -- Project information -----------------------------------------------------
