@@ -259,6 +259,12 @@ class TestField(unittest.TestCase):
         with self.assertRaises(Field.VerifyError):
             field.value = [1, 2]
 
+        # listof(dictify.Model) should also verify dictionaries.
+        field = Field().listof(User)
+        user = User({'name': 'user-1'})
+        user = dict(user)
+        field.value = [user]
+
     def test_match(self):
         field = Field().match('012', re.I)
         field.value = '0123456789'

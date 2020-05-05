@@ -57,25 +57,36 @@ class ListOf(list):
         Type for validation with ``value``
     """
 
-    def __init__(self, value, type_):
-        self._type = type_
-        errors = list()
-        for v in value:
-            if not isinstance(v, self._type):
-                errors.append(
-                    AssertionError(f"'{v}' is not instance of {self._type}")
-                )
-        if errors:
-            raise ListOf.ValueError(errors)
-        super().__init__(value)
-
     class ValueError(Exception):
         pass
 
+    def __init__(self, values, type_):
+        self._type = type_
+        errors = list()
+        for v in values:
+            # Verify if dict value pass Model validation.
+            if issubclass(self._type, Model) and isinstance(v, dict):
+                try:
+                    self._type(v)
+                except Exception as e:
+                    errors.append(e)
+            else:
+                try:
+                    assert isinstance(v, self._type),\
+                        f"'{v}' is not instance of {self._type}"
+                except Exception as e:
+                    errors.append(e)
+        if errors:
+            raise ListOf.ValueError(errors)
+        super().__init__(values)
+
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
-        assert isinstance(value, self._type),\
-            f"'{value}' is not instance of {self._type}"
+        if isinstance(self._type, Model) and isinstance(value, dict):
+            self._type(value)
+        else:
+            assert isinstance(value, self._type),\
+                f"'{value}' is not instance of {self._type}"
         return super().__setitem__(index, value)
 
     def append(self, value):
