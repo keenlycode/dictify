@@ -292,7 +292,7 @@ class Model(dict):
 
     def __init__(self, data=dict()):
         assert isinstance(data, dict),\
-            f"Model initial data shold be instance of dict"
+            f"Model initial data should be instance of dict"
         data = data.copy()
         self._field = dict()
         for key in self.__dir__():
