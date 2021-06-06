@@ -10,7 +10,7 @@ class Function:
         self.kw = kw
 
     def __call__(self, field, value):
-        self.func(field, value, *self.args, **self.kw)
+        return self.func(field, value, *self.args, **self.kw)
 
     def __repr__(self):
         return f"{self.func.__name__}{self.args}{self.kw}"
@@ -174,15 +174,22 @@ class Field:
 
     @value.setter
     def value(self, value):
+        """Set field's value
+        - Verify value by field's functions
+        - Set fields' value if function return value
+        """
         errors = list()
         if self.required and value == UNDEF:
             raise Field.RequiredError('Field is required')
         if value in self.grant:
             self._value = value
             return
+        
+        # Verify value by field's functions
         for function in self._functions:
             try:
-                function(self, value)
+                # Set field's value if function return value
+                value = function(self, value) or value
             except Exception as e:
                 errors.append((function, e))
         if errors:
@@ -205,7 +212,7 @@ class Field:
     @function
     def listof(self, value, type_):
         """Verify that ``Field()`` value is a list of ``type_``"""
-        ListOf(value, type_)
+        return ListOf(value, type_)
 
     @function
     def match(self, value, re_: str, flags=0):
