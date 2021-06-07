@@ -318,7 +318,7 @@ class Model(dict):
                     })
             # Keep Field() in self._field for data validation.
             self._field[key] = field
-        self._validate(data)
+        data = self._validate(data)
         super().__init__(data)
 
     class Error(Exception):
@@ -361,17 +361,18 @@ class Model(dict):
         for key in data:
             try:
                 self._field[key].value = data[key]
-                self._field[key].reset()
+                data[key] = self._field[key].value
             except KeyError:
                 error[key] = KeyError('Field is not defined')
             except Field.VerifyError as e:
                 error[key] = e
         if error:
             raise Model.Error(error)
+        return data
 
     def update(self, data):
         """Update ``data`` if is valid."""
         assert isinstance(data, dict)
         data = data.copy()
-        self._validate(data)
+        data = self._validate(data)
         return super().update(data)
