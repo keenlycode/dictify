@@ -64,8 +64,8 @@ class ListOf(list):
         self._type = type_
         errors = list()
         for v in values:
-            # Verify if dict value pass Model validation.
-            if issubclass(self._type, Model) and isinstance(v, dict):
+            # Verify if value pass Model validation.
+            if issubclass(self._type, Model) and (type(v) == dict):
                 try:
                     self._type(v)
                 except Exception as e:
