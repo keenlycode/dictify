@@ -63,17 +63,17 @@ class ListOf(list):
     def __init__(self, values, type_):
         self._type = type_
         errors = list()
-        for v in values:
+        for value in values:
             # Verify if value pass Model validation.
-            if issubclass(self._type, Model) and (type(v) == dict):
+            if issubclass(self._type, Model) and (type(value) == dict):
                 try:
-                    self._type(v)
+                    self._type(value)
                 except Exception as e:
                     errors.append(e)
             else:
                 try:
-                    assert isinstance(v, self._type),\
-                        f"'{v}' is not instance of {self._type}"
+                    assert isinstance(value, self._type),\
+                        f"'{value}' is not instance of {self._type}"
                 except Exception as e:
                     errors.append(e)
         if errors:
@@ -82,7 +82,7 @@ class ListOf(list):
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
-        if isinstance(self._type, Model) and isinstance(value, dict):
+        if isinstance(self._type, Model) and (type(value) == dict):
             self._type(value)
         else:
             assert isinstance(value, self._type),\
@@ -91,8 +91,11 @@ class ListOf(list):
 
     def append(self, value):
         """Append object to the end of the list if ``value`` is valid."""
-        assert isinstance(value, self._type),\
-            f"'{value}' is not instance of {self._type}"
+        if isinstance(self._type, Model) and (type(value) == dict):
+            self._type(value)
+        else:
+            assert isinstance(value, self._type),\
+                f"'{value}' is not instance of {self._type}"
         return super().append(value)
 
 
