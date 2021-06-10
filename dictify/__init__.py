@@ -1,5 +1,5 @@
 import re
-from typing import Callable
+from typing import Callable, Union
 from functools import wraps
 
 
@@ -46,8 +46,36 @@ class UNDEF:
 UNDEF = UNDEF()
 
 
+# class List(list):
+#     class ValueError(Exception):
+#         pass
+
+#     def __init__(self, values: list, validator: Callable):
+#         self.validator = validator
+#         errors = list()
+#         for value in values:
+#             try:
+#                 self.validator(value)
+#             except Exception as e:
+#                 errors.append(e)
+
+#         if errors:
+#             raise List.ValueError(errors)
+#         super().__init__(values)
+
+#     def __setitem__(self, index, value):
+#         """Set list value at ``index`` if ``value`` is valid"""
+#         self.validator(value)
+#         return super().__setitem__(index, value)
+
+#     def append(self, value):
+#         """Append object to the end of the list if ``value`` is valid."""
+#         self.validator(value)
+#         return super().append(value)
+
+
 class ListOf(list):
-    """Modified list to check it's members instance.
+    """Modified list which check it's members instance.
 
     Parameters
     ----------
@@ -60,42 +88,46 @@ class ListOf(list):
     class ValueError(Exception):
         pass
 
-    def __init__(self, values, type_):
-        self._type = type_
+    def __init__(
+            self,
+            values,
+            type_: Union[type, tuple],
+            validate: Callable = None):
+        self.type = type_
+        self.validate = validate
         errors = list()
         for value in values:
-            # Verify if value pass Model validation.
-            if issubclass(self._type, Model) and (type(value) == dict):
+            try:
+                assert isinstance(value, self.type),\
+                    f"'{value}' is not instance of {self.type}"
+            except Exception as e:
+                errors.append(e)
+            if callable(self.validate):
                 try:
-                    self._type(value)
+                    self.validate(value)
                 except Exception as e:
                     errors.append(e)
-            else:
-                try:
-                    assert isinstance(value, self._type),\
-                        f"'{value}' is not instance of {self._type}"
-                except Exception as e:
-                    errors.append(e)
+
         if errors:
             raise ListOf.ValueError(errors)
         super().__init__(values)
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
-        if isinstance(self._type, Model) and (type(value) == dict):
-            self._type(value)
-        else:
-            assert isinstance(value, self._type),\
-                f"'{value}' is not instance of {self._type}"
+        assert isinstance(value, self.type),\
+            f"'{value}' is not instance of {self.type}"
+        if callable(self.validate):
+            self.validate(value)
+
         return super().__setitem__(index, value)
 
     def append(self, value):
         """Append object to the end of the list if ``value`` is valid."""
-        if isinstance(self._type, Model) and (type(value) == dict):
-            self._type(value)
-        else:
-            assert isinstance(value, self._type),\
-                f"'{value}' is not instance of {self._type}"
+        assert isinstance(value, self.type),\
+            f"'{value}' is not instance of {self.type}"
+        if callable(self.validate):
+            self.validate(value)
+
         return super().append(value)
 
 
@@ -213,9 +245,9 @@ class Field:
             f'{type(value)} is not instance of {type_}'
 
     @function
-    def listof(self, value, type_):
-        """Verify that ``Field()`` value is a list of ``type_``"""
-        return ListOf(value, type_)
+    def listof(self, value, type_, validate: Callable = None):
+        """Verify list instance"""
+        return ListOf(value, type_, validate)
 
     @function
     def match(self, value, re_: str, flags=0):

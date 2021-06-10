@@ -25,7 +25,7 @@ from datetime import datetime
 from dictify import Model, Field
 
 class Contact(Model):
-    name = Field(required=True, 
+    name = Field(required=True)
 
 post = Post({
     'title': 'Dictify',
