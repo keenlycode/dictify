@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+{% set _v = 1 %}
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% block title %}
+    <title>Dictify</title>
+    {% endblock %}
+    <link rel="stylesheet" href="base.css?v={{_v}}">
+    <script defer src="base.js?v={{_v}}"></script>
+    {% block head %}
+    {% endblock %}
+</head>
+
+<body>
+<pkt-sidebar>
+    <div el="sidebar">
+        <!-- Sidebar contents -->
+        sdfadfsdfasf
+    </div>
+    <div el="overlay"></div>
+</pkt-sidebar>
+
+{% block body %}
+{% endblock %}
+</body>
+
+</html>
