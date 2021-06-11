@@ -91,17 +91,18 @@ class ListOf(list):
     def __init__(
             self,
             values,
-            type_: Union[type, tuple],
+            type_: Union[type, tuple] = UNDEF,
             validate: Callable = None):
         self.type = type_
         self.validate = validate
         errors = list()
         for value in values:
-            try:
-                assert isinstance(value, self.type),\
-                    f"'{value}' is not instance of {self.type}"
-            except Exception as e:
-                errors.append(e)
+            if self.type is not UNDEF:
+                try:
+                    assert isinstance(value, self.type),\
+                        f"'{value}' is not instance of {self.type}"
+                except Exception as e:
+                    errors.append(e)
             if callable(self.validate):
                 try:
                     self.validate(value)
@@ -114,8 +115,9 @@ class ListOf(list):
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
-        assert isinstance(value, self.type),\
-            f"'{value}' is not instance of {self.type}"
+        if self.type is not UNDEF:
+            assert isinstance(value, self.type),\
+                f"'{value}' is not instance of {self.type}"
         if callable(self.validate):
             self.validate(value)
 
@@ -123,8 +125,9 @@ class ListOf(list):
 
     def append(self, value):
         """Append object to the end of the list if ``value`` is valid."""
-        assert isinstance(value, self.type),\
-            f"'{value}' is not instance of {self.type}"
+        if self.type is not UNDEF:
+            assert isinstance(value, self.type),\
+                f"'{value}' is not instance of {self.type}"
         if callable(self.validate):
             self.validate(value)
 
@@ -245,7 +248,7 @@ class Field:
             f'{type(value)} is not instance of {type_}'
 
     @function
-    def listof(self, value, type_, validate: Callable = None):
+    def listof(self, value, type_=UNDEF, validate: Callable = None):
         """Verify list instance"""
         return ListOf(value, type_, validate)
 

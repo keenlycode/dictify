@@ -8,13 +8,14 @@ to use with **documents** data type especially for **JSON** and
     "name": "Dictify Co, Ltd.",
     "contacts": [
         {
-            "type": "mail",
-            "name": "Ananda, staff",
+            "type": "address",
+            "name": "Office",
             "address": "123/321 Sukhumvit Rd. Soi 77 Bangkok, Thailand",
         },
         {
             "type": "phone",
-            "name": "",
+            "name": "Procurement",
+            "number": "+66 81 111 1111
         },
     ]
 }
@@ -24,19 +25,43 @@ to use with **documents** data type especially for **JSON** and
 from datetime import datetime
 from dictify import Model, Field
 
-class Contact(Model):
-    name = Field(required=True)
 
-post = Post({
-    'title': 'Dictify',
-    'html': 'Hello dictify',
+class Phone(Model):
+    type = Field(required=True, default='phone')\
+        .verify(lambda value: value == "phone")
+    name = Field(required=True).instance(str)
+    number = Field(required=True).instance(str)
+
+class Address(Model):
+    type = Field(required=True, default='address')\
+        .verify(lambda value: value == "address")
+    name = Field(required=True).instance(str)
+    address = Field(required=True).instance(str)
+
+
+class Account(Model):
+    def contact_validate(value):
+        assert isinstance(value, dict)
+        if value['type'] == 'phone':
+            Phone(value)
+        if value['type'] == 'address':
+            Address(value)
+
+    name = Field(required=True)
+    contacts = Field().listof(validate=contact_validate)
+
+
+um = Account({
+    'name': 'um'
 })
 
-print(post)
-"""
-{
-    'title': 'Dictify',
-    'timestamp': '2021-06-08T14:53:44.770252',
-    'html': 'Hello dictify'
-}
+phone = Phone({
+    'name': 'work',
+    'number': '12345678'
+})
+
+address = Address({
+    'name': 'office',
+    'address': 'Some avenue'
+})
 """
