@@ -1,0 +1,43 @@
+@use '../../_theme.scss';
+@use '../../_mixin.scss';
+
+pkt-button-pin {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+}
+
+pkt-sidebar {
+    [el="profile"] {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        min-height: 20vh;
+        background-color: theme.pallete(c1);
+        [el="close"] {
+            position: absolute;
+            right: 0;
+            border-radius: 0;
+            font-size: 1.2em;
+            @media (min-width: 1120px) {
+                display: none;
+            }
+        }
+        [el="logo"] {
+            align-self: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            @include mixin.bg-color(theme.pallete(c2));
+            border-radius: 50%;
+            padding: 0.5em;
+            text-decoration: none;
+        }
+    }
+    [el="menu"] {
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+    }
+}

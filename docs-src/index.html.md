@@ -1,67 +1,93 @@
-**{ dictify }** is a python library to define data schema
-and validation with simple syntax. It's designed
-to use with **documents** data type especially for **JSON** and
-**Python Dictionaries**.
+# { Dictify } : Documents schema and data validation
+
+<pkt-tag>{ dictify }</pkt-tag> is a python library to define data schema and validation with simple syntax. It’s designed to use with documents data type especially for **JSON** and **Python** `dict` object with easy and flexible syntax.
+
+## Get it
+---
+
+```shell
+$ pip install dictify
+```
+
+## Schema definition
+---
+Let's start with an example note data:
 
 ```json
 {
-    "name": "Dictify Co, Ltd.",
-    "contacts": [
-        {
-            "type": "address",
-            "name": "Office",
-            "address": "123/321 Sukhumvit Rd. Soi 77 Bangkok, Thailand",
-        },
-        {
-            "type": "phone",
-            "name": "Procurement",
-            "number": "+66 81 111 1111
-        },
-    ]
+    'title': 'Dictify',
+    'content': 'dictify is easy',
+    'timestamp': '2021-06-13T05:13:45.326869'
 }
 ```
+
+The schema condition should be like:
+
+**title**
+1. Required field
+2. Must be `str` instance
+3. Length is <= 300
+
+**content**
+1. Must be `str` instance
+
+**timestamp**
+1. Required field
+2. Default to datetime on creation in ISO format string
+3. Must be a valid ISO datetime string
+
 
 ```python
 from datetime import datetime
 from dictify import Model, Field
 
+class Note(Model):
+    title = Field(required=True)\
+        .instance(str)\
+        .verify(lambda value: len(value) <= 300) # [1]
 
-class Phone(Model):
-    type = Field(required=True, default='phone')\
-        .verify(lambda value: value == "phone")
-    name = Field(required=True).instance(str)
-    number = Field(required=True).instance(str)
+    content = Field().instance(str)
 
-class Address(Model):
-    type = Field(required=True, default='address')\
-        .verify(lambda value: value == "address")
-    name = Field(required=True).instance(str)
-    address = Field(required=True).instance(str)
+    timestamp = Field(
+            required=True,
+            default=lambda: datetime.utcnow().isoformat())\
+        .verify(lambda value: datetime.fromisoformat(value))
+```
 
+> [1] Field validations can be chained.
 
-class Account(Model):
-    def contact_validate(value):
-        assert isinstance(value, dict)
-        if value['type'] == 'phone':
-            Phone(value)
-        if value['type'] == 'address':
-            Address(value)
+## Data assignment and validation
+---
 
-    name = Field(required=True)
-    contacts = Field().listof(validate=contact_validate)
+Create `Model` instance with required data.
 
+```
+note = Note({'title': 'Dictify', 'content': 'dictify is easy'})
+```
 
-um = Account({
-    'name': 'um'
+## Use like Python 'dict' object
+---
+
+`dictify.Model` is a subclass of `dict` which is validated by defined schema.
+
+```python
+note.update({
+    "content": "Updated content",
 })
+note["content"] = "Updated again"
 
-phone = Phone({
-    'name': 'work',
-    'number': '12345678'
-})
+# Code below will raise `Model.Error`.
+note.update({'title': 0})
+note['title'] = 0
+```
 
-address = Address({
-    'name': 'office',
-    'address': 'Some avenue'
-})
-"""
+> Note : Use `try..except` to catch errors if needed.
+
+## Convert data to native 'dict' or 'JSON'
+
+```python
+import json
+
+note_dict = dict(note) # Remove all schema
+note_json = json.dumps(note)  # Convert to JSON string
+```
