@@ -61,18 +61,13 @@ class Note(Model):
 ## Data assignment and validation
 ---
 
-Create `Model` instance with required data.
-
-```
-note = Note({'title': 'Dictify', 'content': 'dictify is easy'})
-```
-
-## Use like Python 'dict' object
----
-
-`dictify.Model` is a subclass of `dict` which is validated by defined schema.
+After schema definition, now we can use it to create `Model` instance with required data.
 
 ```python
+note = Note({'title': 'Dictify', 'content': 'dictify is easy'})
+
+# `note` can be used like a dict object.
+
 note.update({
     "content": "Updated content",
 })

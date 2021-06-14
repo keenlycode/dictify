@@ -46,34 +46,6 @@ class UNDEF:
 UNDEF = UNDEF()
 
 
-# class List(list):
-#     class ValueError(Exception):
-#         pass
-
-#     def __init__(self, values: list, validator: Callable):
-#         self.validator = validator
-#         errors = list()
-#         for value in values:
-#             try:
-#                 self.validator(value)
-#             except Exception as e:
-#                 errors.append(e)
-
-#         if errors:
-#             raise List.ValueError(errors)
-#         super().__init__(values)
-
-#     def __setitem__(self, index, value):
-#         """Set list value at ``index`` if ``value`` is valid"""
-#         self.validator(value)
-#         return super().__setitem__(index, value)
-
-#     def append(self, value):
-#         """Append object to the end of the list if ``value`` is valid."""
-#         self.validator(value)
-#         return super().append(value)
-
-
 class ListOf(list):
     """Modified list which check it's members instance.
 
