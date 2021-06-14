@@ -1,6 +1,8 @@
-# { Dictify } : Documents schema and data validation
+<h1 style="width: 100%; text-align: center; margin-bottom: 0.5rem;">{ Dictify }</h1>
 
-<pkt-tag>{ dictify }</pkt-tag> is a python library to define data schema and validation with simple syntax. It’s designed to use with documents data type especially for **JSON** and **Python** `dict` object with easy and flexible syntax.
+<h2 style="width: 100%; text-align: center; margin-top: 0.5rem;">Documents schema and data validation</h2>
+
+<pkt-tag>{ dictify }</pkt-tag> is a python library to define data schema and validation with simple and flexible syntax for documents data type such as **JSON** and **Python** `dict` object.
 
 ## Get it
 ---
@@ -88,6 +90,6 @@ note['title'] = 0
 ```python
 import json
 
-note_dict = dict(note) # Remove all schema
+note_dict = dict(note) # Convert to python built-in `dict`
 note_json = json.dumps(note)  # Convert to JSON string
 ```

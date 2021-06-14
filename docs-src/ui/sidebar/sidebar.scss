@@ -8,6 +8,9 @@ pkt-button-pin {
 }
 
 pkt-sidebar {
+    [el="sidebar"] {
+        width: 280px;
+    }
     [el="profile"] {
         position: relative;
         display: flex;
@@ -35,9 +38,30 @@ pkt-sidebar {
         }
     }
     [el="menu"] {
+        ul {
+            padding-left: 0.75rem;
+            list-style-type: none;
+        }
+        > ul {
+            padding: 0;
+        }
+        li {
+            align-content: center;
+            height: 2rem;
+        }
         a {
+            display: flex;
+            flex-wrap: wrap;
             text-decoration: none;
+            align-content: center;
+            padding-left: 0.5rem;
             color: inherit;
+            width: 100%;
+            height: 2rem;
+            box-sizing: border-box;
+        }
+        a:hover {
+            @include mixin.bg-color(theme.pallete(p1));
         }
     }
 }

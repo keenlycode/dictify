@@ -2,6 +2,7 @@
 <html lang="en">
 {% set _v = 1 %}
 {% set to_root = './' %}
+<base href="/">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,29 +10,16 @@
     <title>Dictify</title>
     {% endblock %}
     <link rel="stylesheet" href="base.css?v={{_v}}">
-    <link rel="stylesheet" href="{{to_root}}ui/sidebar/sidebar.css?v={{_v}}">
+    <link rel="stylesheet" href="/ui/sidebar/sidebar.css?v={{_v}}">
     <script defer src="base.js?v={{_v}}"></script>
     {% block head %}
     {% endblock %}
 </head>
-
 <body>
 
-<pkt-button-pin id="sidebar-button">::</pkt-button-pin>
-
-<pkt-sidebar id="sidebar" show="1120px">
-    <div el="sidebar">
-        <div el="profile">
-            <pkt-button-square el="close">X</pkt-button-square>
-            <a el="logo" href="{{to_root}}">{ D }</a>
-        </div>
-        <div el="menu">
-            {{ markdown('sidebar.md') }}
-        </div>
-    </div>
-    <div el="overlay"></div>
-</pkt-sidebar>
-<script src="{{to_root}}ui/sidebar/sidebar.js?v={{_v}}"></script>
+{% block sidebar %}
+{% include 'ui/sidebar/_sidebar.html' %}
+{% endblock %}
 
 {% block body %}
 {% endblock %}
