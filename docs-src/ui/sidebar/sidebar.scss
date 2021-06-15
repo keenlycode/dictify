@@ -16,7 +16,7 @@ pkt-sidebar {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        min-height: 20vh;
+        min-height: 10rem;
         background-color: theme.pallete(c1);
         [el="close"] {
             position: absolute;
@@ -28,13 +28,22 @@ pkt-sidebar {
             }
         }
         [el="logo"] {
-            align-self: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             font-size: 1.5em;
             font-weight: bold;
             @include mixin.bg-color(theme.pallete(c2));
             border-radius: 50%;
             padding: 0.5em;
             text-decoration: none;
+        }
+        [el="version"]{
+            display: flex;
+            justify-content: center;
+            align-self: flex-end;
+            width: 100%;
         }
     }
     [el="menu"] {

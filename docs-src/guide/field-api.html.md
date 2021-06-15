@@ -134,7 +134,8 @@ email.value = 0  # Field.VerifyError
 ```python
 model_cls: dictify.Model
 ```
-Verify that value pass given **Model** validation.
+Verify that value pass given **Model** validation.  
+Very useful for nested data structure.
 
 ```python
 from dictify import Model, Field
@@ -222,5 +223,5 @@ uuid4.value = 1  # invalid, raise Exception
 
 > Understanding try..except and assert will leverage usage benefits.
 > See links below to learn more about Python assert statement.
-> - https://www.w3schools.com/python/ref_keyword_assert.asp
-> - https://www.google.com/search?q=python+assert&oq=python+assert
+> - [https://www.w3schools.com/python/ref_keyword_assert.asp](https://www.w3schools.com/python/ref_keyword_assert.asp)
+> - [https://www.google.com/search?q=python+assert&oq=python+assert](https://www.google.com/search?q=python+assert&oq=python+assert)

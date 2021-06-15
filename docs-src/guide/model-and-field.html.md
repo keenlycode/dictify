@@ -1,8 +1,8 @@
 # Model and Field
 
-`Model` and `Field` are fundamental classes of {dictify}.
+**Model** and **Field** are fundamental classes of **{dictify}**.
 
-`Field` can be defined with validation chain,
+**Field** can be defined with validation chain,
 and will be validated when value is assigned. For example:
 
 ```python
@@ -16,7 +16,7 @@ name.value = '0' # Invalid, value is not assigned.
 email.value = 'user' # Invalid, value is not assigned.
 ```
 
-However, using `Field` alone doesn’t give much benefits. For complex data structure, `Feild` can be defined and managed by `Model` which map and validate `Field` to python native `dict` instance. For example:
+For complex or nested data structure, **Feild** can be defined and managed by **Model** which map and validate **Field** to python native **dict** instance. For example:
 
 ```python
 class User(Model):

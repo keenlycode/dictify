@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 @use '../node_modules/packet-ui/dist/normalize.css';
 @use '../node_modules/packet-ui/dist/packet-ui.css';
 
@@ -38,6 +40,16 @@ body {
     @media (min-width: 1120px) {
         padding-top: 0;
     }
+}
+
+blockquote {
+    margin-left: 1rem;
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+    box-sizing: border-box;
+    @include mixin.bg-color(
+        color.adjust(theme.pallete(p), $lightness: 45%)
+    );
 }
 
 div.code-label {
