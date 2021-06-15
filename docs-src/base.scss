@@ -40,6 +40,19 @@ body {
     }
 }
 
+div.code-label {
+    display: inline-block;
+    padding: 0rem 0.3rem;
+    line-height: 1.5;
+    @include mixin.border-top-radius(4px);
+    @include mixin.bg-color(theme.pallete(c2));
+    & ~ pre {
+        margin-top: 0;
+    }
+}
+
+
+
 .container {
     width: 90%;
     max-width: 800px;

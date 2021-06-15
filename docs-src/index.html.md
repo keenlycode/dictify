@@ -81,6 +81,7 @@ note['title'] = 0
 > Note : Use `try..except` to catch errors if needed.
 
 ## Convert data to native 'dict' or 'JSON'
+---
 
 ```python
 import json

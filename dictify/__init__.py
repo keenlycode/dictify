@@ -1,5 +1,5 @@
 import re
-from typing import Callable, Union
+from typing import Callable, Union, Any, Tuple
 from functools import wraps
 
 
@@ -220,7 +220,11 @@ class Field:
             f'{type(value)} is not instance of {type_}'
 
     @function
-    def listof(self, value, type_=UNDEF, validate: Callable = None):
+    def listof(
+            self,
+            value: Any,
+            type_ : 'type or Tuple[type, ...]' = UNDEF,
+            validate: Callable = None):
         """Verify list instance"""
         return ListOf(value, type_, validate)
 
@@ -233,7 +237,7 @@ class Field:
     @function
     def model(self, value, model_cls: 'Model'):
         """Verify that value pass ``model_cls`` validation."""
-        model_cls(value)
+        return model_cls(value)
 
     @function
     def search(self, value, re_: str, flags=0):
