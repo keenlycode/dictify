@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+
+
+<base href="/">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Dictify</title>
+    
+    <link rel="stylesheet" href="base.css?v=2">
+    <link rel="stylesheet" href="/ui/sidebar/sidebar.css?v=2">
+    <script defer src="base.js?v=2"></script>
+    
+    
+</head>
+<body>
+
+
+<pkt-button-pin id="sidebar-button">::</pkt-button-pin>
+
+<pkt-sidebar id="sidebar" show="1150px">
+    <div el="sidebar">
+        <div el="profile">
+            <pkt-button-square el="close">X</pkt-button-square>
+            <a el="logo" href="/">{ D }</a>
+            <div el="version">V3.0.0</div>
+        </div>
+        <div el="menu">
+            <ul>
+<li><a href="/">Introduction</a></li>
+<li><a href="/guide/model-and-field.html">Model and Field</a></li>
+<li><a href="/guide/model-and-field.html#partial-data-validation">Partial data validation</a></li>
+<li><a href="/guide/field-api.html">Field API</a></li>
+<li><a href="/guide/validation-recipes.html">Validatio Recipes</a></li>
+</ul>
+
+        </div>
+    </div>
+    <div el="overlay"></div>
+</pkt-sidebar>
+<script src="/ui/sidebar/sidebar.js?v=2"></script>
+
+
+
+<div class="container">
+<h1>dictify.Field API</h1>
+<h2>Field()</h2>
+<hr />
+<p><code>dictify.Field()</code> creates <strong>Field</strong> object which can validate it's value.</p>
+<pre><code class="language-python">Field(
+    required: bool = False, # Required field
+    default: Any = UNDEF, # Default value
+    grant: List[Any] = [] # Granted values
+)
+</code></pre>
+<h3># Required field</h3>
+<p>Set <code>required=True</code> if value is required.</p>
+<p>Required field will raise Field.RequiredError when</p>
+<ol>
+<li>Get field’s value before assign a valid value.</li>
+<li>Create Model containing required field but not provide field’s value.</li>
+<li>Delete required field data form Model instance.</li>
+</ol>
+<pre><code class="language-python">email = Field(required=True)
+email.value
+# Error: `Field.RequiredError`.
+# Required value has not been assigned.
+
+email.value = 'user@example.com'
+</code></pre>
+<h3># Default value</h3>
+<p>Default value can be set as static or dynamic (generated) values.</p>
+<pre><code class="language-python"># static value
+Field(default=0)
+
+# dynamic or generated value
+# make sure to assign function, not it's result.
+Field(default=uuid.uuid4)
+</code></pre>
+<p>Default value will be set when</p>
+<ol>
+<li>Create <strong>Field</strong> instance</li>
+<li>Call <code>Field().reset()</code></li>
+<li>Create <strong>Model</strong> containing <strong>Field</strong> but doesn’t provide field’s value on creation</li>
+<li>Delete field’s data from <strong>Model</strong> instance</li>
+</ol>
+<h3># Granted values</h3>
+<p>Granted values will always be valid regardless of validators. For example:</p>
+<pre><code class="language-python">field = Field(grant=[None]).instance(str)
+field.value = None # valid
+</code></pre>
+<h2>Validation methods</h2>
+<hr />
+<p><strong>Field()</strong> contains methods for validation which can be chained. (Read more at <a href="/guide/model-and-field.html">Model and Field</a>)</p>
+<h3><pkt-tag>def</pkt-tag> Instance(type_)</h3>
+<div class="code-label">param</div>
+<pre><code class="language-python">type_: 'type or Tuple[type, ...]'
+</code></pre>
+<p>Verify that assigned value is an instance of specified <code>type</code>.</p>
+<pre><code class="language-python">email = Field().instance(str)
+email.value = 'user@example.com'
+
+number = Field().instance((int, float))
+number = 0 # valid
+number = 0.1 # valid
+number = 1 + 2j # invalid
+</code></pre>
+<h3><pkt-tag>def</pkt-tag> listof(type_, validate=None)</h3>
+<div class="code-label">param</div>
+<pre><code class="language-python">type_ : 'type or Tuple[type, ...]'
+validate: Callable[value] = None
+</code></pre>
+<p>Verify that assigned value is a list of specified <code>type</code>.</p>
+<pre><code class="language-python">from datetime import datetime
+
+dates = Field().listof(str)
+dates.value = ['Mo', 'Tu', 'We']
+dates.value = [0, 1, 2]  # Field.VerifyError
+
+def timestamp_validate(value):
+    datetime.fromisoformat(value)
+
+timestamp = Field().listof(validate=timestamp_validate)
+timestamp.value = ['2021-06-15T05:10:33.376787'] # valid
+timestamp.value.append(1) # invalid
+</code></pre>
+<h3><pkt-tag>def</pkt-tag> match(regex)</h3>
+<h3><pkt-tag>def</pkt-tag> search(regex)</h3>
+<div class="code-label">param</div>
+<pre><code class="language-python">regex: 'Regular expression'
+</code></pre>
+<p>Match value with regular expression pattern.<br />
+There're 2 methods to use either <code>re.match</code> or <code>re.search</code></p>
+<pre><code class="language-python">email = Field(required=True).instance(str).match('.+@.+')
+email.value = 'user@example.com'
+email.value = 0  # Field.VerifyError
+</code></pre>
+<h3><pkt-tag>def</pkt-tag> model(model_cls)</h3>
+<div class="code-label">param</div>
+<pre><code class="language-python">model_cls: dictify.Model
+</code></pre>
+<p>Verify that value pass given <strong>Model</strong> validation.<br />
+Very useful for nested data structure.</p>
+<pre><code class="language-python">from dictify import Model, Field
+from datetime import datetime
+import uuid
+
+def verify_uuid1(value):
+    assert isinstance(value, str)
+    id_ = uuid.UUID(value)
+    assert id_.version == 1
+
+class Money(Model):
+    unit = Field(required=True)\
+        .verify(lambda value: value in ['USD', 'GBP'])
+    amount = Field(required=True).instance((int,float))
+
+class MoneyTransfer(Model):
+    sender = Field(required=True).func(verify_uuid1)
+    receiver = Field(required=True).func(verify_uuid1)
+    amount = Field(required=True).model(Money) # [*]
+    fee = Field(required=True).model(Money) # [*]
+    timestamp = Field(required=True)\
+        .verify(lambda value: datetime.fromisoformat(value))
+
+transfer = MoneyTransfer({
+    &quot;sender&quot;: &quot;4782af1a-cdac-11eb-bfc9-04d3b02081c2&quot;,
+    &quot;receiver&quot;: &quot;156cd9d2-cdad-11eb-bfc9-04d3b02081c2&quot;,
+    &quot;amount&quot;: {
+        &quot;unit&quot;: &quot;USD&quot;,
+        &quot;amount&quot;: 100.00
+    },
+    &quot;fee&quot;: {
+        &quot;unit&quot;: &quot;USD&quot;,
+        &quot;amount&quot;: 1.00
+    },
+    &quot;timestamp&quot;: &quot;2021-06-15T07:44:25.209164&quot;
+})
+</code></pre>
+<h3><pkt-tag>def</pkt-tag> verify(lambda_, message)</h3>
+<div class="code-label">param</div>
+<pre><code class="language-python">lambda_: def(value) -&gt; bool
+message: str
+</code></pre>
+<p>Designed to use with <code>lambda</code> for simple syntax since <code>lambda</code>
+can't use <code>assert</code> statement.<br />
+The callable must return <code>bool</code> instance.<br />
+If return <code>False</code>, It will be raised as <code>AssertionError</code>.</p>
+<pre><code class="language-python">age = Field().instance(int).verify(
+    lambda value: 0 &lt;= value &lt;= 150,
+    &quot;Age range must be 0 - 150&quot;
+)
+</code></pre>
+<h3><pkt-tag>def</pkt-tag> func(callable_)</h3>
+<div class="code-label">param</div>
+<pre><code class="language-python">callable_: def(value) -&gt; None
+</code></pre>
+<p>Apply function to verify value and raise Exception if value is invalid.</p>
+<pre><code class="language-python"># callable function to verify uuid4 value
+def is_uuid4(value):
+    assert isinstance(value, str), &quot;Value must be instance of `str`&quot;
+    id = uuid.UUID(value)
+    # Raise AssertionError if id.version != 4
+    assert id.version == 4, &quot;Value must be UUID version 4 format&quot;
+
+uuid4 = Field().func(is_uuid4)
+
+uuid4.value = str(uuid.uuid4())
+uuid4.value = 1  # invalid, raise Exception
+</code></pre>
+<p><code>func()</code> provide more control to verify value since it can use statements and raise <code>Exception</code></p>
+<blockquote>
+<p>Understanding try..except and assert will leverage usage benefits.
+See links below to learn more about Python assert statement.</p>
+<ul>
+<li><a href="https://www.w3schools.com/python/ref_keyword_assert.asp">https://www.w3schools.com/python/ref_keyword_assert.asp</a></li>
+<li><a href="https://www.google.com/search?q=python+assert&amp;oq=python+assert">https://www.google.com/search?q=python+assert&amp;oq=python+assert</a></li>
+</ul>
+</blockquote>
+
+</div>
+
+
+
+<div style="min-height: 20vh; width: 100%;"></div>
+
+</body>
+
+</html>

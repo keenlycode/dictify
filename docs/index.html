@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+
+
+<base href="/">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Dictify</title>
+    
+    <link rel="stylesheet" href="base.css?v=2">
+    <link rel="stylesheet" href="/ui/sidebar/sidebar.css?v=2">
+    <script defer src="base.js?v=2"></script>
+    
+    
+</head>
+<body>
+
+
+<pkt-button-pin id="sidebar-button">::</pkt-button-pin>
+
+<pkt-sidebar id="sidebar" show="1150px">
+    <div el="sidebar">
+        <div el="profile">
+            <pkt-button-square el="close">X</pkt-button-square>
+            <a el="logo" href="/">{ D }</a>
+            <div el="version">V3.0.0</div>
+        </div>
+        <div el="menu">
+            <ul>
+<li><a href="/">Introduction</a></li>
+<li><a href="/guide/model-and-field.html">Model and Field</a></li>
+<li><a href="/guide/model-and-field.html#partial-data-validation">Partial data validation</a></li>
+<li><a href="/guide/field-api.html">Field API</a></li>
+<li><a href="/guide/validation-recipes.html">Validatio Recipes</a></li>
+</ul>
+
+        </div>
+    </div>
+    <div el="overlay"></div>
+</pkt-sidebar>
+<script src="/ui/sidebar/sidebar.js?v=2"></script>
+
+
+
+<div class="container">
+<h1 style="width: 100%; text-align: center; margin-bottom: 0.5rem;">{ Dictify }</h1>
+<h2 style="width: 100%; text-align: center; margin-top: 0.5rem;">Documents schema and data validation</h2>
+<p><pkt-tag>{ dictify }</pkt-tag> is a python library to define data schema and validation with simple and flexible syntax for documents data type such as <strong>JSON</strong> and <strong>Python</strong> <code>dict</code> object.</p>
+<h2>Get it</h2>
+<hr />
+<pre><code class="language-shell">$ pip install dictify
+</code></pre>
+<h2>Schema definition</h2>
+<hr />
+<p>Let's start with an example note data:</p>
+<pre><code class="language-json">{
+    'title': 'Dictify',
+    'content': 'dictify is easy',
+    'timestamp': '2021-06-13T05:13:45.326869'
+}
+</code></pre>
+<p>The schema condition should be like:</p>
+<p><strong>title</strong></p>
+<ol>
+<li>Required field</li>
+<li>Must be <code>str</code> instance</li>
+<li>Length is &lt;= 300</li>
+</ol>
+<p><strong>content</strong></p>
+<ol>
+<li>Must be <code>str</code> instance</li>
+</ol>
+<p><strong>timestamp</strong></p>
+<ol>
+<li>Required field</li>
+<li>Default to datetime on creation in ISO format string</li>
+<li>Must be a valid ISO datetime string</li>
+</ol>
+<pre><code class="language-python">from datetime import datetime
+from dictify import Model, Field
+
+class Note(Model):
+    title = Field(required=True)\
+        .instance(str)\
+        .verify(lambda value: len(value) &lt;= 300) # [1]
+
+    content = Field().instance(str)
+
+    timestamp = Field(
+            required=True,
+            default=lambda: datetime.utcnow().isoformat())\
+        .verify(lambda value: datetime.fromisoformat(value))
+</code></pre>
+<blockquote>
+<p>[1] Field validations can be chained.</p>
+</blockquote>
+<h2>Data assignment and validation</h2>
+<hr />
+<p>After schema definition, now we can use it to create <code>Model</code> instance with required data.</p>
+<pre><code class="language-python">note = Note({'title': 'Dictify', 'content': 'dictify is easy'})
+
+# `note` can be used like a dict object.
+
+note.update({
+    &quot;content&quot;: &quot;Updated content&quot;,
+})
+note[&quot;content&quot;] = &quot;Updated again&quot;
+
+# Code below will raise `Model.Error`.
+note.update({'title': 0})
+note['title'] = 0
+</code></pre>
+<blockquote>
+<p>Note : Use <code>try..except</code> to catch errors if needed.</p>
+</blockquote>
+<h2>Convert data to native 'dict' or 'JSON'</h2>
+<hr />
+<pre><code class="language-python">import json
+
+note_dict = dict(note) # Convert to python built-in `dict`
+note_json = json.dumps(note)  # Convert to JSON string
+</code></pre>
+
+</div>
+
+
+
+<div style="min-height: 20vh; width: 100%;"></div>
+
+</body>
+
+</html>

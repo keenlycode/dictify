@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+
+
+<base href="/">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Dictify</title>
+    
+    <link rel="stylesheet" href="base.css?v=2">
+    <link rel="stylesheet" href="/ui/sidebar/sidebar.css?v=2">
+    <script defer src="base.js?v=2"></script>
+    
+    
+</head>
+<body>
+
+
+<pkt-button-pin id="sidebar-button">::</pkt-button-pin>
+
+<pkt-sidebar id="sidebar" show="1150px">
+    <div el="sidebar">
+        <div el="profile">
+            <pkt-button-square el="close">X</pkt-button-square>
+            <a el="logo" href="/">{ D }</a>
+            <div el="version">V3.0.0</div>
+        </div>
+        <div el="menu">
+            <ul>
+<li><a href="/">Introduction</a></li>
+<li><a href="/guide/model-and-field.html">Model and Field</a></li>
+<li><a href="/guide/model-and-field.html#partial-data-validation">Partial data validation</a></li>
+<li><a href="/guide/field-api.html">Field API</a></li>
+<li><a href="/guide/validation-recipes.html">Validatio Recipes</a></li>
+</ul>
+
+        </div>
+    </div>
+    <div el="overlay"></div>
+</pkt-sidebar>
+<script src="/ui/sidebar/sidebar.js?v=2"></script>
+
+
+
+<div class="container">
+<h1>Model and Field</h1>
+<p><strong>Model</strong> and <strong>Field</strong> are fundamental classes of <strong>{dictify}</strong>.</p>
+<p><strong>Field</strong> can be defined with validation chain,
+and will be validated when value is assigned. For example:</p>
+<pre><code class="language-python">name = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
+email = Field(required=True).instance(str).match('.+@.+')
+
+name.value = 'user'
+email.value = 'user@example.com'
+
+name.value = '0' # Invalid, value is not assigned.
+email.value = 'user' # Invalid, value is not assigned.
+</code></pre>
+<p>For complex or nested data structure, <strong>Feild</strong> can be defined and managed by <strong>Model</strong> which map and validate <strong>Field</strong> to python native <strong>dict</strong> instance. For example:</p>
+<pre><code class="language-python">class User(Model):
+    name = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
+    email = Field(required=True).instance(str).match('.+@.+')
+
+user = User({'name': 'user', 'email': 'user@example.com'})
+user['name'] = '0' # Invalid, value won't be assigned.
+user['email'] = 'user' # Invalid, won't be assigned.
+</code></pre>
+<h1 id="partial-data-validation">Partial data validation</h1>
+<p>Defined <code>Field</code> can be reused for partial data validation. For example, when user want to update user’s email later, <code>User.email</code> can be used as class attributes to validate email without create the whole User object.</p>
+<pre><code class="language-python">email = request.args.get('email')  # pseudo code to get email sent from user.
+try:
+    User.email.value = email
+    # To do : Update user's email to database.
+except dictify.FieldError:
+    # To do : Report error.
+</code></pre>
+
+</div>
+
+
+
+<div style="min-height: 20vh; width: 100%;"></div>
+
+</body>
+
+</html>

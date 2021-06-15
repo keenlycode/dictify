@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+
+
+<base href="/">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Dictify</title>
+    
+    <link rel="stylesheet" href="base.css?v=2">
+    <link rel="stylesheet" href="/ui/sidebar/sidebar.css?v=2">
+    <script defer src="base.js?v=2"></script>
+    
+    
+</head>
+<body>
+
+
+<pkt-button-pin id="sidebar-button">::</pkt-button-pin>
+
+<pkt-sidebar id="sidebar" show="1150px">
+    <div el="sidebar">
+        <div el="profile">
+            <pkt-button-square el="close">X</pkt-button-square>
+            <a el="logo" href="/">{ D }</a>
+            <div el="version">V3.0.0</div>
+        </div>
+        <div el="menu">
+            <ul>
+<li><a href="/">Introduction</a></li>
+<li><a href="/guide/model-and-field.html">Model and Field</a></li>
+<li><a href="/guide/model-and-field.html#partial-data-validation">Partial data validation</a></li>
+<li><a href="/guide/field-api.html">Field API</a></li>
+<li><a href="/guide/validation-recipes.html">Validatio Recipes</a></li>
+</ul>
+
+        </div>
+    </div>
+    <div el="overlay"></div>
+</pkt-sidebar>
+<script src="/ui/sidebar/sidebar.js?v=2"></script>
+
+
+
+<div class="container">
+<h1>Validation Recipes</h1>
+<p>This page contains example of field validation on many type of data which could give enough idea about how to use <code>dictify.Field</code></p>
+<blockquote>
+<p>For text validation, you can use match() or search() with appropriate Regular Expression patterns.</p>
+<ul>
+<li><a href="https://regexr.com/">regexr.com Lean, Build &amp; Test RegEx</a></li>
+<li><a href="https://www.w3schools.com/python/python_regex.asp">Python RegEX W3Schools</a></li>
+<li><a href="https://www.google.com/search?q=regular+expression">Google Search: Regular Expression</a></li>
+</ul>
+</blockquote>
+<h2>Instance of ...</h2>
+<pre><code class="language-python">Field().instance(str)
+Field().instance(int)
+</code></pre>
+<h2>True / False</h2>
+<pre><code class="language-python">Field().instance(bool)
+</code></pre>
+<h2>Numbers</h2>
+<p>Using <code>instance()</code> and <code>verify()</code> with Python logical and compare operators can verify numbers in many ways.</p>
+<pre><code class="language-python"># 1. number is instance of int or float.
+# 2. number is in range [0,10].
+Field()\
+    .instance((int, float))\
+    .verify(lambda value: 0 &lt;= value &lt;= 10)
+</code></pre>
+<h2>Subset</h2>
+<p>Field contains list of days.</p>
+<pre><code class="language-python">Field()\
+    .listof(str)\
+    .verify(lambda dates:
+        set(dates) &lt;= set(['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']))
+</code></pre>
+<h2>Choices</h2>
+<pre><code class="language-python">Field()\
+    .instance(str)\
+    .verify(lambda os:
+        os in ['android', 'ios'])
+</code></pre>
+<h2>Email</h2>
+<pre><code class="language-python">Field().match('.+@.+')
+</code></pre>
+<h2>Time in ISO format</h2>
+<pre><code class="language-python">from datetime import datetime
+
+Field().verify(lambda dt: datetime.fromisoformat(dt))
+</code></pre>
+<h2>Images</h2>
+<pre><code class="language-python">import io
+from PIL import Image
+
+Field()\
+    .instance(io.BytesIO)\
+    .verify(lambda img:
+        Image.open(img).format == 'PNG' or 'JPEG' or 'WEBP' or 'GIF')
+</code></pre>
+<h2>UUID (Universally Unique Identifier)</h2>
+<pre><code class="language-python">import uuid
+
+Field().instance(uuid.UUID)
+
+# UUID in `str` instance.
+Field()\
+    .instance(str)\
+    .verify(lambda value: uuid.UUID(value))
+</code></pre>
+
+</div>
+
+
+
+<div style="min-height: 20vh; width: 100%;"></div>
+
+</body>
+
+</html>
