@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+{% set _v = 2 %}
+{% set to_root = './' %}
+<base href="/">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% block title %}
+    <title>Dictify</title>
+    {% endblock %}
+    <link rel="stylesheet" href="base.css?v={{_v}}">
+    <link rel="stylesheet" href="/ui/sidebar/sidebar.css?v={{_v}}">
+    <script defer src="base.js?v={{_v}}"></script>
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+
+{% block sidebar %}
+{% include 'ui/sidebar/_sidebar.html' %}
+{% endblock %}
+
+{% block body %}
+{% endblock %}
+
+{% block footer %}
+<div style="min-height: 20vh; width: 100%;"></div>
+{% endblock %}
+</body>
+
+</html>

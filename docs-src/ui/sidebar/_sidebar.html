@@ -1,0 +1,16 @@
+<pkt-button-pin id="sidebar-button">::</pkt-button-pin>
+
+<pkt-sidebar id="sidebar" show="1150px">
+    <div el="sidebar">
+        <div el="profile">
+            <pkt-button-square el="close">X</pkt-button-square>
+            <a el="logo" href="/">{ D }</a>
+            <div el="version">V3.0.0</div>
+        </div>
+        <div el="menu">
+            {{ markdown('sidebar.md') }}
+        </div>
+    </div>
+    <div el="overlay"></div>
+</pkt-sidebar>
+<script src="/ui/sidebar/sidebar.js?v={{_v}}"></script>

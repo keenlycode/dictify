@@ -1,5 +1,5 @@
 import re
-from typing import Callable
+from typing import Callable, Union, Any, Tuple
 from functools import wraps
 
 
@@ -10,7 +10,7 @@ class Function:
         self.kw = kw
 
     def __call__(self, field, value):
-        self.func(field, value, *self.args, **self.kw)
+        return self.func(field, value, *self.args, **self.kw)
 
     def __repr__(self):
         return f"{self.func.__name__}{self.args}{self.kw}"
@@ -47,7 +47,7 @@ UNDEF = UNDEF()
 
 
 class ListOf(list):
-    """Modified list to check it's members instance.
+    """Modified list which check it's members instance.
 
     Parameters
     ----------
@@ -60,39 +60,49 @@ class ListOf(list):
     class ValueError(Exception):
         pass
 
-    def __init__(self, values, type_):
-        self._type = type_
+    def __init__(
+            self,
+            values,
+            type_: Union[type, tuple] = UNDEF,
+            validate: Callable = None):
+        self.type = type_
+        self.validate = validate
         errors = list()
-        for v in values:
-            # Verify if dict value pass Model validation.
-            if issubclass(self._type, Model) and isinstance(v, dict):
+        for value in values:
+            if self.type is not UNDEF:
                 try:
-                    self._type(v)
+                    assert isinstance(value, self.type),\
+                        f"'{value}' is not instance of {self.type}"
                 except Exception as e:
                     errors.append(e)
-            else:
+            if callable(self.validate):
                 try:
-                    assert isinstance(v, self._type),\
-                        f"'{v}' is not instance of {self._type}"
+                    self.validate(value)
                 except Exception as e:
                     errors.append(e)
+
         if errors:
             raise ListOf.ValueError(errors)
         super().__init__(values)
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
-        if isinstance(self._type, Model) and isinstance(value, dict):
-            self._type(value)
-        else:
-            assert isinstance(value, self._type),\
-                f"'{value}' is not instance of {self._type}"
+        if self.type is not UNDEF:
+            assert isinstance(value, self.type),\
+                f"'{value}' is not instance of {self.type}"
+        if callable(self.validate):
+            self.validate(value)
+
         return super().__setitem__(index, value)
 
     def append(self, value):
         """Append object to the end of the list if ``value`` is valid."""
-        assert isinstance(value, self._type),\
-            f"'{value}' is not instance of {self._type}"
+        if self.type is not UNDEF:
+            assert isinstance(value, self.type),\
+                f"'{value}' is not instance of {self.type}"
+        if callable(self.validate):
+            self.validate(value)
+
         return super().append(value)
 
 
@@ -174,15 +184,22 @@ class Field:
 
     @value.setter
     def value(self, value):
+        """Set field's value
+        - Verify value by field's functions
+        - Set fields' value if function return value
+        """
         errors = list()
         if self.required and value == UNDEF:
             raise Field.RequiredError('Field is required')
         if value in self.grant:
             self._value = value
             return
+        
+        # Verify value by field's functions
         for function in self._functions:
             try:
-                function(self, value)
+                # Set field's value if function return value
+                value = function(self, value) or value
             except Exception as e:
                 errors.append((function, e))
         if errors:
@@ -203,9 +220,13 @@ class Field:
             f'{type(value)} is not instance of {type_}'
 
     @function
-    def listof(self, value, type_):
-        """Verify that ``Field()`` value is a list of ``type_``"""
-        ListOf(value, type_)
+    def listof(
+            self,
+            value: Any,
+            type_ : 'type or Tuple[type, ...]' = UNDEF,
+            validate: Callable = None):
+        """Verify list instance"""
+        return ListOf(value, type_, validate)
 
     @function
     def match(self, value, re_: str, flags=0):
@@ -216,7 +237,7 @@ class Field:
     @function
     def model(self, value, model_cls: 'Model'):
         """Verify that value pass ``model_cls`` validation."""
-        model_cls(value)
+        return model_cls(value)
 
     @function
     def search(self, value, re_: str, flags=0):
@@ -292,7 +313,7 @@ class Model(dict):
 
     def __init__(self, data=dict()):
         assert isinstance(data, dict),\
-            f"Model initial data shold be instance of dict"
+            f"Model initial data should be instance of dict"
         data = data.copy()
         self._field = dict()
         for key in self.__dir__():
@@ -311,8 +332,9 @@ class Model(dict):
                     })
             # Keep Field() in self._field for data validation.
             self._field[key] = field
-        self._validate(data)
+        data = self._validate(data)
         super().__init__(data)
+        self._post_validate()
 
     class Error(Exception):
         """``Exception`` when data doesn't pass ``Model`` validation.
@@ -334,7 +356,8 @@ class Model(dict):
             raise Model.Error({
                 key: Field.RequiredError("Field is required")})
         else:
-            return super().__delitem__(key)
+            super().__delitem__(key)
+        self._post_validate()
 
     def __setitem__(self, key, value):
         """Set ``value`` if is valid."""
@@ -348,23 +371,29 @@ class Model(dict):
             error = {key: e}
         if error:
             raise Model.Error(error)
+        self._post_validate()
 
     def _validate(self, data: dict):
         error = dict()
         for key in data:
             try:
                 self._field[key].value = data[key]
-                self._field[key].reset()
+                data[key] = self._field[key].value
             except KeyError:
                 error[key] = KeyError('Field is not defined')
             except Field.VerifyError as e:
                 error[key] = e
         if error:
             raise Model.Error(error)
+        return data
+
+    def _post_validate(self):
+        pass
 
     def update(self, data):
         """Update ``data`` if is valid."""
         assert isinstance(data, dict)
         data = data.copy()
-        self._validate(data)
-        return super().update(data)
+        data = self._validate(data)
+        super().update(data)
+        self._post_validate()

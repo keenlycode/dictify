@@ -3,7 +3,7 @@ import json
 import uuid
 import re
 from datetime import datetime
-from dictify import Model, Field, UNDEF
+from dictify import ListOf, Model, Field, UNDEF
 
 
 def datetime_verify(value):
@@ -253,17 +253,20 @@ class TestField(unittest.TestCase):
             field.value = 1
 
     def test_listof(self):
-        field = Field().listof(str)
-        str_list = ['ab', 'cd']
+        def less_than_five(value):
+            assert value < 5
+
+        field = Field().listof((int, float), validate=less_than_five)
+        str_list = [1, 2]
         field.value = str_list
         with self.assertRaises(Field.VerifyError):
-            field.value = [1, 2]
+            field.value = ['a', 'b']
 
-        # listof(dictify.Model) should also verify dictionaries.
-        field = Field().listof(User)
-        user = User({'name': 'user-1'})
-        user = dict(user)
-        field.value = [user]
+        with self.assertRaises(Field.VerifyError):
+            field.value = [1, 7]
+
+        # Field's value should be instance of `ListOf`
+        self.assertIsInstance(field.value, ListOf)
 
     def test_match(self):
         field = Field().match('012', re.I)

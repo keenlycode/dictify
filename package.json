@@ -1,5 +1,8 @@
 {
   "dependencies": {
-    "bits-ui": "^2.0.6"
+    "highlight.js": "^10.7.3",
+    "packet-ui": "^2.0.5",
+    "parcel": "^2.0.0-beta.3.1",
+    "sass": "^1.34.1"
   }
 }
