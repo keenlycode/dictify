@@ -334,7 +334,7 @@ class Model(dict):
             self._field[key] = field
         data = self._validate(data)
         super().__init__(data)
-        self._post_validate()
+        self.post_validate()
 
     class Error(Exception):
         """``Exception`` when data doesn't pass ``Model`` validation.
@@ -357,7 +357,7 @@ class Model(dict):
                 key: Field.RequiredError("Field is required")})
         else:
             super().__delitem__(key)
-        self._post_validate()
+        self.post_validate()
 
     def __setitem__(self, key, value):
         """Set ``value`` if is valid."""
@@ -371,7 +371,7 @@ class Model(dict):
             error = {key: e}
         if error:
             raise Model.Error(error)
-        self._post_validate()
+        self.post_validate()
 
     def _validate(self, data: dict):
         error = dict()
@@ -387,7 +387,7 @@ class Model(dict):
             raise Model.Error(error)
         return data
 
-    def _post_validate(self):
+    def post_validate(self):
         pass
 
     def update(self, data):
@@ -396,4 +396,4 @@ class Model(dict):
         data = data.copy()
         data = self._validate(data)
         super().update(data)
-        self._post_validate()
+        self.post_validate()

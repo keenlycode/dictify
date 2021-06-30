@@ -56,7 +56,7 @@ pkt-sidebar {
         }
         li {
             align-content: center;
-            height: 2rem;
+            line-height: 2rem;
         }
         a {
             display: flex;
@@ -66,8 +66,8 @@ pkt-sidebar {
             padding-left: 0.5rem;
             color: inherit;
             width: 100%;
-            height: 2rem;
             box-sizing: border-box;
+            line-height: 2rem;
         }
         a:hover {
             @include mixin.bg-color(theme.pallete(p1));
