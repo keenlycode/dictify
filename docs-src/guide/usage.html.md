@@ -57,7 +57,7 @@ except dictify.FieldError:
 
 ---
 
-Define `post_validation()` method and it will be used everytime data is set.
+Define `post_validation()` method and it will be applied everytime data is set.
 
 ```python
 class User(Model):
@@ -66,6 +66,6 @@ class User(Model):
     email_backup = Field(require=True).instance(str).match('.+@.+')
 
     def post_validation(self):
-        # Email duplication check
+        # Email duplication check, all built-in dictionary methods can be used.
         assert self.get('email') != self.get('email_backup')
 ```

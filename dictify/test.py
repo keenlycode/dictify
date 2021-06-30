@@ -36,6 +36,9 @@ class Note(Model):
     user = Field(required=True).instance(User)
     comments = Field().listof(Comment)
 
+    def post_validate(self):
+        assert self.get('title') != self.get('content')
+
 
 class UserJSON(Model):
     id = Field(default=lambda: str(uuid.uuid4())).func(uuid4_verify)
@@ -198,6 +201,11 @@ class TestModel(unittest.TestCase):
         note = json.dumps(note)
         note = json.loads(note)
         NoteJSON(note)
+
+    def test_post_validate(self):
+        pass
+        # with self.assertRaise(AssertionError):
+        #     self.note['title'] = self.note['content']
 
     def test_update(self):
         note = Note({
