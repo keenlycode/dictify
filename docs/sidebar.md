@@ -1,2 +1,0 @@
-- [Model and Field](/guide/model-and-field.html)
-  - [Partial data validation](/)
