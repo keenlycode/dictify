@@ -311,11 +311,12 @@ class Model(dict):
         Model's data
     """
 
-    def __init__(self, data=dict()):
+    def __init__(self, data: dict = dict(), strict: bool = True):
         assert isinstance(data, dict),\
             f"Model initial data should be instance of dict"
         data = data.copy()
         self._field = dict()
+        self.strict = strict
         for key in self.__dir__():
             field = self.__getattribute__(key)
             # Verify that item is Field().
@@ -350,6 +351,12 @@ class Model(dict):
         """Delete item but also check for Field's default or required option
         to make sure that Model's data is valid.
         """
+
+        if (key not in self._field) and (self.strict is False):
+            super().__delitem__(key)
+            self.post_validate()
+            return
+
         if self._field[key].default != UNDEF:
             self[key] = self._field[key].default
         elif self._field[key].required:
@@ -362,6 +369,11 @@ class Model(dict):
     def __setitem__(self, key, value):
         """Set ``value`` if is valid."""
         error = None
+        if (key not in self._field) and (self.strict is False):
+            super().__setitem__(key, value)
+            self.post_validate()
+            return
+            
         try:
             self._field[key].value = value
             super().__setitem__(key, self._field[key].value)
@@ -376,11 +388,15 @@ class Model(dict):
     def _validate(self, data: dict):
         error = dict()
         for key in data:
+            if (key not in self._field) and (self.strict is False):
+                continue
+
             try:
                 self._field[key].value = data[key]
                 data[key] = self._field[key].value
             except KeyError:
-                error[key] = KeyError('Field is not defined')
+                if self.strict:
+                    error[key] = KeyError('Field is not defined')
             except Field.VerifyError as e:
                 error[key] = e
         if error:

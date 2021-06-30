@@ -111,6 +111,39 @@ class TestModel(unittest.TestCase):
         note = Note(data)
         self.assertDictEqual(note, data)
 
+    def test_strict(self):
+        """Test strict=True
+        1. Raise error if create `Model` object with undefined field
+        2. Raise error if set value to undefined field
+        """
+
+        note = dict(self.note)
+        note['undefined_key'] = 1
+        with self.assertRaises(Model.Error):
+            note = Note(note, strict=True)
+
+        del note['undefined_key']
+        note = Note(note, strict=True)
+        with self.assertRaises(Model.Error):
+            note['undefined_key'] = 1
+
+
+        """Test strict=False
+        1. Can crate Model object with undefined field
+        2. Can set value on undefined field
+        """
+
+        note = dict(self.note)
+        note['undefined_key'] = 1
+        note = Note(note, strict=False)
+        self.assertEqual(note['undefined_key'], 1)
+
+        del note['undefined_key']
+        note = Note(note, strict=False)
+        note['undefined_key'] = 1
+        self.assertEqual(note['undefined_key'], 1)
+
+
     def test_delitem(self):
         """Test 3 cases:
         1. Delete field with default option.
