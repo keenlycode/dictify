@@ -10,13 +10,13 @@ and will be validated when value is assigned. For example:
 ```python
 from dictify import Field
 
-name = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
+username = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
 email = Field(required=True).instance(str).match('.+@.+')
 
-name.value = 'user'
+username.value = 'user'
 email.value = 'user@example.com'
 
-name.value = '0' # Invalid, value is not assigned.
+username.value = 0 # Invalid, value is not assigned.
 email.value = 'user' # Invalid, value is not assigned.
 ```
 
@@ -30,12 +30,27 @@ For complex or nested data structure, **Feild** can be defined and managed by **
 from dictify import Field, Model
 
 class User(Model):
-    name = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
+    username = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
     email = Field(required=True).instance(str).match('.+@.+')
 
-user = User({'name': 'user', 'email': 'user@example.com'})
-user['name'] = '0' # Invalid, value won't be assigned.
+user = User({'username': 'user', 'email': 'user@example.com'})
+user['username'] = 0 # Invalid, value won't be assigned.
 user['email'] = 'user' # Invalid, won't be assigned.
+user['age'] = 30 # Error, undefined field.
+```
+
+<h3 id="strict-mode"># Strict mode</h3>
+
+By default, **Model** object will be created in **strict mode** which won't allow value assignment on undefined field. Set `strict=False` at Model creation or object property will change this behavior.
+
+```python
+user = User({'username': 'user', 'email': 'user@example.com'}, strict=False)
+
+# Or apply to object property
+user.strict = False
+
+# Value assignment on undefined field is allowed.
+user['age'] = 30
 ```
 
 <h2 id="partial-data-validation">Partial data validation</h2>
@@ -61,7 +76,7 @@ Define `post_validation()` method and it will be applied everytime data is set.
 
 ```python
 class User(Model):
-    name = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
+    username = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
     email = Field(required=True).instance(str).match('.+@.+')
     email_backup = Field(require=True).instance(str).match('.+@.+')
 
