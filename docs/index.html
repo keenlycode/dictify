@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+
+
+<!-- <base href="https://nitipit.github.io/dictify/"> -->
+<base href="http://127.0.0.1:8000">
+<head>
+    
+    <!-- Google Tag Manager -->
+    <script>(function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-5LLZLHM');</script>
+    <!-- End Google Tag Manager -->
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>Dictify</title>
+    
+
+    <link icon
+        rel="preload"
+        set="adwaita"
+        href="/lib/adwaita-icon-web/adwaita.svg"
+        as="image" type="image/svg+xml">
+
+    <!-- Import icon.js -->
+    <script type="module">
+    import {Icon} from '/lib/adwaita-icon-web/icon.js';
+        customElements.define('el-icon', Icon);  // define custom element for icons
+    </script>
+
+    <link rel="stylesheet" href="base.css?v=2">
+    <link rel="stylesheet" href="ui/sidebar/sidebar.css?v=2">
+    <script defer src="base.js?v=2"></script>
+    
+<link rel="stylesheet" href="index.css?v=2">
+
+</head>
+<body>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5LLZLHM" height="0" width="0"
+        style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+
+<pkt-button-pin id="sidebar-button">
+    <el-icon set="adwaita" name="open-menu"></el-icon>
+</pkt-button-pin>
+
+<pkt-sidebar id="sidebar" show="1150px">
+    <div el="sidebar">
+        <div el="profile">
+            <pkt-button-square el="close">
+                <el-icon set="adwaita" name="window-close"></el-icon>
+            </pkt-button-square>
+            <a el="logo" href="./">{ D }</a>
+            <div el="version">V3.1.0</div>
+        </div>
+        <div el="menu">
+            <ul>
+<li><a href="./">Introduction</a></li>
+<li><a href="./guide/usage.html">Usage</a><ul>
+<li><a href="./guide/usage.html#field">Field</a></li>
+<li><a href="./guide/usage.html#model">Model</a></li>
+<li><a href="./guide/usage.html#partial-data-validation">Partial data validation</a></li>
+<li><a href="./guide/usage.html#post-validation">Post validation</a></li>
+</ul>
+</li>
+<li><a href="./guide/field-api.html">Field API</a></li>
+<li><a href="./guide/validation-recipes.html">Validation Recipes</a></li>
+</ul>
+
+        </div>
+    </div>
+    <div el="overlay"></div>
+</pkt-sidebar>
+<script src="./ui/sidebar/sidebar.js?v=2"></script>
+
+
+
+<div class="container">
+<h1 style="width: 100%; text-align: center; margin-bottom: 0.5rem;">{ Dictify }</h1>
+<h2 style="width: 100%; text-align: center; margin-top: 0.5rem;">Documents schema and data validation</h2>
+<p><pkt-tag>{ dictify }</pkt-tag> is a python library to define data schema and validation with simple and flexible syntax for documents data type such as <strong>JSON</strong> and <strong>Python</strong> <code>dict</code> object.</p>
+<div id="new-features">
+    <pkt-badge style="padding:0.1rem 0.5rem;">! New in V3.1.0</pkt-badge>
+    <a href="guide/usage.html#strict-mode" class="pkt-box-arrow-left">strict mode</a>
+    <a href="guide/usage.html#post-validation" class="pkt-box-arrow-left">post validation</a>
+</div>
+<h2>Get it</h2>
+<hr />
+<pre><code class="language-shell">$ pip install dictify
+</code></pre>
+<h2>Schema definition</h2>
+<hr />
+<p>Let's start with an example note data:</p>
+<pre><code class="language-json">{
+    'title': 'Dictify',
+    'content': 'dictify is easy',
+    'timestamp': '2021-06-13T05:13:45.326869'
+}
+</code></pre>
+<p>The schema condition should be like:</p>
+<p><strong>title</strong></p>
+<ol>
+<li>Required field</li>
+<li>Must be <code>str</code> instance</li>
+<li>Length is &lt;= 300</li>
+</ol>
+<p><strong>content</strong></p>
+<ol>
+<li>Must be <code>str</code> instance</li>
+</ol>
+<p><strong>timestamp</strong></p>
+<ol>
+<li>Required field</li>
+<li>Default to datetime on creation in ISO format string</li>
+<li>Must be a valid ISO datetime string</li>
+</ol>
+<pre><code class="language-python">from datetime import datetime
+from dictify import Model, Field
+
+class Note(Model):
+    title = Field(required=True)\
+        .instance(str)\
+        .verify(lambda value: len(value) &lt;= 300) # [1]
+
+    content = Field().instance(str)
+
+    timestamp = Field(
+            required=True,
+            default=lambda: datetime.utcnow().isoformat())\
+        .verify(lambda value: datetime.fromisoformat(value))
+</code></pre>
+<blockquote>
+<p>[1] Field validations can be chained.</p>
+</blockquote>
+<h2>Data assignment and validation</h2>
+<hr />
+<p>After schema definition, now we can use it to create <code>Model</code> instance with required data.</p>
+<pre><code class="language-python">note = Note({'title': 'Dictify', 'content': 'dictify is easy'})
+
+# `note` can be used like a dict object.
+
+note.update({
+    &quot;content&quot;: &quot;Updated content&quot;,
+})
+note[&quot;content&quot;] = &quot;Updated again&quot;
+
+# Code below will raise `Model.Error`.
+note.update({'title': 0})
+note['title'] = 0
+</code></pre>
+<blockquote>
+<p>Note : Use <code>try..except</code> to catch errors if needed.</p>
+</blockquote>
+<h2>Convert data to native 'dict' or 'JSON'</h2>
+<hr />
+<pre><code class="language-python">import json
+
+note_dict = dict(note) # Convert to python built-in `dict`
+note_json = json.dumps(note)  # Convert to JSON string
+</code></pre>
+
+</div>
+
+
+
+<div style="min-height: 20vh; width: 100%;"></div>
+
+</body>
+
+</html>

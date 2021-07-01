@@ -1,0 +1,72 @@
+[style*="--aspect-ratio"] > :first-child {
+  width: 100%;
+}
+
+[style*="--aspect-ratio"] > img {
+  height: auto;
+}
+
+@supports (--custom: property) {
+  [style*="--aspect-ratio"] {
+    position: relative;
+  }
+
+  [style*="--aspect-ratio"]::before {
+    content: "";
+    display: block;
+    padding-bottom: calc(100% / (var(--aspect-ratio)));
+  }
+
+  [style*="--aspect-ratio"] > :first-child {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+  }
+}
+/**
+ * Calculate the luminance for a color.
+ * See https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
+ */
+/**
+ * Calculate the contrast ratio between two colors.
+ * See https://www.w3.org/TR/WCAG20-TECHS/G17.html#G17-tests
+ */
+/**
+ * Determine whether to use dark or light text on top of given color.
+ * Returns black for dark text and white for light text.
+ */
+#new-features a {
+  display: block;
+  list-style: none;
+  border: 1px solid black;
+  border-radius: 4px;
+  background-color: #0745ff;
+  color: white;
+  position: relative;
+  text-decoration: none;
+  display: inline-block;
+  margin-left: 1rem;
+  padding: 0rem 0.5rem;
+}
+#new-features a:after, #new-features a:before {
+  border: solid transparent;
+  content: "";
+  height: 0;
+  width: 0;
+  position: absolute;
+  right: 100%;
+  top: 50%;
+}
+#new-features a:after {
+  border-width: 7px;
+  border-right-color: #0745ff;
+  margin-top: -7px;
+}
+#new-features a:before {
+  border-width: calc(7px + 1px);
+  border-right-color: black;
+  margin-top: calc(-1*(7px + 1px));
+}
+
+/*# sourceMappingURL=index.css.map */
