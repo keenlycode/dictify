@@ -36,6 +36,9 @@ class Note(Model):
     user = Field(required=True).instance(User)
     comments = Field().listof(Comment)
 
+    def post_validate(self):
+        assert self.get('title') != self.get('content')
+
 
 class UserJSON(Model):
     id = Field(default=lambda: str(uuid.uuid4())).func(uuid4_verify)
@@ -111,6 +114,39 @@ class TestModel(unittest.TestCase):
         note = Note(data)
         self.assertDictEqual(note, data)
 
+    def test_strict(self):
+        """Test strict=True
+        1. Raise error if create `Model` object with undefined field
+        2. Raise error if set value to undefined field
+        """
+
+        note = dict(self.note)
+        note['undefined_key'] = 1
+        with self.assertRaises(Model.Error):
+            note = Note(note, strict=True)
+
+        del note['undefined_key']
+        note = Note(note, strict=True)
+        with self.assertRaises(Model.Error):
+            note['undefined_key'] = 1
+
+
+        """Test strict=False
+        1. Can crate Model object with undefined field
+        2. Can set value on undefined field
+        """
+
+        note = dict(self.note)
+        note['undefined_key'] = 1
+        note = Note(note, strict=False)
+        self.assertEqual(note['undefined_key'], 1)
+
+        del note['undefined_key']
+        note = Note(note, strict=False)
+        note['undefined_key'] = 1
+        self.assertEqual(note['undefined_key'], 1)
+
+
     def test_delitem(self):
         """Test 3 cases:
         1. Delete field with default option.
@@ -165,6 +201,11 @@ class TestModel(unittest.TestCase):
         note = json.dumps(note)
         note = json.loads(note)
         NoteJSON(note)
+
+    def test_post_validate(self):
+        pass
+        # with self.assertRaise(AssertionError):
+        #     self.note['title'] = self.note['content']
 
     def test_update(self):
         note = Note({

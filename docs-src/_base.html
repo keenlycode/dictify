@@ -3,7 +3,7 @@
 {% set _v = 2 %}
 
 <!-- <base href="https://nitipit.github.io/dictify/"> -->
-<base href="http://0.0.0.0:8000">
+<base href="http://127.0.0.1:8000">
 <head>
     
     <!-- Google Tag Manager -->
@@ -22,6 +22,19 @@
     {% block title %}
     <title>Dictify</title>
     {% endblock %}
+
+    <link icon
+        rel="preload"
+        set="adwaita"
+        href="/lib/adwaita-icon-web/adwaita.svg"
+        as="image" type="image/svg+xml">
+
+    <!-- Import icon.js -->
+    <script type="module">
+    import {Icon} from '/lib/adwaita-icon-web/icon.js';
+        customElements.define('el-icon', Icon);  // define custom element for icons
+    </script>
+
     <link rel="stylesheet" href="base.css?v={{_v}}">
     <link rel="stylesheet" href="ui/sidebar/sidebar.css?v={{_v}}">
     <script defer src="base.js?v={{_v}}"></script>

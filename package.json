@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "adwaita-icon-web": "^2.1.1",
     "highlight.js": "^10.7.3",
     "packet-ui": "^2.0.5",
     "parcel": "^2.0.0-beta.3.1",

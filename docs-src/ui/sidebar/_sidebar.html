@@ -1,11 +1,15 @@
-<pkt-button-pin id="sidebar-button">::</pkt-button-pin>
+<pkt-button-pin id="sidebar-button">
+    <el-icon set="adwaita" name="open-menu"></el-icon>
+</pkt-button-pin>
 
 <pkt-sidebar id="sidebar" show="1150px">
     <div el="sidebar">
         <div el="profile">
-            <pkt-button-square el="close">X</pkt-button-square>
+            <pkt-button-square el="close">
+                <el-icon set="adwaita" name="window-close"></el-icon>
+            </pkt-button-square>
             <a el="logo" href="./">{ D }</a>
-            <div el="version">V3.0.0</div>
+            <div el="version">V3.1.0</div>
         </div>
         <div el="menu">
             {{ markdown('sidebar.md') }}

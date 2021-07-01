@@ -4,6 +4,12 @@
 
 <pkt-tag>{ dictify }</pkt-tag> is a python library to define data schema and validation with simple and flexible syntax for documents data type such as **JSON** and **Python** `dict` object.
 
+<div id="new-features">
+    <pkt-badge style="padding:0.1rem 0.5rem;">! New in V3.1.0</pkt-badge>
+    <a href="guide/usage.html#strict-mode" class="pkt-box-arrow-left">strict mode</a>
+    <a href="guide/usage.html#post-validation" class="pkt-box-arrow-left">post validation</a>
+</div>
+
 ## Get it
 ---
 
