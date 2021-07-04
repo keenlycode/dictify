@@ -46,9 +46,6 @@ By default, **Model** object will be created in **strict mode** which won't allo
 ```python
 user = User({'username': 'user', 'email': 'user@example.com'}, strict=False)
 
-# Or apply to object property
-user.strict = False
-
 # Value assignment on undefined field is allowed.
 user['age'] = 30
 ```

@@ -348,15 +348,6 @@ class Model(dict):
         """
         pass
 
-    @property
-    def strict(self):
-        return self._strict
-
-    @strict.setter
-    def strict(self, value: bool):
-        assert isinstance(value, bool)
-        self._strict = value
-
 
     def __delitem__(self, key):
         """Delete item but also check for Field's default or required option
