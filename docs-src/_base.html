@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en">
-{% set _v = 3 %}
+{% set _v = 4 %}
 
-<base href="https://nitipit.github.io/dictify/">
-<!-- <base href="http://127.0.0.1:8000"> -->
+<!-- <base href="https://nitipit.github.io/dictify/"> -->
+<base href="http://127.0.0.1:8000">
 <head>
     
     <!-- Google Tag Manager -->
@@ -26,12 +26,18 @@
     <link icon
         rel="preload"
         set="adwaita"
-        href="/lib/adwaita-icon-web/adwaita.svg"
+        href="lib/adwaita-icon-web/adwaita.svg"
+        as="image" type="image/svg+xml">
+
+    <link icon
+        rel="preload"
+        set="brand"
+        href="asset/icon/brand/symbol-defs.svg"
         as="image" type="image/svg+xml">
 
     <!-- Import icon.js -->
     <script type="module">
-    import {Icon} from '/lib/adwaita-icon-web/icon.js';
+    import {Icon} from './lib/adwaita-icon-web/icon.js';
         customElements.define('el-icon', Icon);  // define custom element for icons
     </script>
 

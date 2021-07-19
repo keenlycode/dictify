@@ -2,8 +2,8 @@
 <html lang="en">
 
 
-<base href="https://nitipit.github.io/dictify/">
-<!-- <base href="http://127.0.0.1:8000"> -->
+<!-- <base href="https://nitipit.github.io/dictify/"> -->
+<base href="http://127.0.0.1:8000">
 <head>
     
     <!-- Google Tag Manager -->
@@ -26,18 +26,24 @@
     <link icon
         rel="preload"
         set="adwaita"
-        href="/lib/adwaita-icon-web/adwaita.svg"
+        href="lib/adwaita-icon-web/adwaita.svg"
+        as="image" type="image/svg+xml">
+
+    <link icon
+        rel="preload"
+        set="brand"
+        href="asset/icon/brand/symbol-defs.svg"
         as="image" type="image/svg+xml">
 
     <!-- Import icon.js -->
     <script type="module">
-    import {Icon} from '/lib/adwaita-icon-web/icon.js';
+    import {Icon} from './lib/adwaita-icon-web/icon.js';
         customElements.define('el-icon', Icon);  // define custom element for icons
     </script>
 
-    <link rel="stylesheet" href="base.css?v=3">
-    <link rel="stylesheet" href="ui/sidebar/sidebar.css?v=3">
-    <script defer src="base.js?v=3"></script>
+    <link rel="stylesheet" href="base.css?v=4">
+    <link rel="stylesheet" href="ui/sidebar/sidebar.css?v=4">
+    <script defer src="base.js?v=4"></script>
     
     
 </head>
@@ -80,7 +86,7 @@
     </div>
     <div el="overlay"></div>
 </pkt-sidebar>
-<script src="./ui/sidebar/sidebar.js?v=3"></script>
+<script src="./ui/sidebar/sidebar.js?v=4"></script>
 
 
 

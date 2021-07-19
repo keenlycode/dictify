@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use 'ui-mixin';
 @use 'theme';
 
@@ -12,4 +13,10 @@
         margin-left: 1rem;
         padding: 0rem 0.5rem;
     }
+}
+
+a.button {
+    @include ui-mixin.button(
+        $bg-color: color.adjust(white, $lightness: -12%)
+    );
 }
