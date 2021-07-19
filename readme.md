@@ -31,9 +31,9 @@ Let's start with an example note data:
 
 ```json
 {
-    'title': 'Dictify',
-    'content': 'dictify is easy',
-    'timestamp': '2021-06-13T05:13:45.326869'
+    "title": "Dictify",
+    "content": "dictify is easy",
+    "timestamp": "2021-06-13T05:13:45.326869"
 }
 ```
 
