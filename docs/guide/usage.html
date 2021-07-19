@@ -122,7 +122,7 @@ user['email'] = 'user' # Invalid, won't be assigned.
 user['age'] = 30 # Error, undefined field.
 </code></pre>
 <h3 id="strict-mode"># Strict mode</h3>
-<p>By default, <strong>Model</strong> object will be created in <strong>strict mode</strong> which won't allow value assignment on undefined field. Set <code>strict=False</code> at Model creation or object property will change this behavior.</p>
+<p>By default, <strong>Model</strong> object will be created in <strong>strict mode</strong> which won't allow value assignment on undefined field. Set <code>strict=False</code> at Model creation to change this behavior.</p>
 <pre><code class="language-python">user = User({'username': 'user', 'email': 'user@example.com'}, strict=False)
 
 # Value assignment on undefined field is allowed.
