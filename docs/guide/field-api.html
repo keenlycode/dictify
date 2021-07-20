@@ -149,9 +149,9 @@ field.value = None # valid
 email.value = 'user@example.com'
 
 number = Field().instance((int, float))
-number = 0 # valid
-number = 0.1 # valid
-number = 1 + 2j # invalid
+number.value = 0 # valid
+number.value = 0.1 # valid
+number.value = 1 + 2j # invalid
 </code></pre>
 <h3><pkt-tag>def</pkt-tag> listof(type_, validate=None)</h3>
 <div class="code-label">param</div>

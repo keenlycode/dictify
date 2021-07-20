@@ -81,9 +81,9 @@ email = Field().instance(str)
 email.value = 'user@example.com'
 
 number = Field().instance((int, float))
-number = 0 # valid
-number = 0.1 # valid
-number = 1 + 2j # invalid
+number.value = 0 # valid
+number.value = 0.1 # valid
+number.value = 1 + 2j # invalid
 ```
 
 ### <pkt-tag>def</pkt-tag> listof(type_, validate=None)
