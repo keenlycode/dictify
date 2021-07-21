@@ -1,6 +1,6 @@
 <h1 style="width: 100%; text-align: center; margin-bottom: 0.5rem;">{ Dictify }</h1>
 
-<h2 style="width: 100%; text-align: center; margin-top: 0.5rem;">Documents schema and data validation</h2>
+<h2 style="width: 100%; text-align: center; margin-top: 0.5rem;">Schema and data validation for Python</h2>
 
 <div style="display: flex; justify-content: center;">
     <a class="button"
@@ -72,19 +72,21 @@ class Note(Model):
 
 > [1] Field validations can be chained.
 
-## Data assignment and validation
+## Create data instance with defined schema.
 ---
-
-After schema definition, now we can use it to create `Model` instance with required data.
 
 ```python
 note = Note({'title': 'Dictify', 'content': 'dictify is easy'})
+```
 
+### Use it like dict instance with schema ;)
+
+Worry free, invalid data can't be assigned at anytime.
+
+
+```python
 # `note` can be used like a dict object.
-
-note.update({
-    "content": "Updated content",
-})
+note.update({"content": "Updated content"})
 note["content"] = "Updated again"
 
 # Code below will raise `Model.Error`.
@@ -94,7 +96,8 @@ note['title'] = 0
 
 > Note : Use `try..except` to catch errors if needed.
 
-## Convert data to native 'dict' or 'JSON'
+
+## Convert data to native `dict` or `JSON`
 ---
 
 ```python

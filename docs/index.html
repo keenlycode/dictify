@@ -2,8 +2,8 @@
 <html lang="en">
 
 
-<base href="https://nitipit.github.io/dictify/">
-<!-- <base href="http://127.0.0.1:8000"> -->
+<!-- <base href="https://nitipit.github.io/dictify/"> -->
+<base href="http://127.0.0.1:8000">
 <head>
     
     <!-- Google Tag Manager -->
@@ -20,7 +20,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
-    <title>Dictify</title>
+    <title>Dictify: Scheme and data validation for Python</title>
     
 
     <link icon
@@ -93,7 +93,7 @@
 
 <div class="container">
 <h1 style="width: 100%; text-align: center; margin-bottom: 0.5rem;">{ Dictify }</h1>
-<h2 style="width: 100%; text-align: center; margin-top: 0.5rem;">Documents schema and data validation</h2>
+<h2 style="width: 100%; text-align: center; margin-top: 0.5rem;">Schema and data validation for Python</h2>
 <div style="display: flex; justify-content: center;">
     <a class="button"
             href="https://github.com/nitipit/dictify">
@@ -155,16 +155,14 @@ class Note(Model):
 <blockquote>
 <p>[1] Field validations can be chained.</p>
 </blockquote>
-<h2>Data assignment and validation</h2>
+<h2>Create data instance with defined schema.</h2>
 <hr />
-<p>After schema definition, now we can use it to create <code>Model</code> instance with required data.</p>
 <pre><code class="language-python">note = Note({'title': 'Dictify', 'content': 'dictify is easy'})
-
-# `note` can be used like a dict object.
-
-note.update({
-    &quot;content&quot;: &quot;Updated content&quot;,
-})
+</code></pre>
+<h3>Use it like dict instance with schema ;)</h3>
+<p>Worry free, invalid data can't be assigned at anytime.</p>
+<pre><code class="language-python"># `note` can be used like a dict object.
+note.update({&quot;content&quot;: &quot;Updated content&quot;})
 note[&quot;content&quot;] = &quot;Updated again&quot;
 
 # Code below will raise `Model.Error`.
@@ -174,7 +172,7 @@ note['title'] = 0
 <blockquote>
 <p>Note : Use <code>try..except</code> to catch errors if needed.</p>
 </blockquote>
-<h2>Convert data to native 'dict' or 'JSON'</h2>
+<h2>Convert data to native <code>dict</code> or <code>JSON</code></h2>
 <hr />
 <pre><code class="language-python">import json
 

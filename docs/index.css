@@ -69,6 +69,21 @@
   margin-top: calc(-1*(7px + 1px));
 }
 
+#features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+#features pkt-card {
+  width: 90%;
+  max-width: 600px;
+  margin: 1rem;
+}
+#features pkt-card h2 {
+  font-size: 1.2rem;
+  text-align: center;
+}
+
 a.button {
   box-shadow: 0 1px 3px 0 #404040;
   background-color: #e0e0e0;
