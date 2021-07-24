@@ -311,6 +311,16 @@ class Model(dict):
         Model's data
     """
 
+    class Error(Exception):
+        """``Exception`` when data doesn't pass ``Model`` validation.
+
+        Parameters
+        ----------
+        message: str
+            Error message. Format: ``{'field': Field.Error([Exception,])}``
+        """
+        pass
+
     def __init__(self, data: dict = dict(), strict: bool = True):
         assert isinstance(data, dict),\
             f"Model initial data should be instance of dict"
@@ -338,16 +348,11 @@ class Model(dict):
         super().__init__(data)
         self.post_validate()
 
-    class Error(Exception):
-        """``Exception`` when data doesn't pass ``Model`` validation.
+    def pop(self, *args, **kw):
+        raise NotImplementedError
 
-        Parameters
-        ----------
-        message: str
-            Error message. Format: ``{'field': Field.Error([Exception,])}``
-        """
-        pass
-
+    def popitem(self, *args, **kw):
+        raise NotImplementedError
 
     def __delitem__(self, key):
         """Delete item but also check for Field's default or required option
