@@ -46,13 +46,12 @@ pkt-sidebar {
             width: 100%;
         }
     }
-    [el="menu"] {
+    ul[el="menu"] {
+        padding: 0;
+        list-style-type: none;
         ul {
             padding-left: 0.75rem;
             list-style-type: none;
-        }
-        > ul {
-            padding: 0;
         }
         li {
             align-content: center;

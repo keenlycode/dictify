@@ -2,8 +2,6 @@
 <html lang="en">
 
 
-<!-- <base href="https://nitipit.github.io/dictify/"> -->
-<base href="http://127.0.0.1:8000">
 <head>
     
     <!-- Google Tag Manager -->
@@ -24,28 +22,29 @@
     
 
     <link icon
-        rel="preload"
-        set="adwaita"
-        href="lib/adwaita-icon-web/adwaita.svg"
-        as="image" type="image/svg+xml">
+    rel="preload"
+    set="adwaita"
+    href="./lib/adwaita-icon-web/adwaita.svg"
+    as="image" type="image/svg+xml">
 
-    <link icon
-        rel="preload"
-        set="brand"
-        href="asset/icon/brand/symbol-defs.svg"
-        as="image" type="image/svg+xml">
+<link icon
+    rel="preload"
+    set="brand"
+    href="./asset/icon/brand/symbol-defs.svg"
+    as="image" type="image/svg+xml">
 
-    <!-- Import icon.js -->
-    <script type="module">
-    import {Icon} from './lib/adwaita-icon-web/icon.js';
-        customElements.define('el-icon', Icon);  // define custom element for icons
-    </script>
+<!-- Import icon.js -->
+<script type="module">
+import {Icon} from './lib/adwaita-icon-web/icon.js';
+    customElements.define('el-icon', Icon);  // define custom element for icons
+</script>
 
-    <link rel="stylesheet" href="base.css?v=4">
-    <link rel="stylesheet" href="ui/sidebar/sidebar.css?v=4">
-    <script defer src="base.js?v=4"></script>
+<link rel="stylesheet" href="./base.css?v=5">
+<link rel="stylesheet" href="./ui/sidebar/sidebar.css?v=5">
+<script defer src="./base.js?v=5"></script>
     
-<link rel="stylesheet" href="index.css?v=4">
+    
+<link rel="stylesheet" href="./index.css?v=5">
 
 </head>
 <body>
@@ -69,25 +68,24 @@
             <a el="logo" href="./">{ D }</a>
             <div el="version">V3.1.0</div>
         </div>
-        <div el="menu">
-            <ul>
-<li><a href="./">Introduction</a></li>
-<li><a href="./guide/usage.html">Usage</a><ul>
-<li><a href="./guide/usage.html#field">Field</a></li>
-<li><a href="./guide/usage.html#model">Model</a></li>
-<li><a href="./guide/usage.html#partial-data-validation">Partial data validation</a></li>
-<li><a href="./guide/usage.html#post-validation">Post validation</a></li>
-</ul>
-</li>
-<li><a href="./guide/field-api.html">Field API</a></li>
-<li><a href="./guide/validation-recipes.html">Validation Recipes</a></li>
-</ul>
-
-        </div>
+        <ul el="menu">
+            <li><a href="./">Introduction</a></li>
+            <li>
+                <a href="./guide/usage.html">Usage</a>
+                <ul>
+                    <li><a href="./guide/usage.html#field">Field</a></li>
+                    <li><a href="./guide/usage.html#model"></a></li>
+                    <li><a href="./guide/usage.html#partial-data-validation">Partial data validation</a></li>
+                    <li><a href="./guide/usage.html#post-validation">Post validation</a></li>
+                </ul>
+            </li>
+            <li><a href="./guide/field-api.html">Field API</a></li>
+            <li><a href="./guide/validation-recipes.html">Validation recipes</a></li>
+        </ul>
     </div>
     <div el="overlay"></div>
 </pkt-sidebar>
-<script src="./ui/sidebar/sidebar.js?v=4"></script>
+<script src=".//ui/sidebar/sidebar.js?v=5"></script>
 
 
 

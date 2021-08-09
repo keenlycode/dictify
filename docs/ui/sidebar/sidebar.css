@@ -57,18 +57,19 @@ pkt-sidebar [el=profile] [el=version] {
   align-self: flex-end;
   width: 100%;
 }
-pkt-sidebar [el=menu] ul {
+pkt-sidebar ul[el=menu] {
+  padding: 0;
+  list-style-type: none;
+}
+pkt-sidebar ul[el=menu] ul {
   padding-left: 0.75rem;
   list-style-type: none;
 }
-pkt-sidebar [el=menu] > ul {
-  padding: 0;
-}
-pkt-sidebar [el=menu] li {
+pkt-sidebar ul[el=menu] li {
   align-content: center;
   line-height: 2rem;
 }
-pkt-sidebar [el=menu] a {
+pkt-sidebar ul[el=menu] a {
   display: flex;
   flex-wrap: wrap;
   text-decoration: none;
@@ -79,7 +80,7 @@ pkt-sidebar [el=menu] a {
   box-sizing: border-box;
   line-height: 2rem;
 }
-pkt-sidebar [el=menu] a:hover {
+pkt-sidebar ul[el=menu] a:hover {
   background-color: #ff4507;
   color: white;
 }

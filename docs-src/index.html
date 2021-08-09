@@ -1,7 +1,9 @@
 {% extends '_base.html' %}
 
+{% set to_base = './' %}
+
 {% block head %}
-<link rel="stylesheet" href="index.css?v={{_v}}">
+<link rel="stylesheet" href="{{to_base}}index.css?v={{_v}}">
 {% endblock %}
 
 {% block body %}
