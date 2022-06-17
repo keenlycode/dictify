@@ -199,7 +199,9 @@ class Field:
         for function in self._functions:
             try:
                 # Set field's value if function return value
-                value = function(self, value) or value
+                value_ = function(self, value)
+                if value_ is not None:
+                    value = value_
             except Exception as e:
                 errors.append((function, e))
         if errors:
@@ -375,6 +377,7 @@ class Model(dict):
 
     def __setitem__(self, key, value):
         """Set ``value`` if is valid."""
+
         error = None
         if (key not in self._field) and (self._strict is False):
             super().__setitem__(key, value)
