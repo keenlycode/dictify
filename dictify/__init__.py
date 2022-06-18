@@ -105,6 +105,17 @@ class ListOf(list):
 
         return super().append(value)
 
+    def list(self):
+        """Return data as native `list`"""
+        data = []
+        for item in self:
+            if isinstance(item, Model):
+                data.append(item.dict())
+            elif isinstance(item, ListOf):
+                data.append(item.list())
+            else:
+                data.append(item)
+        return data
 
 class Field:
     """Create ``Field()`` object which can validate it's value.
@@ -350,12 +361,6 @@ class Model(dict):
         super().__init__(data)
         self.post_validate()
 
-    def pop(self, *args, **kw):
-        raise NotImplementedError
-
-    def popitem(self, *args, **kw):
-        raise NotImplementedError
-
     def __delitem__(self, key):
         """Delete item but also check for Field's default or required option
         to make sure that Model's data is valid.
@@ -413,6 +418,12 @@ class Model(dict):
             raise Model.Error(error)
         return data
 
+    def pop(self, *args, **kw):
+        raise NotImplementedError
+
+    def popitem(self, *args, **kw):
+        raise NotImplementedError
+
     def post_validate(self):
         pass
 
@@ -423,3 +434,15 @@ class Model(dict):
         data = self._validate(data)
         super().update(data)
         self.post_validate()
+
+    def dict(self):
+        """Return data as native `dict` and `list"""
+        data = {}
+        for key, value in self.items():
+            if isinstance(value, Model):
+                data[key] = value.dict()
+            elif isinstance(value, ListOf):
+                data[key] = value.list()
+            else:
+                data[key] = value
+        return data
