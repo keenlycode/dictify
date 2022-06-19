@@ -89,7 +89,7 @@ class ListOf(list):
                             type_(value)
                             dict_error = False
                         except Exception as e:
-                            error = True
+                            dict_error = True
                 if dict_error == True:
                     errors.append(
                         f"Data doesn't comply with either {model_types}"
