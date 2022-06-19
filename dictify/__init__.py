@@ -69,67 +69,49 @@ class ListOf(list):
             values,
             type_: Union[type, tuple] = UNDEF,
             validate: Callable = None):
+
+        # Normailize type_ to be instance of `tuple`
         if isinstance(type_, type):
             self.types = (type_,)
         else:
             self.types = type_
-        self.validate = validate
+            
+        self.validate_func = validate
 
-        errors = list()
         if self.types[0] == UNDEF:
             return super().__init__(values)
-        for value in values:
-            if isinstance(value, dict):
-                comply = False
-                models = filter(lambda type_: isinstance(type_, Model), self.types)
-                for model in models:
-                    try:
-                        type_(value)
-                        comply = True
-                        break
-                    except: pass
-                if comply == True:
-                    continue
-                        
-            try:
-                assert isinstance(value, self.types),\
-                    f"'{value}' is not instance of {self.types}"
-            except Exception as e:
-                errors.append(e)
-            if callable(self.validate):
-                try:
-                    self.validate(value)
-                except Exception as e:
-                    errors.append(e)
 
-        if errors:
-            raise ListOf.ValueError(errors)
+        for value in values:
+            self._validate(value)
+    
         return super().__init__(values)
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
 
-        if self.types[0] is UNDEF:
-            return super().__setitem__(index, value)
-        
+        self._validate(value)
+        return super().__setitem__(index, value)
+
+    def _validate(self, value):
+        if self.types[0] == UNDEF:
+            return
+        if isinstance(value, dict):
+            models = filter(lambda type_: isinstance(type_, Model), self.types)
+            for model_cls in models:
+                try:
+                    model_cls(value)
+                    return
+                except: pass
         assert isinstance(value, self.types),\
             f"'{value}' is not instance of {self.types}"
-        if callable(self.validate):
-            self.validate(value)
 
-        return super().__setitem__(index, value)
+        if callable(self.validate_func):
+            self.validate_func(value)
 
     def append(self, value):
         """Append object to the list if ``value`` is valid."""
 
-        if self.types[0] is UNDEF:
-            return super().append(value)
-
-        assert isinstance(value, self.types),\
-            f"'{value}' is not instance of {self.types}"
-        if callable(self.validate):
-            self.validate(value)
-
+        self._validate(value)
         return super().append(value)
 
     def list(self):
