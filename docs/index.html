@@ -66,7 +66,7 @@ import {Icon} from './lib/adwaita-icon-web/icon.js';
                 <el-icon set="adwaita" name="window-close"></el-icon>
             </pkt-button-square>
             <a el="logo" href="./">{ D }</a>
-            <div el="version">V3.1.4</div>
+            <div el="version">V3.2.0</div>
         </div>
         <ul el="menu">
             <li><a href="./">Introduction</a></li>
@@ -74,7 +74,7 @@ import {Icon} from './lib/adwaita-icon-web/icon.js';
                 <a href="./guide/usage.html">Usage</a>
                 <ul>
                     <li><a href="./guide/usage.html#field">Field</a></li>
-                    <li><a href="./guide/usage.html#model"></a></li>
+                    <li><a href="./guide/usage.html#model">Model</a></li>
                     <li><a href="./guide/usage.html#partial-data-validation">Partial data validation</a></li>
                     <li><a href="./guide/usage.html#post-validation">Post validation</a></li>
                 </ul>
@@ -101,9 +101,15 @@ import {Icon} from './lib/adwaita-icon-web/icon.js';
 </div>
 <p><pkt-tag>{ dictify }</pkt-tag> is a python library to define data schema and validation with simple and flexible syntax for documents data type such as <strong>JSON</strong> and <strong>Python</strong> <code>dict</code> object.</p>
 <div id="new-features">
-    <pkt-badge style="padding:0.1rem 0.5rem;">! New in V3.1.0</pkt-badge>
-    <a href="guide/usage.html#strict-mode" class="pkt-box-arrow-left">strict mode</a>
-    <a href="guide/usage.html#post-validation" class="pkt-box-arrow-left">post validation</a>
+    <div class="row">
+        <pkt-badge style="padding:0.1rem 0.5rem;">! New in V3.2.0</pkt-badge>
+        <code>Model.dict()</code> Return data as native dict and list
+    </div>
+    <div class="row" style="margin-top: 0.5rem;">
+        <pkt-badge style="padding:0.1rem 0.5rem;">! New in V3.1.0</pkt-badge>
+        <a href="guide/usage.html#strict-mode" class="pkt-box-arrow-left">strict mode</a>
+        <a href="guide/usage.html#post-validation" class="pkt-box-arrow-left">post validation</a>
+    </div>
 </div>
 <h2>Get it</h2>
 <hr />

@@ -65,7 +65,7 @@ import {Icon} from '../lib/adwaita-icon-web/icon.js';
                 <el-icon set="adwaita" name="window-close"></el-icon>
             </pkt-button-square>
             <a el="logo" href="../">{ D }</a>
-            <div el="version">V3.1.4</div>
+            <div el="version">V3.2.0</div>
         </div>
         <ul el="menu">
             <li><a href="../">Introduction</a></li>
@@ -73,7 +73,7 @@ import {Icon} from '../lib/adwaita-icon-web/icon.js';
                 <a href="../guide/usage.html">Usage</a>
                 <ul>
                     <li><a href="../guide/usage.html#field">Field</a></li>
-                    <li><a href="../guide/usage.html#model"></a></li>
+                    <li><a href="../guide/usage.html#model">Model</a></li>
                     <li><a href="../guide/usage.html#partial-data-validation">Partial data validation</a></li>
                     <li><a href="../guide/usage.html#post-validation">Post validation</a></li>
                 </ul>
@@ -110,9 +110,18 @@ email.value = 'user' # Invalid, value is not assigned.
 <p>For complex or nested data structure, <strong>Feild</strong> can be defined and managed by <strong>Model</strong> which map and validate <strong>Field</strong> to python native <strong>dict</strong> instance. For example:</p>
 <pre><code class="language-python">from dictify import Field, Model
 
+class Contact(Model):
+    type = Field(require=True).instance(str)\
+        .verify(lambda value: value in ['phone', 'email', 'address'])
+    note = Field().instance(str)\
+        .verify(lambda value: len(value) &lt;= 250)
+    value = Field(require=True).instance(str)\
+        .verify(lambda value: len(value) &lt;= 1000)
+
 class User(Model):
     username = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
     email = Field(required=True).instance(str).match('.+@.+')
+    contacts = Field().listof(Contact)
 
 user = User({'username': 'user', 'email': 'user@example.com'})
 user['username'] = 0 # Invalid, value won't be assigned.
@@ -125,6 +134,19 @@ user['age'] = 30 # Error, undefined field.
 
 # Value assignment on undefined field is allowed.
 user['age'] = 30
+</code></pre>
+<h3 id="native-data"># Native data</h3>
+<p><code>Model.dict()</code> returns native data as <code>dict</code> and <code>list</code>. This could be useful
+to send data though network or use with <code>pickle()</code> when your <strong>model</strong> has <code>Model</code> or
+<code>List</code> in subtree.</p>
+<pre><code>user = User({
+    'username': 'user',
+    'email': 'user@example.com',
+    'contacts': [Contact({type: 'phone', value: '111-800-0000'})]
+})
+
+pickle(user) # Error
+pickle(user.dict()) # Ok
 </code></pre>
 <h2 id="partial-data-validation">Partial data validation</h2>
 <hr />

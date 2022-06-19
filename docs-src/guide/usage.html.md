@@ -29,9 +29,18 @@ For complex or nested data structure, **Feild** can be defined and managed by **
 ```python
 from dictify import Field, Model
 
+class Contact(Model):
+    type = Field(require=True).instance(str)\
+        .verify(lambda value: value in ['phone', 'email', 'address'])
+    note = Field().instance(str)\
+        .verify(lambda value: len(value) <= 250)
+    value = Field(require=True).instance(str)\
+        .verify(lambda value: len(value) <= 1000)
+
 class User(Model):
     username = Field(required=True).instance(str).match('[a-zA-Z0-9 ._-]+$')
     email = Field(required=True).instance(str).match('.+@.+')
+    contacts = Field().listof(Contact)
 
 user = User({'username': 'user', 'email': 'user@example.com'})
 user['username'] = 0 # Invalid, value won't be assigned.
@@ -48,6 +57,23 @@ user = User({'username': 'user', 'email': 'user@example.com'}, strict=False)
 
 # Value assignment on undefined field is allowed.
 user['age'] = 30
+```
+
+<h3 id="native-data"># Native data</h3>
+
+`Model.dict()` returns native data as `dict` and `list`. This could be useful
+to send data though network or use with `pickle()` when your **model** has `Model` or
+`List` in subtree.
+
+```
+user = User({
+    'username': 'user',
+    'email': 'user@example.com',
+    'contacts': [Contact({type: 'phone', value: '111-800-0000'})]
+})
+
+pickle(user) # Error
+pickle(user.dict()) # Ok
 ```
 
 <h2 id="partial-data-validation">Partial data validation</h2>

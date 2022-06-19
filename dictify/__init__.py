@@ -46,6 +46,10 @@ class UNDEF:
 UNDEF = UNDEF()
 
 
+class Model:
+    pass
+
+
 class ListOf(list):
     """Modified list which check it's members instance.
 
@@ -65,14 +69,35 @@ class ListOf(list):
             values,
             type_: Union[type, tuple] = UNDEF,
             validate: Callable = None):
-        self.type = type_
+        if isinstance(type_, type):
+            self.types = (type_,)
+        else:
+            self.types = type_
         self.validate = validate
+
         errors = list()
+        if self.types[0] == UNDEF:
+            return super().__init__(values)
         for value in values:
-            if self.type is not UNDEF:
+            if isinstance(value, dict):
+                dict_error = False
+                model_types = []
+                for type_ in self.types:
+                    if isinstance(type_, Model):
+                        model_types.append(type_)
+                        try:
+                            type_(value)
+                            dict_error = False
+                        except Exception as e:
+                            error = True
+                if dict_error == True:
+                    errors.append(
+                        f"Data doesn't comply with either {model_types}"
+                    )
+            else:
                 try:
-                    assert isinstance(value, self.type),\
-                        f"'{value}' is not instance of {self.type}"
+                    assert isinstance(value, self.types),\
+                        f"'{value}' is not instance of {self.types}"
                 except Exception as e:
                     errors.append(e)
             if callable(self.validate):
@@ -83,7 +108,7 @@ class ListOf(list):
 
         if errors:
             raise ListOf.ValueError(errors)
-        super().__init__(values)
+        return super().__init__(values)
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
