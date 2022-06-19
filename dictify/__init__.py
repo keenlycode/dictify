@@ -80,26 +80,22 @@ class ListOf(list):
             return super().__init__(values)
         for value in values:
             if isinstance(value, dict):
-                dict_error = False
-                model_types = []
-                for type_ in self.types:
-                    if isinstance(type_, Model):
-                        model_types.append(type_)
-                        try:
-                            type_(value)
-                            dict_error = False
-                        except Exception as e:
-                            dict_error = True
-                if dict_error == True:
-                    errors.append(
-                        f"Data doesn't comply with either {model_types}"
-                    )
-            else:
-                try:
-                    assert isinstance(value, self.types),\
-                        f"'{value}' is not instance of {self.types}"
-                except Exception as e:
-                    errors.append(e)
+                comply = False
+                models = filter(lambda type_: isinstance(type_, Model), self.types)
+                for model in models:
+                    try:
+                        type_(value)
+                        comply = True
+                        break
+                    except: pass
+                if comply == True:
+                    continue
+                        
+            try:
+                assert isinstance(value, self.types),\
+                    f"'{value}' is not instance of {self.types}"
+            except Exception as e:
+                errors.append(e)
             if callable(self.validate):
                 try:
                     self.validate(value)
@@ -112,19 +108,25 @@ class ListOf(list):
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
-        if self.types is not UNDEF:
-            assert isinstance(value, self.types),\
-                f"'{value}' is not instance of {self.types}"
+
+        if self.types[0] is UNDEF:
+            return super().__setitem__(index, value)
+        
+        assert isinstance(value, self.types),\
+            f"'{value}' is not instance of {self.types}"
         if callable(self.validate):
             self.validate(value)
 
         return super().__setitem__(index, value)
 
     def append(self, value):
-        """Append object to the end of the list if ``value`` is valid."""
-        if self.types[0] is not UNDEF:
-            assert isinstance(value, self.types),\
-                f"'{value}' is not instance of {self.types}"
+        """Append object to the list if ``value`` is valid."""
+
+        if self.types[0] is UNDEF:
+            return super().append(value)
+
+        assert isinstance(value, self.types),\
+            f"'{value}' is not instance of {self.types}"
         if callable(self.validate):
             self.validate(value)
 
@@ -132,6 +134,7 @@ class ListOf(list):
 
     def list(self):
         """Return data as native `list`"""
+
         data = []
         for item in self:
             if isinstance(item, Model):
