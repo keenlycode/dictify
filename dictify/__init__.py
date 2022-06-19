@@ -112,9 +112,9 @@ class ListOf(list):
 
     def __setitem__(self, index, value):
         """Set list value at ``index`` if ``value`` is valid"""
-        if self.type is not UNDEF:
-            assert isinstance(value, self.type),\
-                f"'{value}' is not instance of {self.type}"
+        if self.types is not UNDEF:
+            assert isinstance(value, self.types),\
+                f"'{value}' is not instance of {self.types}"
         if callable(self.validate):
             self.validate(value)
 
@@ -122,9 +122,9 @@ class ListOf(list):
 
     def append(self, value):
         """Append object to the end of the list if ``value`` is valid."""
-        if self.type is not UNDEF:
-            assert isinstance(value, self.type),\
-                f"'{value}' is not instance of {self.type}"
+        if self.types[0] is not UNDEF:
+            assert isinstance(value, self.types),\
+                f"'{value}' is not instance of {self.types}"
         if callable(self.validate):
             self.validate(value)
 
