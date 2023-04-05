@@ -46,10 +46,6 @@ class UNDEF:
 UNDEF = UNDEF()
 
 
-class Model:
-    pass
-
-
 class ListOf(list):
     """Modified list which check it's members instance.
 
