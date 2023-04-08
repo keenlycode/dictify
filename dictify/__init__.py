@@ -138,8 +138,8 @@ class Field:
 
         # Chained validators.
         field = Field(default=0).instance(str).search('.*@.*)
-        field.value = 5
-        field.value = -1  # This will raise Field.VerifyError
+        field.value = 'user@somewhere.com'; # OK
+        field.value = 1  # This will raise Field.VerifyError
 
     Notes
     -----
