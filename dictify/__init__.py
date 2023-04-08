@@ -92,7 +92,8 @@ class ListOf(list):
         if self.types[0] == UNDEF:
             return
         if isinstance(value, dict):
-            models = filter(lambda type_: isinstance(type_, Model), self.types)
+            models = filter(
+                lambda type_: isinstance(type_, Model), self.types)
             for model_cls in models:
                 try:
                     model_cls(value)
@@ -143,9 +144,9 @@ class Field:
 
     Notes
     -----
-        As the examples, when defining ``Field()`` validation with it's methods
-        below. The first arguments ``(value)`` can be omitted since it will be
-        put automatically while validating value.
+        As the examples, when defining ``Field()`` validation with
+        it's methods below. The first arguments ``(value)`` can be omitted
+        since it will be put automatically while validating value.
     ...
 
     Parameters
