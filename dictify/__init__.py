@@ -195,9 +195,14 @@ class Field:
 
     @property
     def value(self):
-        """``Field()``'s value"""
+        """``Field()``'s value
+          - Required Field will raise RequiredError if ask for value
+            before assigned.
+        """
+
         if self.required and self._value == UNDEF:
             raise Field.RequiredError('Field is required')
+        
         return self._value
 
     @value.setter
