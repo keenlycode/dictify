@@ -216,9 +216,10 @@ class Field:
         # Verify value by field's functions
         for function in self._functions:
             try:
-                # Set field's value if function return value
+                # Set field's value if function return
+                # `ListOf` or `Model` instance
                 value_ = function(self, value)
-                if value_ is not None:
+                if isinstance(value_, (ListOf, Model)):
                     value = value_
             except Exception as e:
                 errors.append((function, e))
