@@ -196,8 +196,8 @@ class Field:
     @property
     def value(self):
         """``Field()``'s value
-          - Required Field will raise RequiredError if ask for value
-            before assigned.
+        - Required Field will raise RequiredError if ask for value
+          before assigned.
         """
 
         if self.required and self._value == UNDEF:
@@ -300,8 +300,8 @@ class Field:
     def func(self, value, fn):
         """Use callable function to validate value.
 
-        ``fn`` will be called later as ``fn(value)`` and should return
-        ``Exception`` if value is invalid.
+        ``fn`` will be called later as ``fn(value)``
+        and must raise ``Exception`` if value is invalid.
 
         Examples
         --------
@@ -363,6 +363,8 @@ class Model(dict):
             if (field.default != UNDEF) and (key not in data):
                 data[key] = field.value
             # If required option is set in Field(), check if it's provided.
+            # To Do: What if there's a default value ?
+            # To Do: Should collect all errors before raise ?
             elif field.required:
                 if key not in data:
                     raise Model.Error({
