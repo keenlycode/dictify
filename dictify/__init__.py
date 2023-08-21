@@ -46,10 +46,6 @@ class UNDEF:
 UNDEF = UNDEF()
 
 
-class Model:
-    pass
-
-
 class ListOf(list):
     """Modified list which check it's members instance.
 
@@ -96,7 +92,8 @@ class ListOf(list):
         if self.types[0] == UNDEF:
             return
         if isinstance(value, dict):
-            models = filter(lambda type_: isinstance(type_, Model), self.types)
+            models = filter(
+                lambda type_: isinstance(type_, Model), self.types)
             for model_cls in models:
                 try:
                     model_cls(value)
@@ -142,14 +139,14 @@ class Field:
 
         # Chained validators.
         field = Field(default=0).instance(str).search('.*@.*)
-        field.value = 5
-        field.value = -1  # This will raise Field.VerifyError
+        field.value = 'user@somewhere.com'; # OK
+        field.value = 1  # This will raise Field.VerifyError
 
     Notes
     -----
-        As the examples, when defining ``Field()`` validation with it's methods
-        below. The first arguments ``(value)`` can be omitted since it will be
-        put automatically while validating value.
+        As the examples, when defining ``Field()`` validation with
+        it's methods below. The first arguments ``(value)`` can be omitted
+        since it will be put automatically while validating value.
     ...
 
     Parameters
@@ -198,9 +195,14 @@ class Field:
 
     @property
     def value(self):
-        """``Field()``'s value"""
+        """``Field()``'s value
+        - Required Field will raise RequiredError if ask for value
+          before assigned.
+        """
+
         if self.required and self._value == UNDEF:
             raise Field.RequiredError('Field is required')
+        
         return self._value
 
     @value.setter
@@ -219,9 +221,10 @@ class Field:
         # Verify value by field's functions
         for function in self._functions:
             try:
-                # Set field's value if function return value
+                # Set field's value if function return
+                # `ListOf` or `Model` instance
                 value_ = function(self, value)
-                if value_ is not None:
+                if isinstance(value_, (ListOf, Model)):
                     value = value_
             except Exception as e:
                 errors.append((function, e))
@@ -297,8 +300,8 @@ class Field:
     def func(self, value, fn):
         """Use callable function to validate value.
 
-        ``fn`` will be called later as ``fn(value)`` and should return
-        ``Exception`` if value is invalid.
+        ``fn`` will be called later as ``fn(value)``
+        and must raise ``Exception`` if value is invalid.
 
         Examples
         --------
@@ -360,6 +363,8 @@ class Model(dict):
             if (field.default != UNDEF) and (key not in data):
                 data[key] = field.value
             # If required option is set in Field(), check if it's provided.
+            # To Do: What if there's a default value ?
+            # To Do: Should collect all errors before raise ?
             elif field.required:
                 if key not in data:
                     raise Model.Error({
