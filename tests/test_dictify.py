@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 import re
 import uuid
-from datetime import datetime, timezone
-from typing import Any, cast
+from datetime import UTC, datetime
+from typing import Annotated, Any, cast
 
 import pytest
 
@@ -32,14 +32,14 @@ class User(Model):
 
 class Comment(Model):
     content: str = cast(Any, Field())
-    datetime: datetime = cast(Any, Field(default=lambda: datetime.now(timezone.utc)))
+    datetime: datetime = cast(Any, Field(default=lambda: datetime.now(UTC)))
     user: User = cast(Any, Field(required=True))
 
 
 class Note(Model):
     title: str = cast(Any, Field(required=True))
     content: str = cast(Any, Field())
-    datetime: datetime = cast(Any, Field(default=lambda: datetime.now(timezone.utc)))
+    datetime: datetime = cast(Any, Field(default=lambda: datetime.now(UTC)))
     user: User = cast(Any, Field(required=True))
     comments: list[Comment] = cast(Any, Field())
 
@@ -56,9 +56,7 @@ class CommentJSON(Model):
     content: str = cast(Any, Field(required=True))
     datetime: str = cast(
         Any,
-        Field(default=lambda: datetime.now(timezone.utc).isoformat()).func(
-            datetime_verify
-        ),
+        Field(default=lambda: datetime.now(UTC).isoformat()).func(datetime_verify),
     )
     user: UserJSON = cast(Any, Field(required=True))
 
@@ -68,9 +66,7 @@ class NoteJSON(Model):
     content: str = cast(Any, Field())
     datetime: str = cast(
         Any,
-        Field(default=lambda: datetime.now(timezone.utc).isoformat()).func(
-            datetime_verify
-        ),
+        Field(default=lambda: datetime.now(UTC).isoformat()).func(datetime_verify),
     )
     user: UserJSON = cast(Any, Field(required=True))
     comments: list[CommentJSON] = cast(Any, Field())
@@ -112,13 +108,53 @@ def test_annotation_and_instance_conflict_raises_define_error():
             name: str = cast(Any, Field(required=True).instance(int))
 
 
+def test_annotated_metadata_is_ignored_for_runtime_type():
+    class AnnotatedUser(Model):
+        name: Annotated[str, "display name"] = cast(Any, Field(required=True))
+
+    user = AnnotatedUser({"name": "user1"})
+
+    assert user.name == "user1"
+
+    with pytest.raises(Model.Error):
+        cast(Any, user).name = 1
+
+
+def test_annotated_field_metadata_on_rhs_field_is_rejected():
+    with pytest.raises(Field.DefineError):
+
+        class InvalidAnnotatedUser(Model):
+            name: Annotated[str, Field(required=True)] = cast(Any, Field())
+
+
+def test_strict_false_extra_attributes_are_model_data():
+    user = User({"name": "user1"}, strict=False)
+
+    user.nickname = "nick"
+
+    assert user.nickname == "nick"
+    assert user["nickname"] == "nick"
+    assert dict(user)["nickname"] == "nick"
+
+    del user.nickname
+    with pytest.raises(AttributeError):
+        _ = user.nickname
+
+
+def test_strict_true_rejects_extra_attributes():
+    user = User({"name": "user1"})
+
+    with pytest.raises(AttributeError):
+        user.nickname = "nick"
+
+
 @pytest.fixture
 def note():
     return Note(
         {
             "title": "Title",
             "content": "Content",
-            "datetime": datetime.now(timezone.utc),
+            "datetime": datetime.now(UTC),
             "user": User({"id": uuid.uuid4(), "name": "user1"}),
             "comments": [
                 Comment(
@@ -151,7 +187,7 @@ def test_init(note):
     data = {
         "title": "Title",
         "content": "Content",
-        "datetime": datetime.now(timezone.utc),
+        "datetime": datetime.now(UTC),
         "user": User({"id": uuid.uuid4(), "name": "user-1"}),
     }
     fresh_note = Note(data)
@@ -282,7 +318,7 @@ def test_field_init():
 def test_field_default():
     field = Field(default="default")
     assert field.value == "default"
-    field = Field(default=lambda: datetime.now(timezone.utc))
+    field = Field(default=lambda: datetime.now(UTC))
     assert isinstance(field.default, datetime)
 
 

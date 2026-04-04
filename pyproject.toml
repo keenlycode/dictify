@@ -6,8 +6,8 @@ build-backend = "uv_build"
 name = "dictify"
 version = "3.2.3.dev0"
 description = "Documents schema and data validation"
-readme = "readme.md"
-requires-python = ">=3.9"
+readme = "README.md"
+requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
@@ -16,6 +16,7 @@ authors = [
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
@@ -31,8 +32,7 @@ dev = [
     "ty",
 ]
 docs = [
-    "click==8.1.8; python_version < '3.10'",
-    "click==8.2.1; python_version >= '3.10'",
+    "click==8.2.1",
     "mkdocs>=1.6",
     "mkdocs-shadcn>=0.10.3",
     "Pygments>=2.19",
@@ -43,7 +43,7 @@ docs = [
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py312"
 src = ["src", "tests"]
 
 [tool.ruff.lint]

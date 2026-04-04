@@ -3,21 +3,48 @@
 from __future__ import annotations
 
 import re
-import types
-from collections.abc import Mapping, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 from functools import wraps
-from typing import Any, Callable, Union, cast, get_args, get_origin, get_type_hints
+from types import UnionType
+from typing import Annotated, Any, cast, get_args, get_origin, get_type_hints
 
 Validator = Callable[..., Any]
 DefaultFactory = Callable[[], Any]
 DataDict = dict[str, Any]
 FieldMap = dict[str, "Field"]
 FieldTypeMap = dict[str, Any]
-UNION_TYPE = getattr(types, "UnionType", None)
+
+
+def _strip_annotated_type(type_spec: Any):
+    """Return the underlying type from an Annotated declaration."""
+
+    while get_origin(type_spec) is Annotated:
+        type_spec = get_args(type_spec)[0]
+    return type_spec
+
+
+def _resolve_field_annotation(annotation: Any):
+    """Return the runtime type for a field annotation.
+
+    Annotated metadata is ignored for runtime typing, except that Field metadata
+    is rejected to avoid ambiguous double-field declarations.
+    """
+
+    while get_origin(annotation) is Annotated:
+        base, *metadata = get_args(annotation)
+        if any(isinstance(item, Field) for item in metadata):
+            raise Field.DefineError(
+                "Field metadata inside Annotated[...] is ambiguous when the "
+                "class attribute is also assigned to Field(...)"
+            )
+        annotation = base
+    return annotation
 
 
 def _normalize_simple_type_spec(type_spec: Any):
     """Return comparable runtime types for plain types, tuples, and unions."""
+
+    type_spec = _strip_annotated_type(type_spec)
 
     if isinstance(type_spec, tuple):
         if all(isinstance(item, type) for item in type_spec):
@@ -25,7 +52,7 @@ def _normalize_simple_type_spec(type_spec: Any):
         return None
 
     origin = get_origin(type_spec)
-    if origin in (Union, UNION_TYPE):
+    if origin is UnionType:
         normalized = []
         for arg in get_args(type_spec):
             if not isinstance(arg, type):
@@ -42,11 +69,13 @@ def _normalize_simple_type_spec(type_spec: Any):
 def _validate_type_spec(value, type_spec):
     """Validate a value against a runtime type specification."""
 
+    type_spec = _strip_annotated_type(type_spec)
+
     if type_spec in (UNDEF, Any):
         return value
 
     origin = get_origin(type_spec)
-    if origin in (Union, UNION_TYPE):
+    if origin is UnionType:
         errors = []
         for option in get_args(type_spec):
             try:
@@ -545,7 +574,7 @@ class Model(MutableMapping[str, Any]):
         super().__init_subclass__(**kwargs)
         fields = {}
         field_types = {}
-        type_hints = get_type_hints(cls)
+        type_hints = get_type_hints(cls, include_extras=True)
         for base in reversed(cls.__mro__[1:]):
             fields.update(getattr(base, "__fields__", {}))
             field_types.update(getattr(base, "__field_types__", {}))
@@ -554,7 +583,7 @@ class Model(MutableMapping[str, Any]):
                 value._name = key
                 fields[key] = value
                 if key in type_hints:
-                    annotation = type_hints[key]
+                    annotation = _resolve_field_annotation(type_hints[key])
                     field_types[key] = annotation
                     normalized_annotation = _normalize_simple_type_spec(annotation)
                     normalized_instance = _normalize_simple_type_spec(
@@ -585,11 +614,16 @@ class Model(MutableMapping[str, Any]):
         )
         assert isinstance(strict, bool)
         data = dict(data)
-        self._bound_fields = {
-            key: BoundField(field) for key, field in self.__class__.__fields__.items()
-        }
-        self._data: DataDict = {}
-        self._strict = strict
+        object.__setattr__(
+            self,
+            "_bound_fields",
+            {
+                key: BoundField(field)
+                for key, field in self.__class__.__fields__.items()
+            },
+        )
+        object.__setattr__(self, "_data", {})
+        object.__setattr__(self, "_strict", strict)
 
         errors = {}
         for key, field in self.__class__.__fields__.items():
@@ -627,6 +661,51 @@ class Model(MutableMapping[str, Any]):
         if isinstance(other, Mapping):
             return dict(self) == dict(other)
         return NotImplemented
+
+    def __getattr__(self, key):
+        """Expose non-field extras as attributes when they exist in model data."""
+
+        if key.startswith("_"):
+            raise AttributeError(key)
+
+        data = self.__dict__.get("_data")
+        if data is not None and key not in self.__class__.__fields__ and key in data:
+            return data[key]
+        raise AttributeError(key)
+
+    def __setattr__(self, key, value):
+        """Route public attribute writes through field or strict model semantics."""
+
+        if key.startswith("_") or "_data" not in self.__dict__:
+            object.__setattr__(self, key, value)
+            return
+
+        if key in self.__class__.__fields__:
+            self[key] = value
+            return
+
+        if self._strict is False:
+            self[key] = value
+            return
+
+        raise AttributeError(key)
+
+    def __delattr__(self, key):
+        """Route public attribute deletes through field or strict model semantics."""
+
+        if key.startswith("_") or "_data" not in self.__dict__:
+            object.__delattr__(self, key)
+            return
+
+        if key in self.__class__.__fields__:
+            del self[key]
+            return
+
+        if self._strict is False and key in self._data:
+            del self[key]
+            return
+
+        raise AttributeError(key)
 
     def _validate_item(self, key, value):
         """Validate one key/value pair against the declared schema."""

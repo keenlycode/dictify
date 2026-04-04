@@ -33,11 +33,8 @@ class Note(Model):
     timestamp: Annotated[datetime, "creation time"] = Field(
         default=lambda: datetime.now(UTC)
     )
-```
 
-Create and update validated data:
 
-```python
 note = Note({"title": "Dictify", "content": "dictify is easy"})
 
 note.content = "Updated content"
@@ -75,8 +72,18 @@ note_native = note.dict()     # recursive dict/list conversion
 note_json = json.dumps(note.dict())
 ```
 
-## Guides
+## Standalone Fields
 
-- [Usage](guide/usage.md)
-- [Field API](guide/field-api.md)
-- [Validation Recipes](guide/validation-recipes.md)
+`Field.instance(...)` still works well for standalone validation.
+
+```python
+email = Field(required=True).instance(str).match(r".+@.+")
+email.value = "user@example.com"
+```
+
+## Documentation
+
+- Docs: https://nitipit.github.io/dictify/
+- Usage: https://nitipit.github.io/dictify/guide/usage/
+- Field API: https://nitipit.github.io/dictify/guide/field-api/
+- Validation Recipes: https://nitipit.github.io/dictify/guide/validation-recipes/

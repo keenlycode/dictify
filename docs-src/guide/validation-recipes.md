@@ -2,6 +2,8 @@
 
 This page collects small examples for common validation patterns with `dictify.Field`.
 
+For `Model` classes, prefer Python annotations for base field types and use `Field(...)` for defaults and extra validators.
+
 For text validation, `match()` and `search()` work well with regular expressions.
 
 ## Instance of a Type
@@ -66,8 +68,8 @@ from dictify import Field, Model
 
 
 class Money(Model):
-    unit = Field(required=True).verify(lambda value: value in ["USD", "GBP"])
-    amount = Field(required=True).instance((int, float))
+    unit: str = Field(required=True).verify(lambda value: value in ["USD", "GBP"])
+    amount: int | float = Field(required=True)
 
 
 payment = Field().model(Money)
@@ -81,8 +83,8 @@ from dictify import Field, Model
 
 
 class Contact(Model):
-    type = Field(required=True).instance(str)
-    value = Field(required=True).instance(str)
+    type: str = Field(required=True)
+    value: str = Field(required=True)
 
 
 contacts = Field().listof(Contact)
