@@ -1,6 +1,42 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+requires = ["uv_build>=0.11.3,<0.12"]
+build-backend = "uv_build"
+
+[project]
+name = "dictify"
+version = "3.2.2"
+description = "Documents schema and data validation"
+readme = "readme.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Nitipit Nontasuwan", email = "nitipit@gmail.com" },
 ]
-build-backend = "setuptools.build_meta"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://nitipit.github.io/dictify/"
+"Bug Tracker" = "https://github.com/nitipit/dictify/issues"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "ruff",
+    "ty",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py39"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
