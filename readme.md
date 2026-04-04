@@ -1,105 +1,71 @@
-<h1 style="width: 100%; text-align: center; margin-bottom: 0.5rem;">{ Dictify }</h1>
+# Dictify
 
-<h2 style="width: 100%; text-align: center; margin-top: 0.5rem;">Documents schema and data validation</h2>
+Schema and data validation for Python mappings and JSON-like documents.
 
-<div style="display: flex; justify-content: center;">
-    <a class="button"
-            href="https://github.com/nitipit/dictify">
-        <el-icon set="brand" name="github" style="margin-right: 0.2rem;"></el-icon>
-        Github
-    </a>
-</div>
+`dictify` is a lightweight library for defining field-level validation and composing those fields into mapping-shaped models.
 
-<pkt-tag>{ dictify }</pkt-tag> is a python library to define data schema and validation with simple and flexible syntax for documents data type such as **JSON** and **Python** `dict` object.
+- Use `Field(...)` for standalone validation.
+- Use `Model` for named fields, nested structures, and strict key handling.
+- Convert model data explicitly with `dict(model)` or `model.dict()`.
 
-<div id="new-features">
-    <pkt-badge style="padding:0.1rem 0.5rem;">! New in V3.1.0</pkt-badge>
-    <a href="guide/usage.html#strict-mode" class="pkt-box-arrow-left">strict mode</a>
-    <a href="guide/usage.html#post-validation" class="pkt-box-arrow-left">post validation</a>
-</div>
-
-## Get it
----
+## Install
 
 ```shell
-$ pip install dictify
+pip install dictify
 ```
 
-## Schema definition
----
-Let's start with an example note data:
-
-```json
-{
-    "title": "Dictify",
-    "content": "dictify is easy",
-    "timestamp": "2021-06-13T05:13:45.326869"
-}
-```
-
-The schema condition should be like:
-
-**title**
-1. Required field
-2. Must be `str` instance
-3. Length is <= 300
-
-**content**
-1. Must be `str` instance
-
-**timestamp**
-1. Required field
-2. Default to datetime on creation in ISO format string
-3. Must be a valid ISO datetime string
-
+## Quick Example
 
 ```python
 from datetime import datetime
-from dictify import Model, Field
+
+from dictify import Field, Model
+
 
 class Note(Model):
-    title = Field(required=True)\
-        .instance(str)\
-        .verify(lambda value: len(value) <= 300) # [1]
-
+    title = Field(required=True).instance(str).verify(
+        lambda value: len(value) <= 300,
+        "Title must be 300 characters or fewer",
+    )
     content = Field().instance(str)
-
     timestamp = Field(
-            required=True,
-            default=lambda: datetime.utcnow().isoformat())\
-        .verify(lambda value: datetime.fromisoformat(value))
+        required=True,
+        default=lambda: datetime.utcnow().isoformat(),
+    ).func(datetime.fromisoformat)
+
+
+note = Note({"title": "Dictify", "content": "dictify is easy"})
+
+note["content"] = "Updated content"
+note.update({"content": "Updated again"})
+
+# These raise Model.Error.
+note["title"] = 0
+note.update({"title": 0})
 ```
 
-> [1] Field validations can be chained.
+## Native Conversion
 
-## Data assignment and validation
----
-
-After schema definition, now we can use it to create `Model` instance with required data.
-
-```python
-note = Note({'title': 'Dictify', 'content': 'dictify is easy'})
-
-# `note` can be used like a dict object.
-
-note.update({
-    "content": "Updated content",
-})
-note["content"] = "Updated again"
-
-# Code below will raise `Model.Error`.
-note.update({'title': 0})
-note['title'] = 0
-```
-
-> Note : Use `try..except` to catch errors if needed.
-
-## Convert data to native 'dict' or 'JSON'
----
+`Model` behaves like a mutable mapping, but explicit conversion is preferred when you need plain Python data.
 
 ```python
 import json
 
-note_dict = dict(note) # Convert to python built-in `dict`
-note_json = json.dumps(note)  # Convert to JSON string
+note_dict = dict(note)        # shallow mapping conversion
+note_native = note.dict()     # recursive dict/list conversion
+note_json = json.dumps(note.dict())
 ```
+
+## Why Dictify
+
+- Small API surface centered around `Field` and `Model`
+- Validation happens on assignment, not only at construction time
+- Works for standalone values and nested document structures
+- Supports defaults, required fields, regex checks, custom functions, and list/model coercion
+
+## Documentation
+
+- Docs: https://nitipit.github.io/dictify/
+- Usage: https://nitipit.github.io/dictify/guide/usage/
+- Field API: https://nitipit.github.io/dictify/guide/field-api/
+- Validation Recipes: https://nitipit.github.io/dictify/guide/validation-recipes/
