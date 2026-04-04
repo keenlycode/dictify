@@ -441,13 +441,22 @@
     </div>
   </div>
   <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
-    <p>Schema and data validation for Python mappings and JSON-like documents.</p>
-<p><code>dictify</code> is a lightweight library for standalone field validation and mapping-shaped models with annotated fields.</p>
+    <p>Lightweight validation for Python mappings and JSON-like documents.</p>
+<p><code>dictify</code> is a lightweight validation library for standalone fields and mapping-shaped models.</p>
+<p>It is designed for small schema layers, partial validation, and annotation-first models with explicit dict-like behavior.</p>
 <ul>
 <li>Python <code>3.12+</code></li>
 <li>Use <code>Field(...)</code> for defaults, required fields, and extra validators</li>
 <li>Use Python annotations to declare <code>Model</code> field types</li>
 <li>Access model data with either attributes or mapping syntax</li>
+</ul>
+<h2 id="why-dictify">Why Dictify?<a class="headerlink" href="#why-dictify" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Validate a single value with <code>Field(...)</code> without defining a full model</li>
+<li>Define annotation-first <code>Model</code> classes for dict-shaped documents</li>
+<li>Keep mapping access and attribute access together</li>
+<li>Handle unknown keys and public attributes explicitly with <code>strict</code></li>
+<li>Convert back to plain Python data with <code>dict(model)</code> and <code>model.dict()</code></li>
 </ul>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>dictify
@@ -595,6 +604,14 @@
         
         
         
+        
+        <a href="#why-dictify"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2" onClick="deferSetActiveTocLink('#why-dictify');">
+            Why Dictify?
+        </a>
+        
+
         
         <a href="#install"
             class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
