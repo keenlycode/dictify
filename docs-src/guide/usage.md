@@ -90,6 +90,8 @@ class User(Model):
 
 `dictify` uses `str` as the runtime field type and ignores the extra metadata.
 
+Runtime support for declarations like `email: str = Field(...)` is complete. Static type checker support for that pattern is still limited and may require `cast(Any, Field(...))` depending on the checker.
+
 Do not declare a second `Field(...)` inside `Annotated[...]` when the class attribute is already assigned to `Field(...)`.
 
 ```python

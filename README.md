@@ -81,9 +81,16 @@ email = Field(required=True).instance(str).match(r".+@.+")
 email.value = "user@example.com"
 ```
 
+## Typing Status
+
+The annotation-first model API is fully supported at runtime.
+
+Static type checker support for declarations like `email: str = Field(...)` is still limited and may require `cast(Any, Field(...))` depending on the checker and editor.
+
 ## Documentation
 
 - Docs: https://nitipit.github.io/dictify/
 - Usage: https://nitipit.github.io/dictify/guide/usage/
 - Field API: https://nitipit.github.io/dictify/guide/field-api/
 - Validation Recipes: https://nitipit.github.io/dictify/guide/validation-recipes/
+- Changelog: https://github.com/nitipit/dictify/blob/dev/CHANGELOG.md
