@@ -6,13 +6,24 @@ import re
 from collections.abc import Callable, Mapping, MutableMapping
 from functools import wraps
 from types import UnionType
-from typing import Annotated, Any, cast, get_args, get_origin, get_type_hints
+from typing import (
+    Annotated,
+    Any,
+    Self,
+    TypeVar,
+    cast,
+    get_args,
+    get_origin,
+    get_type_hints,
+    overload,
+)
 
 Validator = Callable[..., Any]
 DefaultFactory = Callable[[], Any]
 DataDict = dict[str, Any]
-FieldMap = dict[str, "Field"]
+FieldMap = dict[str, "Field[Any]"]
 FieldTypeMap = dict[str, Any]
+T = TypeVar("T")
 
 
 def _strip_annotated_type(type_spec: Any):
@@ -262,7 +273,7 @@ class ListOf(list):
         return data
 
 
-class Field:
+class Field[T]:
     """Create ``Field()`` object which can validate it's value.
     Can be defined in class ``Model``.
 
@@ -331,7 +342,7 @@ class Field:
     def __set_name__(self, owner, name):
         self._name = name
 
-    def clone(self):
+    def clone(self) -> Self:
         """Return a fresh field instance with the same validation definition."""
 
         field = type(self)(
@@ -408,7 +419,7 @@ class Field:
         return self.get_default()
 
     @property
-    def value(self):
+    def value(self) -> T:
         """``Field()``'s value
         - Required Field will raise RequiredError if ask for value
           before assigned.
@@ -417,15 +428,21 @@ class Field:
         if self.required and self._value is UNDEF:
             raise Field.RequiredError("Field is required")
 
-        return self._value
+        return cast(T, self._value)
 
     @value.setter
-    def value(self, value):
+    def value(self, value: T):
         """Set field's value
         - Verify value by field's functions
         - Set fields' value if function return value
         """
         self._value = self.validate(value)
+
+    @overload
+    def __get__(self, obj: None, owner: type[Model] | None = None) -> Self: ...
+
+    @overload
+    def __get__(self, obj: Model, owner: type[Model] | None = None) -> T: ...
 
     def __get__(self, obj, owner=None):
         if obj is None:
@@ -437,14 +454,14 @@ class Field:
         bound_field = obj._bound_fields[self._name]
         if self._name not in obj._data and bound_field.has_default is False:
             raise AttributeError(self._name)
-        return bound_field.value
+        return cast(T, bound_field.value)
 
-    def __set__(self, obj, value):
+    def __set__(self, obj: Model, value: T):
         if self._name is None:
             raise AttributeError("Field is not bound to a model attribute")
         obj[self._name] = value
 
-    def __delete__(self, obj):
+    def __delete__(self, obj: Model):
         if self._name is None:
             raise AttributeError("Field is not bound to a model attribute")
         del obj[self._name]
