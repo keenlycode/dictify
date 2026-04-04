@@ -1,0 +1,24 @@
+site_name: Dictify
+site_url: https://nitipit.github.io/dictify/
+repo_url: https://github.com/nitipit/dictify
+repo_name: nitipit/dictify
+docs_dir: docs-src
+site_dir: docs
+theme:
+  name: shadcn
+markdown_extensions:
+  - admonition
+  - attr_list
+  - fenced_code
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.blocks.details
+  - pymdownx.blocks.tab
+  - pymdownx.tabbed:
+      alternate_style: true
+nav:
+  - Home: index.md
+  - Usage: guide/usage.md
+  - Field API: guide/field-api.md
+  - Validation Recipes: guide/validation-recipes.md

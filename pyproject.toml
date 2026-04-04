@@ -30,6 +30,11 @@ dev = [
     "ruff",
     "ty",
 ]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-shadcn>=0.10.3",
+    "pymdown-extensions>=10.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
