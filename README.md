@@ -1,13 +1,23 @@
 # Dictify
 
-Schema and data validation for Python mappings and JSON-like documents.
+Lightweight validation for Python mappings and JSON-like documents.
 
-`dictify` is a lightweight library for standalone field validation and mapping-shaped models with annotated fields.
+`dictify` is a lightweight validation library for standalone fields and mapping-shaped models.
+
+It is designed for small schema layers, partial validation, and annotation-first models with explicit dict-like behavior.
 
 - Python `3.12+`
 - Use `Field(...)` for defaults, required fields, and extra validators
 - Use Python annotations to declare `Model` field types
 - Access model data with either attributes or mapping syntax
+
+## Why Dictify?
+
+- Validate a single value with `Field(...)` without defining a full model
+- Define annotation-first `Model` classes for dict-shaped documents
+- Keep mapping access and attribute access together
+- Handle unknown keys and public attributes explicitly with `strict`
+- Convert back to plain Python data with `dict(model)` and `model.dict()`
 
 ## Install
 
