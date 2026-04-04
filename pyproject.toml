@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "dictify"
-version = "3.2.2"
+version = "3.2.3.dev0"
 description = "Documents schema and data validation"
 readme = "readme.md"
 requires-python = ">=3.9"
