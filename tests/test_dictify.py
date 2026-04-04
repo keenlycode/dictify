@@ -1,5 +1,7 @@
 """Behavioral tests for the public dictify validation API."""
 
+from __future__ import annotations
+
 import json
 import re
 import uuid
@@ -25,47 +27,89 @@ def uuid4_verify(value):
 
 class User(Model):
     id = Field(default=lambda: uuid.uuid4()).instance(uuid.UUID)
-    name = Field(required=True).instance(str)
+    name: str = cast(Any, Field(required=True))
 
 
 class Comment(Model):
-    content = Field().instance(str)
-    datetime = Field(default=lambda: datetime.now(timezone.utc)).instance(datetime)
-    user = Field(required=True).instance(User)
+    content: str = cast(Any, Field())
+    datetime: datetime = cast(Any, Field(default=lambda: datetime.now(timezone.utc)))
+    user: User = cast(Any, Field(required=True))
 
 
 class Note(Model):
-    title = Field(required=True).instance(str)
-    content = Field().instance(str)
-    datetime = Field(default=lambda: datetime.now(timezone.utc)).instance(datetime)
-    user = Field(required=True).instance(User)
-    comments = Field().listof(Comment)
+    title: str = cast(Any, Field(required=True))
+    content: str = cast(Any, Field())
+    datetime: datetime = cast(Any, Field(default=lambda: datetime.now(timezone.utc)))
+    user: User = cast(Any, Field(required=True))
+    comments: list[Comment] = cast(Any, Field())
 
     def post_validate(self):
         assert self.get("title") != self.get("content")
 
 
 class UserJSON(Model):
-    id = Field(default=lambda: str(uuid.uuid4())).func(uuid4_verify)
-    name = Field(required=True).instance(str)
+    id: str = cast(Any, Field(default=lambda: str(uuid.uuid4())).func(uuid4_verify))
+    name: str = cast(Any, Field(required=True))
 
 
 class CommentJSON(Model):
-    content = Field(required=True).instance(str)
-    datetime = Field(default=lambda: datetime.now(timezone.utc).isoformat()).func(
-        datetime_verify
+    content: str = cast(Any, Field(required=True))
+    datetime: str = cast(
+        Any,
+        Field(default=lambda: datetime.now(timezone.utc).isoformat()).func(
+            datetime_verify
+        ),
     )
-    user = Field(required=True).model(UserJSON)
+    user: UserJSON = cast(Any, Field(required=True))
 
 
 class NoteJSON(Model):
-    title = Field(required=True).instance(str)
-    content = Field().instance(str)
-    datetime = Field(default=lambda: datetime.now(timezone.utc).isoformat()).func(
-        datetime_verify
+    title: str = cast(Any, Field(required=True))
+    content: str = cast(Any, Field())
+    datetime: str = cast(
+        Any,
+        Field(default=lambda: datetime.now(timezone.utc).isoformat()).func(
+            datetime_verify
+        ),
     )
-    user = Field(required=True).model(UserJSON)
-    comments = Field().listof(CommentJSON)
+    user: UserJSON = cast(Any, Field(required=True))
+    comments: list[CommentJSON] = cast(Any, Field())
+
+
+def test_model_descriptor_attribute_access():
+    user = User({"name": "first"})
+
+    assert isinstance(cast(Any, User.name), Field)
+    assert user.name == "first"
+
+    user.name = "second"
+    assert user["name"] == "second"
+
+    with pytest.raises(Model.Error):
+        cast(Any, user).name = 1
+
+
+def test_model_descriptor_delete_uses_model_rules():
+    note = Note(
+        {"title": "Title", "content": "Content", "user": User({"name": "user1"})}
+    )
+
+    del note.datetime
+    assert isinstance(note.datetime, datetime)
+
+    del note.content
+    with pytest.raises(AttributeError):
+        _ = note.content
+
+    with pytest.raises(Model.Error):
+        del note.title
+
+
+def test_annotation_and_instance_conflict_raises_define_error():
+    with pytest.raises(Field.DefineError):
+
+        class InvalidUser(Model):
+            name: str = cast(Any, Field(required=True).instance(int))
 
 
 @pytest.fixture
@@ -121,11 +165,11 @@ def test_model_fields_are_isolated_per_instance():
     second = User({"name": "second"})
 
     assert first._bound_fields["name"] is not second._bound_fields["name"]
-    assert first._bound_fields["name"].definition is User.name
-    assert second._bound_fields["name"].definition is User.name
+    assert first._bound_fields["name"].definition is cast(Any, User.name)
+    assert second._bound_fields["name"].definition is cast(Any, User.name)
 
     with pytest.raises(Field.RequiredError):
-        User.name.value
+        cast(Any, User.name).value
 
 
 def test_strict(note):

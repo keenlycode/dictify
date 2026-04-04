@@ -3,14 +3,97 @@
 from __future__ import annotations
 
 import re
+import types
 from collections.abc import Mapping, MutableMapping
 from functools import wraps
-from typing import Any, Callable, cast
+from typing import Any, Callable, Union, cast, get_args, get_origin, get_type_hints
 
 Validator = Callable[..., Any]
 DefaultFactory = Callable[[], Any]
 DataDict = dict[str, Any]
 FieldMap = dict[str, "Field"]
+FieldTypeMap = dict[str, Any]
+UNION_TYPE = getattr(types, "UnionType", None)
+
+
+def _normalize_simple_type_spec(type_spec: Any):
+    """Return comparable runtime types for plain types, tuples, and unions."""
+
+    if isinstance(type_spec, tuple):
+        if all(isinstance(item, type) for item in type_spec):
+            return frozenset(type_spec)
+        return None
+
+    origin = get_origin(type_spec)
+    if origin in (Union, UNION_TYPE):
+        normalized = []
+        for arg in get_args(type_spec):
+            if not isinstance(arg, type):
+                return None
+            normalized.append(arg)
+        return frozenset(normalized)
+
+    if isinstance(type_spec, type):
+        return frozenset([type_spec])
+
+    return None
+
+
+def _validate_type_spec(value, type_spec):
+    """Validate a value against a runtime type specification."""
+
+    if type_spec in (UNDEF, Any):
+        return value
+
+    origin = get_origin(type_spec)
+    if origin in (Union, UNION_TYPE):
+        errors = []
+        for option in get_args(type_spec):
+            try:
+                return _validate_type_spec(value, option)
+            except Exception as error:
+                errors.append(error)
+        raise AssertionError(errors)
+
+    if origin is list:
+        assert isinstance(value, list), f"{type(value)} is not instance of {list}"
+        item_types = get_args(type_spec)
+        if not item_types:
+            return ListOf(value)
+        return ListOf([_validate_type_spec(item, item_types[0]) for item in value])
+
+    if isinstance(type_spec, tuple):
+        model_types = tuple(
+            type_
+            for type_ in type_spec
+            if isinstance(type_, type) and issubclass(type_, Model)
+        )
+        if isinstance(value, Mapping):
+            for model_cls in model_types:
+                try:
+                    return model_cls(value)
+                except Exception:
+                    pass
+        assert isinstance(value, type_spec), (
+            f"{type(value)} is not instance of {type_spec}"
+        )
+        return value
+
+    if isinstance(type_spec, type) and issubclass(type_spec, Model):
+        if isinstance(value, Mapping):
+            return type_spec(value)
+        assert isinstance(value, type_spec), (
+            f"{type(value)} is not instance of {type_spec}"
+        )
+        return value
+
+    if isinstance(type_spec, type):
+        assert isinstance(value, type_spec), (
+            f"{type(value)} is not instance of {type_spec}"
+        )
+        return value
+
+    return value
 
 
 class Function:
@@ -83,7 +166,9 @@ class ListOf(list):
         type_: Any = UNDEF,
         validate: Validator | None = None,
     ):
-        if isinstance(type_, type):
+        if type_ is UNDEF:
+            self.types = (UNDEF,)
+        elif isinstance(type_, type):
             self.types = (type_,)
         else:
             self.types = type_
@@ -108,14 +193,20 @@ class ListOf(list):
         if self.types[0] is UNDEF:
             return
         if isinstance(value, dict):
-            models = filter(lambda type_: isinstance(type_, Model), self.types)
-            for model_cls in models:
+            model_types = tuple(
+                cast(type[Model], type_)
+                for type_ in self.types
+                if isinstance(type_, type) and issubclass(type_, Model)
+            )
+            for model_cls in model_types:
                 try:
                     model_cls(value)
                     return
                 except Exception:
                     pass
-        assert isinstance(value, self.types), (
+
+        runtime_types = tuple(type_ for type_ in self.types if isinstance(type_, type))
+        assert isinstance(value, runtime_types), (
             f"'{value}' is not instance of {self.types}"
         )
 
@@ -203,7 +294,13 @@ class Field:
         assert isinstance(grant, list)
         self.grant = grant
         self._functions = list()
+        self._annotation_type = UNDEF
+        self._instance_type = UNDEF
+        self._name: str | None = None
         self._value = self.default
+
+    def __set_name__(self, owner, name):
+        self._name = name
 
     def clone(self):
         """Return a fresh field instance with the same validation definition."""
@@ -214,7 +311,29 @@ class Field:
             grant=self.grant.copy(),
         )
         field._functions = self._functions.copy()
+        field._annotation_type = self._annotation_type
+        field._instance_type = self._instance_type
         return field
+
+    def _runtime_type_spec(self):
+        if self._instance_type is not UNDEF:
+            return self._instance_type
+        return self._annotation_type
+
+    def _validate_runtime_type(self, value):
+        return _validate_type_spec(value, self._runtime_type_spec())
+
+    def _ensure_default_matches_type_spec(self, type_spec):
+        if self.has_default is False:
+            return
+        default = self.get_default()
+        try:
+            _validate_type_spec(default, type_spec)
+        except Exception as error:
+            raise Field.DefineError(
+                f"Field(default={default}) conflict with runtime type {type_spec!r}",
+                error,
+            ) from error
 
     def get_default(self):
         """Return the configured default value."""
@@ -238,6 +357,10 @@ class Field:
             raise Field.RequiredError("Field is required")
         if value in self.grant:
             return value
+        try:
+            value = self._validate_runtime_type(value)
+        except Exception as error:
+            errors.append(("runtime_type", error))
 
         for function in self._functions:
             try:
@@ -275,17 +398,40 @@ class Field:
         """
         self._value = self.validate(value)
 
+    def __get__(self, obj, owner=None):
+        if obj is None:
+            return self
+
+        if self._name is None:
+            raise AttributeError("Field is not bound to a model attribute")
+
+        bound_field = obj._bound_fields[self._name]
+        if self._name not in obj._data and bound_field.has_default is False:
+            raise AttributeError(self._name)
+        return bound_field.value
+
+    def __set__(self, obj, value):
+        if self._name is None:
+            raise AttributeError("Field is not bound to a model attribute")
+        obj[self._name] = value
+
+    def __delete__(self, obj):
+        if self._name is None:
+            raise AttributeError("Field is not bound to a model attribute")
+        del obj[self._name]
+
     def reset(self):
         """Reset ``Field().value`` to default or ``UNDEF``"""
         self._value = self.get_default()
 
-    @function
-    def instance(self, value, type_: type):
+    def instance(self, type_: type):
         """Verify that ``value`` is instance to ``type_``
 
         ``assert isinstance(value, type_)``
         """
-        assert isinstance(value, type_), f"{type(value)} is not instance of {type_}"
+        self._instance_type = type_
+        self._ensure_default_matches_type_spec(type_)
+        return self
 
     @function
     def listof(
@@ -381,6 +527,7 @@ class Model(MutableMapping[str, Any]):
 
     # Class-level schema collected once from Field declarations.
     __fields__: FieldMap = {}
+    __field_types__: FieldTypeMap = {}
 
     class Error(Exception):
         """``Exception`` when data doesn't pass ``Model`` validation."""
@@ -397,12 +544,36 @@ class Model(MutableMapping[str, Any]):
 
         super().__init_subclass__(**kwargs)
         fields = {}
+        field_types = {}
+        type_hints = get_type_hints(cls)
         for base in reversed(cls.__mro__[1:]):
             fields.update(getattr(base, "__fields__", {}))
+            field_types.update(getattr(base, "__field_types__", {}))
         for key, value in vars(cls).items():
             if isinstance(value, Field):
+                value._name = key
                 fields[key] = value
+                if key in type_hints:
+                    annotation = type_hints[key]
+                    field_types[key] = annotation
+                    normalized_annotation = _normalize_simple_type_spec(annotation)
+                    normalized_instance = _normalize_simple_type_spec(
+                        value._instance_type
+                    )
+                    if (
+                        normalized_annotation is not None
+                        and normalized_instance is not None
+                        and normalized_annotation != normalized_instance
+                    ):
+                        raise Field.DefineError(
+                            f"{cls.__name__}.{key}: annotation {annotation!r} "
+                            f"conflicts with instance({value._instance_type!r})"
+                        )
+                    value._annotation_type = annotation
+                    if value._instance_type is UNDEF:
+                        value._ensure_default_matches_type_spec(annotation)
         cls.__fields__ = fields
+        cls.__field_types__ = field_types
 
     def __init__(self, data: Mapping[str, Any] | None = None, strict: bool = True):
         """Create a model instance from mapping data and validate declared fields."""
