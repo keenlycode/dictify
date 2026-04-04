@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping, MutableMapping
 from functools import wraps
 from typing import Any, Callable, cast
 
 Validator = Callable[..., Any]
 DefaultFactory = Callable[[], Any]
 DataDict = dict[str, Any]
+FieldMap = dict[str, "Field"]
 
 
 class Function:
+    """Wrap a validator plus its bound arguments for deferred field validation."""
+
     def __init__(self, func, *args, **kw):
         self.func = func
         self.args = args
@@ -30,13 +34,14 @@ def function(func: Validator):
     @wraps(func)
     def wrapper(self, *args, **kw):
         # Test default value.
-        if self.default != UNDEF:
+        if self.has_default:
+            default = self.get_default()
             try:
-                func(self, self.default, *args, **kw)
+                func(self, default, *args, **kw)
             except Exception as error:
                 func_name = getattr(func, "__name__", type(func).__name__)
                 raise Field.DefineError(
-                    f"Field(default={self.default}) conflict with ",
+                    f"Field(default={default}) conflict with ",
                     f"{func_name}(*{args}, **{kw})",
                     error,
                 )
@@ -49,7 +54,7 @@ def function(func: Validator):
 
 
 class _UNDEF:
-    """Create ```UNDEF`` value"""
+    """Sentinel type used to represent an unset value."""
 
     def __repr__(self):
         return "UNDEF"
@@ -85,7 +90,7 @@ class ListOf(list):
 
         self.validate_func = validate
 
-        if self.types[0] == UNDEF:
+        if self.types[0] is UNDEF:
             return super().__init__(values)
 
         for value in values:
@@ -100,7 +105,7 @@ class ListOf(list):
         return super().__setitem__(index, value)
 
     def _validate(self, value):
-        if self.types[0] == UNDEF:
+        if self.types[0] is UNDEF:
             return
         if isinstance(value, dict):
             models = filter(lambda type_: isinstance(type_, Model), self.types)
@@ -211,38 +216,28 @@ class Field:
         field._functions = self._functions.copy()
         return field
 
-    @property
-    def default(self):
-        """Field's default value"""
+    def get_default(self):
+        """Return the configured default value."""
+
         if callable(self._default):
             default_factory = cast(DefaultFactory, self._default)
             return default_factory()
         return self._default
 
     @property
-    def value(self):
-        """``Field()``'s value
-        - Required Field will raise RequiredError if ask for value
-          before assigned.
-        """
+    def has_default(self):
+        """Return whether the field definition has a configured default."""
 
-        if self.required and self._value == UNDEF:
-            raise Field.RequiredError("Field is required")
+        return self._default is not UNDEF
 
-        return self._value
+    def validate(self, value):
+        """Validate and return the final field value."""
 
-    @value.setter
-    def value(self, value):
-        """Set field's value
-        - Verify value by field's functions
-        - Set fields' value if function return value
-        """
         errors = list()
-        if self.required and value == UNDEF:
+        if self.required and value is UNDEF:
             raise Field.RequiredError("Field is required")
         if value in self.grant:
-            self._value = value
-            return
+            return value
 
         for function in self._functions:
             try:
@@ -253,11 +248,36 @@ class Field:
                 errors.append((function, e))
         if errors:
             raise Field.VerifyError(errors)
-        self._value = value
+        return value
+
+    @property
+    def default(self):
+        """Field's default value"""
+        return self.get_default()
+
+    @property
+    def value(self):
+        """``Field()``'s value
+        - Required Field will raise RequiredError if ask for value
+          before assigned.
+        """
+
+        if self.required and self._value is UNDEF:
+            raise Field.RequiredError("Field is required")
+
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        """Set field's value
+        - Verify value by field's functions
+        - Set fields' value if function return value
+        """
+        self._value = self.validate(value)
 
     def reset(self):
         """Reset ``Field().value`` to default or ``UNDEF``"""
-        self._value = self.default
+        self._value = self.get_default()
 
     @function
     def instance(self, value, type_: type):
@@ -313,115 +333,225 @@ class Field:
         fn(value)
 
 
-class Model(dict):
-    """Modified ``dict`` that can defined ``Field`` in it's class."""
+class BoundField:
+    """Runtime field state for a single model instance.
+
+    Model class attributes like ``User.email = Field(...)`` are created once at
+    class definition time and reused as shared schema definitions. BoundField
+    keeps the per-instance value separate so model instances do not share Field
+    runtime state.
+    """
+
+    def __init__(self, definition: Field):
+        self.definition = definition
+        self._value = self.definition.get_default()
+
+    @property
+    def has_default(self):
+        """Return whether the field definition has a configured default."""
+
+        return self.definition.has_default
+
+    @property
+    def default(self):
+        """Return a fresh default value from the wrapped field definition."""
+
+        return self.definition.get_default()
+
+    @property
+    def value(self):
+        """Return the current bound value, enforcing required-field access."""
+
+        if self.definition.required and self._value is UNDEF:
+            raise Field.RequiredError("Field is required")
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = self.definition.validate(value)
+
+    def reset(self):
+        """Reset the bound value back to the field definition default."""
+
+        self._value = self.default
+
+
+class Model(MutableMapping[str, Any]):
+    """Modified mapping that can define ``Field`` in it's class."""
+
+    # Class-level schema collected once from Field declarations.
+    __fields__: FieldMap = {}
 
     class Error(Exception):
         """``Exception`` when data doesn't pass ``Model`` validation."""
 
         pass
 
-    @classmethod
-    def _declared_fields(cls):
-        fields = {}
-        for base in reversed(cls.__mro__):
-            for key, value in vars(base).items():
-                if isinstance(value, Field):
-                    fields[key] = value
-        return fields
+    def __init_subclass__(cls, **kwargs):
+        """Collect class-declared Field definitions into ``cls.__fields__``.
 
-    def __init__(self, data: DataDict | None = None, strict: bool = True):
+        ``Field(...)`` expressions in a Model class body run once when the
+        subclass is defined, so those objects act as shared schema templates.
+        Per-instance runtime values are stored separately in BoundField objects.
+        """
+
+        super().__init_subclass__(**kwargs)
+        fields = {}
+        for base in reversed(cls.__mro__[1:]):
+            fields.update(getattr(base, "__fields__", {}))
+        for key, value in vars(cls).items():
+            if isinstance(value, Field):
+                fields[key] = value
+        cls.__fields__ = fields
+
+    def __init__(self, data: Mapping[str, Any] | None = None, strict: bool = True):
+        """Create a model instance from mapping data and validate declared fields."""
+
         if data is None:
             data = {}
-        assert isinstance(data, dict), "Model initial data should be instance of dict"
+        assert isinstance(data, Mapping), (
+            "Model initial data should be instance of mapping"
+        )
         assert isinstance(strict, bool)
-        data = data.copy()
-        self._field = {
-            key: field.clone() for key, field in self._declared_fields().items()
+        data = dict(data)
+        self._bound_fields = {
+            key: BoundField(field) for key, field in self.__class__.__fields__.items()
         }
+        self._data: DataDict = {}
         self._strict = strict
-        for key, field in self._field.items():
-            if (field.default != UNDEF) and (key not in data):
-                data[key] = field.value
+
+        errors = {}
+        for key, field in self.__class__.__fields__.items():
+            bound_field = self._bound_fields[key]
+            if key in data:
+                continue
+            if bound_field.has_default:
+                self._data[key] = bound_field.value
             elif field.required:
-                if key not in data:
-                    raise Model.Error(
-                        {key: Field.RequiredError("This field is required")}
-                    )
-        data = self._validate(data)
-        super().__init__(data)
+                errors[key] = Field.RequiredError("This field is required")
+        if errors:
+            raise Model.Error(errors)
+
+        self._commit_validated(self._validate_mapping(data))
         self.post_validate()
+
+    def __getitem__(self, key):
+        """Return a validated stored value by key."""
+
+        return self._data[key]
+
+    def __iter__(self):
+        """Iterate over stored model keys."""
+
+        return iter(self._data)
+
+    def __len__(self):
+        """Return the number of stored keys."""
+
+        return len(self._data)
+
+    def __eq__(self, other):
+        """Compare model data against another mapping by value."""
+
+        if isinstance(other, Mapping):
+            return dict(self) == dict(other)
+        return NotImplemented
+
+    def _validate_item(self, key, value):
+        """Validate one key/value pair against the declared schema."""
+
+        if key not in self.__class__.__fields__:
+            if self._strict is False:
+                return value
+            raise KeyError("Field is not defined")
+        return self._bound_fields[key].definition.validate(value)
+
+    def _validate_mapping(self, data: Mapping[str, Any]):
+        """Validate a mapping and return validated values or raise Model.Error."""
+
+        errors = {}
+        validated = {}
+        for key, value in data.items():
+            try:
+                validated[key] = self._validate_item(key, value)
+            except (Field.VerifyError, KeyError) as error:
+                errors[key] = error
+        if errors:
+            raise Model.Error(errors)
+        return validated
+
+    def _commit_validated(self, data: Mapping[str, Any]):
+        """Persist validated values into bound fields and model storage."""
+
+        for key, value in data.items():
+            if key in self.__class__.__fields__:
+                self._bound_fields[key]._value = value
+            self._data[key] = value
 
     def __delitem__(self, key):
         """Delete item but also check for Field's default or required option."""
 
-        if (key not in self._field) and (self._strict is False):
-            super().__delitem__(key)
+        if (key not in self.__class__.__fields__) and (self._strict is False):
+            del self._data[key]
             self.post_validate()
             return
 
-        if self._field[key].default != UNDEF:
-            self[key] = self._field[key].default
-        elif self._field[key].required:
+        bound_field = self._bound_fields[key]
+        if bound_field.has_default:
+            bound_field.reset()
+            self._data[key] = bound_field.value
+        elif bound_field.definition.required:
             raise Model.Error({key: Field.RequiredError("Field is required")})
         else:
-            super().__delitem__(key)
+            del self._data[key]
+            bound_field._value = UNDEF
         self.post_validate()
 
     def __setitem__(self, key, value):
         """Set ``value`` if is valid."""
 
-        error = None
-        if (key not in self._field) and (self._strict is False):
-            super().__setitem__(key, value)
-            self.post_validate()
-            return
-
         try:
-            self._field[key].value = value
-            super().__setitem__(key, self._field[key].value)
-        except KeyError:
-            error = {key: KeyError("Field is not defined")}
-        except (Field.VerifyError, ListOf.ValueError) as e:
-            error = {key: e}
-        if error:
-            raise Model.Error(error)
+            validated = self._validate_item(key, value)
+        except (Field.VerifyError, KeyError) as error:
+            raise Model.Error({key: error}) from error
+
+        self._commit_validated({key: validated})
         self.post_validate()
 
-    def _validate(self, data: DataDict):
-        error = dict()
-        for key in data:
-            if (key not in self._field) and (self._strict is False):
-                continue
-
-            try:
-                self._field[key].value = data[key]
-                data[key] = self._field[key].value
-            except KeyError:
-                if self._strict:
-                    error[key] = KeyError("Field is not defined")
-            except Field.VerifyError as e:
-                error[key] = e
-        if error:
-            raise Model.Error(error)
-        return data
-
     def pop(self, *args, **kw):
+        """Unsupported because schema-aware delete semantics are not defined."""
+
         raise NotImplementedError
 
     def popitem(self, *args, **kw):
+        """Unsupported because schema-aware delete semantics are not defined."""
+
+        raise NotImplementedError
+
+    def clear(self):
+        """Unsupported because clearing may violate required/default field rules."""
+
         raise NotImplementedError
 
     def post_validate(self):
+        """Hook for cross-field validation after successful model mutations."""
+
         pass
+
+    def setdefault(self, key, default=None):
+        """Return an existing value or validate and store the provided default."""
+
+        if key in self:
+            return self[key]
+        self[key] = default
+        return self[key]
 
     def update(self, data=None, **kwargs):
         """Update ``data`` if is valid."""
         if data is None:
             data = {}
-        data = dict(data, **kwargs)
-        data = self._validate(data)
-        super().update(data)
+        validated = self._validate_mapping(dict(data, **kwargs))
+        self._commit_validated(validated)
         self.post_validate()
 
     def dict(self):

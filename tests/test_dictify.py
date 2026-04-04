@@ -113,15 +113,16 @@ def test_init(note):
     fresh_note = Note(data)
     assert fresh_note == data
     assert note["title"] == "Title"
+    assert isinstance(dict(fresh_note), dict)
 
 
 def test_model_fields_are_isolated_per_instance():
     first = User({"name": "first"})
     second = User({"name": "second"})
 
-    assert first._field["name"] is not second._field["name"]
-    assert first._field["name"] is not User.name
-    assert second._field["name"] is not User.name
+    assert first._bound_fields["name"] is not second._bound_fields["name"]
+    assert first._bound_fields["name"].definition is User.name
+    assert second._bound_fields["name"].definition is User.name
 
     with pytest.raises(Field.RequiredError):
         User.name.value
@@ -162,7 +163,7 @@ def test_delitem(note):
 
 
 def test_setitem(note):
-    data = note.copy()
+    data = dict(note)
 
     with pytest.raises(Model.Error):
         note["title"] = 0
@@ -179,13 +180,13 @@ def test_setitem(note):
 
 def test_json():
     note = NoteJSON({"title": "Note JSON", "user": UserJSON({"name": "user-1"})})
-    note_data = json.loads(json.dumps(note))
+    note_data = json.loads(json.dumps(note.dict()))
     NoteJSON(note_data)
 
 
 def test_update():
     note = Note({"title": "Title", "user": User({"name": "user example"})})
-    data = note.copy()
+    data = note.dict()
     assert isinstance(data["user"], dict)
 
     with pytest.raises(Model.Error):
@@ -194,18 +195,40 @@ def test_update():
     with pytest.raises(Model.Error):
         note.update({"datetime": 1})
 
-    assert data == note
+    assert data == note.dict()
 
     update = {"title": "New Title", "content": "New Note"}
     data.update(update)
     note.update(update)
-    assert data == note
+    assert data == note.dict()
+
+
+def test_setdefault():
+    note = Note({"title": "Title", "user": User({"name": "user example"})})
+
+    assert note.setdefault("title", "Ignored") == "Title"
+    assert note["title"] == "Title"
+
+    assert note.setdefault("content", "New Note") == "New Note"
+    assert note["content"] == "New Note"
+
+    relaxed = Note(
+        {"title": "Title", "user": User({"name": "user example"})}, strict=False
+    )
+    assert relaxed.setdefault("extra", 1) == 1
+    assert relaxed["extra"] == 1
+
+    strict = Note(
+        {"title": "Title", "user": User({"name": "user example"})}, strict=True
+    )
+    with pytest.raises(Model.Error):
+        strict.setdefault("extra", 1)
 
 
 def test_field_init():
     field = Field()
     assert isinstance(field, Field)
-    assert field._value == UNDEF
+    assert field._value is UNDEF
 
     field = Field(required=True, default="default", grant=[None])
     assert field.required is True
@@ -290,7 +313,7 @@ def test_field_model():
     note = NoteJSON({"title": "Note", "user": UserJSON({"name": "user-1"})})
     field.value = note
 
-    note_data = json.loads(json.dumps(note))
+    note_data = json.loads(json.dumps(note.dict()))
     field.value = note_data
 
     with pytest.raises(Field.VerifyError):
