@@ -1,4 +1,12 @@
+.venv/
 venv/
-__pycache__
-node_modules
-docs/build
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+build/
+dist/
+*.egg-info/
+.ruff_cache
+docs/
+.agents/

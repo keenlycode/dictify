@@ -1,8 +1,0 @@
-- [Introduction]({{to_base}})
-- [Usage]({{to_base}}guide/usage.html)
-  - [Field]({{to_base}}guide/usage.html#field)
-  - [Model]({{to_base}}guide/usage.html#model)
-  - [Partial data validation]({{to_base}}guide/usage.html#partial-data-validation)
-  - [Post validation]({{to_base}}guide/usage.html#post-validation)
-- [Field API]({{to_base}}guide/field-api.html)
-- [Validation Recipes]({{to_base}}guide/validation-recipes.html)
