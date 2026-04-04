@@ -17,7 +17,7 @@ pip install dictify
 ## Quick Example
 
 ```python
-from datetime import datetime
+from datetime import datetime, timezone
 
 from dictify import Field, Model
 
@@ -30,7 +30,7 @@ class Note(Model):
     content = Field().instance(str)
     timestamp = Field(
         required=True,
-        default=lambda: datetime.utcnow().isoformat(),
+        default=lambda: datetime.now(timezone.utc).isoformat(),
     ).func(datetime.fromisoformat)
 
 

@@ -9,6 +9,7 @@ theme:
 markdown_extensions:
   - admonition
   - attr_list
+  - codehilite
   - fenced_code
   - footnotes
   - toc:
@@ -18,7 +19,7 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
 nav:
-  - Home: index.md
+  - Dictify: index.md
   - Usage: guide/usage.md
   - Field API: guide/field-api.md
   - Validation Recipes: guide/validation-recipes.md
