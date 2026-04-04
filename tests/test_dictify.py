@@ -115,6 +115,18 @@ def test_init(note):
     assert note["title"] == "Title"
 
 
+def test_model_fields_are_isolated_per_instance():
+    first = User({"name": "first"})
+    second = User({"name": "second"})
+
+    assert first._field["name"] is not second._field["name"]
+    assert first._field["name"] is not User.name
+    assert second._field["name"] is not User.name
+
+    with pytest.raises(Field.RequiredError):
+        User.name.value
+
+
 def test_strict(note):
     strict_note = dict(note)
     strict_note["undefined_key"] = 1

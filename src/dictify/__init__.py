@@ -200,6 +200,17 @@ class Field:
         self._functions = list()
         self._value = self.default
 
+    def clone(self):
+        """Return a fresh field instance with the same validation definition."""
+
+        field = type(self)(
+            required=self.required,
+            default=self._default,
+            grant=self.grant.copy(),
+        )
+        field._functions = self._functions.copy()
+        return field
+
     @property
     def default(self):
         """Field's default value"""
@@ -310,18 +321,26 @@ class Model(dict):
 
         pass
 
+    @classmethod
+    def _declared_fields(cls):
+        fields = {}
+        for base in reversed(cls.__mro__):
+            for key, value in vars(base).items():
+                if isinstance(value, Field):
+                    fields[key] = value
+        return fields
+
     def __init__(self, data: DataDict | None = None, strict: bool = True):
         if data is None:
             data = {}
         assert isinstance(data, dict), "Model initial data should be instance of dict"
         assert isinstance(strict, bool)
         data = data.copy()
-        self._field = dict()
+        self._field = {
+            key: field.clone() for key, field in self._declared_fields().items()
+        }
         self._strict = strict
-        for key in self.__dir__():
-            field = self.__getattribute__(key)
-            if not isinstance(field, Field):
-                continue
+        for key, field in self._field.items():
             if (field.default != UNDEF) and (key not in data):
                 data[key] = field.value
             elif field.required:
@@ -329,7 +348,6 @@ class Model(dict):
                     raise Model.Error(
                         {key: Field.RequiredError("This field is required")}
                     )
-            self._field[key] = field
         data = self._validate(data)
         super().__init__(data)
         self.post_validate()
