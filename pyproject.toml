@@ -37,6 +37,7 @@ docs = [
     "mkdocs-shadcn>=0.10.3",
     "Pygments>=2.19",
     "pymdown-extensions>=10.0",
+    "mike>=2.1.4",
 ]
 
 [tool.pytest.ini_options]

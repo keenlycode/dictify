@@ -6,6 +6,9 @@ docs_dir: docs-src
 site_dir: docs
 theme:
   name: shadcn
+extra:
+  version:
+    provider: mike
 markdown_extensions:
   - admonition
   - attr_list
