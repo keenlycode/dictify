@@ -9,6 +9,8 @@ theme:
 extra:
   version:
     provider: mike
+extra_css:
+  - asset/home.css
 markdown_extensions:
   - admonition
   - attr_list
