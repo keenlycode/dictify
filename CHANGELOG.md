@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.1.dev0
+## 4.0.1
 
 - Added a packaged `dictify-usage` AI skill under `src/dictify/ai_skills/`.
 - Added `dictify ai-skill-install` to install the packaged skill into an agent skill directory.
