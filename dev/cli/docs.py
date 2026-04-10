@@ -32,3 +32,39 @@ def docs_dev(host: str = "127.0.0.1", port: int = 8000) -> None:
             f"{host}:{port}",
         ]
     )
+
+
+@app.command(name="publish")
+def docs_publish(version: str, alias: str = "latest", branch: str = "docs") -> None:
+    """Publish versioned docs with mike and update the default alias."""
+
+    run_command(
+        [
+            "uv",
+            "run",
+            "--group",
+            "docs",
+            "mike",
+            "deploy",
+            "--push",
+            "--branch",
+            branch,
+            "--update-aliases",
+            version,
+            alias,
+        ]
+    )
+    run_command(
+        [
+            "uv",
+            "run",
+            "--group",
+            "docs",
+            "mike",
+            "set-default",
+            "--push",
+            "--branch",
+            branch,
+            alias,
+        ]
+    )
