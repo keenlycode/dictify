@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.1.dev0
+
+- Added a packaged `dictify-usage` AI skill under `src/dictify/ai_skills/`.
+- Added `dictify ai-skill-install` to install the packaged skill into an agent skill directory.
+- Added repository-local development commands under `dev/cli` for docs builds, AI skill reference sync, package builds, and publishing.
+
 ## 4.0.0
 
 - `Model` now behaves as a `MutableMapping` instead of subclassing `dict`.

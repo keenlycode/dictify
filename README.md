@@ -91,6 +91,22 @@ email = Field(required=True).instance(str).match(r".+@.+")
 email.value = "user@example.com"
 ```
 
+## AI Skill
+
+`dictify` ships with an installed CLI for the packaged AI skill.
+
+```shell
+dictify ai-skill-install
+```
+
+The installer prompts for the exact destination folder and defaults to:
+
+```text
+./.agents/skills/dictify-usage
+```
+
+If the destination already exists, `dictify` asks before overwriting it.
+
 ## Typing Status
 
 The annotation-first model API is fully supported at runtime.
@@ -101,6 +117,7 @@ Static type checker support for declarations like `email: str = Field(...)` is s
 
 - Docs: https://nitipit.github.io/dictify/
 - Usage: https://nitipit.github.io/dictify/guide/usage/
+- AI Skill: https://nitipit.github.io/dictify/guide/ai-skill/
 - Field API: https://nitipit.github.io/dictify/guide/field-api/
 - Validation Recipes: https://nitipit.github.io/dictify/guide/validation-recipes/
 - Changelog: https://github.com/nitipit/dictify/blob/dev/CHANGELOG.md

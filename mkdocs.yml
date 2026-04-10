@@ -25,6 +25,7 @@ markdown_extensions:
       alternate_style: true
 nav:
   - Dictify: index.md
+  - AI Skill: guide/ai-skill.md
   - Usage: guide/usage.md
   - Field API: guide/field-api.md
   - Validation Recipes: guide/validation-recipes.md

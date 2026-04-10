@@ -74,8 +74,17 @@ class Money(Model):
     amount: int | float = Field(required=True)
 
 
-payment = Field().model(Money)
-payment.value = {"unit": "USD", "amount": 10.0}
+class Payment(Model):
+    id: str = Field(required=True)
+    money: Money = Field(required=True)
+
+
+payment = Payment(
+    {
+        "id": "pay-1",
+        "money": {"unit": "USD", "amount": 10.0},
+    }
+)
 ```
 
 ## List of Models

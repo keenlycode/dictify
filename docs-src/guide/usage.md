@@ -137,6 +137,20 @@ class User(Model):
 User.email.value = "user@example.com"
 ```
 
+`User.email` is the shared class-level field definition. When you want an isolated standalone validator, prefer `User.email.clone()`.
+
+## AI Skill
+
+`dictify` also ships a packaged AI skill that can be installed with the built-in CLI:
+
+```shell
+dictify ai-skill-install
+```
+
+The installer prompts for the destination folder and defaults to `./.agents/skills/dictify-usage`.
+
+See [AI Skill](ai-skill.md).
+
 ## Post Validation
 
 Override `post_validate()` when validation depends on multiple fields.

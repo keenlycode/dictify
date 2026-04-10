@@ -3,12 +3,6 @@
     <h1 class="home-hero__title">Dictify</h1>
     <p class="home-hero__lead">Lightweight validation for Python mappings and JSON-like documents.</p>
     <p class="home-hero__lead"><code>dictify</code> is a lightweight validation library for standalone fields and mapping-shaped models. It is designed for small schema layers, partial validation, and annotation-first models with explicit dict-like behavior.</p>
-    <ul class="home-hero__list">
-      <li>Python <code>3.12+</code></li>
-      <li>Use <code>Field(...)</code> for defaults, required fields, and extra validators</li>
-      <li>Use Python annotations to declare <code>Model</code> field types</li>
-      <li>Access model data with either attributes or mapping syntax</li>
-    </ul>
   </div>
 </section>
 
@@ -88,6 +82,7 @@ note_json = json.dumps(note.dict())
 
 ## Guides
 
+- [AI Skill](guide/ai-skill.md)
 - [Usage](guide/usage.md)
 - [Field API](guide/field-api.md)
 - [Validation Recipes](guide/validation-recipes.md)
