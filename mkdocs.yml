@@ -6,11 +6,16 @@ docs_dir: docs-src
 site_dir: docs
 theme:
   name: shadcn
+  custom_dir: docs-overrides
 extra:
+  docs_home_url: /dictify/latest/
   version:
     provider: mike
 extra_css:
   - asset/home.css
+  - asset/version-ui.css
+extra_javascript:
+  - asset/version-ui.js
 markdown_extensions:
   - admonition
   - attr_list
