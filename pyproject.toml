@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "dictify"
-version = "4.0.0"
+version = "4.0.1.dev0"
 description = "Documents schema and data validation"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -25,14 +25,17 @@ classifiers = [
 Homepage = "https://nitipit.github.io/dictify/"
 "Bug Tracker" = "https://github.com/nitipit/dictify/issues"
 
+[project.scripts]
+dictify = "dictify.cli.dictify:main"
+
 [dependency-groups]
 dev = [
+    "cyclopts>=3.9",
     "pytest>=8.4",
     "ruff",
     "ty",
 ]
 docs = [
-    "click==8.2.1",
     "mkdocs>=1.6",
     "mkdocs-shadcn>=0.10.3",
     "Pygments>=2.19",

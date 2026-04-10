@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dictify Usage"
+  short_description: "Use dictify idiomatically"
+  default_prompt: "Use $dictify-usage to implement, test, or document validation with Dictify in this repository."
