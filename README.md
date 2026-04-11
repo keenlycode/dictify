@@ -115,9 +115,9 @@ Static type checker support for declarations like `email: str = Field(...)` is s
 
 ## Documentation
 
-- Docs: https://nitipit.github.io/dictify/
-- Usage: https://nitipit.github.io/dictify/guide/usage/
-- AI Skill: https://nitipit.github.io/dictify/guide/ai-skill/
-- Field API: https://nitipit.github.io/dictify/guide/field-api/
-- Validation Recipes: https://nitipit.github.io/dictify/guide/validation-recipes/
-- Changelog: https://github.com/nitipit/dictify/blob/dev/CHANGELOG.md
+- Docs: https://keenlycode.github.io/dictify/
+- Usage: https://keenlycode.github.io/dictify/guide/usage/
+- AI Skill: https://keenlycode.github.io/dictify/guide/ai-skill/
+- Field API: https://keenlycode.github.io/dictify/guide/field-api/
+- Validation Recipes: https://keenlycode.github.io/dictify/guide/validation-recipes/
+- Changelog: https://github.com/keenlycode/dictify/blob/dev/CHANGELOG.md

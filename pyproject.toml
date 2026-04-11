@@ -23,8 +23,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://nitipit.github.io/dictify/"
-"Bug Tracker" = "https://github.com/nitipit/dictify/issues"
+Homepage = "https://keenlycode.github.io/dictify/"
+"Bug Tracker" = "https://github.com/keenlycode/dictify/issues"
 
 [project.scripts]
 dictify = "dictify.cli.dictify:main"

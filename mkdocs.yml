@@ -1,12 +1,13 @@
 site_name: Dictify
-site_url: https://nitipit.github.io/dictify/
-repo_url: https://github.com/nitipit/dictify
-repo_name: nitipit/dictify
+site_url: https://keenlycode.github.io/dictify/
+repo_url: https://github.com/keenlycode/dictify
+repo_name: keenlycode/dictify
 docs_dir: docs-src
 site_dir: docs
 theme:
   name: shadcn
   custom_dir: docs-overrides
+  show_stargazers: false
 extra:
   docs_home_url: /dictify/latest/
   version:

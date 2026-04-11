@@ -1,4 +1,38 @@
 window.addEventListener("DOMContentLoaded", () => {
+  const updateStargazerCount = () => {
+    const target = document.querySelector("#stargazers");
+    if (!target) {
+      return;
+    }
+
+    const shieldsUrl =
+      "https://img.shields.io/github/stars/keenlycode/dictify?style=flat&label=&color=111827&logo=github&logoColor=white";
+
+    fetch(shieldsUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Unable to load star count: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then((svg) => {
+        const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+        const values = [...doc.querySelectorAll("text")]
+          .map((node) => node.textContent.trim())
+          .filter((text) => /^\d[\d.]*[kM]?$/.test(text));
+
+        const count = values.at(-1);
+        if (count) {
+          target.textContent = count;
+        }
+      })
+      .catch(() => {
+        target.textContent = "";
+      });
+  };
+
+  updateStargazerCount();
+
   const ensureTrailingSlash = (value) => value.replace(/\/?$/, "/");
   const versionRoot = new URL(ensureTrailingSlash(base_url), window.location.origin);
   const versionPath = versionRoot.pathname;
