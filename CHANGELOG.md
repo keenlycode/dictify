@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.2
+
+- Clarified `Field.verify()` and `Field.func()` behavior in docs and docstrings.
+- Made validation errors explicit and allowed `Field.func()` to transform stored values.
+- Added release validation and CI checks so package builds are ready for PyPI publishing.
+
 ## 4.0.1
 
 - Added a packaged `dictify-usage` AI skill under `src/dictify/ai_skills/`.

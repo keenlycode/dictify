@@ -116,9 +116,8 @@ class ListOf(list):
                     pass
 
         runtime_types = tuple(type_ for type_ in self.types if isinstance(type_, type))
-        assert isinstance(value, runtime_types), (
-            f"'{value}' is not instance of {self.types}"
-        )
+        if not isinstance(value, runtime_types):
+            raise ListOf.ValueError(f"'{value}' is not instance of {self.types}")
 
         if callable(self.validate_func):
             self.validate_func(value)
@@ -203,7 +202,8 @@ class Field[T]:
         self._default = default
         if grant is None:
             grant = []
-        assert isinstance(grant, list)
+        if not isinstance(grant, list):
+            raise TypeError("grant should be a list")
         self.grant = grant
         self._functions = list()
         self._annotation_type = UNDEF
@@ -264,8 +264,6 @@ class Field[T]:
     def validate(self, value):
         """Validate and return the final field value."""
 
-        from ._model import Model
-
         errors = list()
         if self.required and value is UNDEF:
             raise Field.RequiredError("Field is required")
@@ -279,7 +277,7 @@ class Field[T]:
         for function in self._functions:
             try:
                 value_ = function(self, value)
-                if isinstance(value_, (ListOf, Model)):
+                if value_ is not None:
                     value = value_
             except Exception as e:
                 errors.append((function, e))
@@ -347,7 +345,9 @@ class Field[T]:
     def instance(self, type_: type):
         """Verify that ``value`` is instance to ``type_``
 
-        ``assert isinstance(value, type_)``
+        Sets the runtime type spec for validation.
+        If a configured default conflicts with ``type_``, raises
+        ``Field.DefineError``.
         """
         self._instance_type = type_
         self._ensure_default_matches_type_spec(type_)
@@ -366,9 +366,8 @@ class Field[T]:
     @function
     def match(self, value, re_: str, flags=0):
         """Match value with regular expression string ``re_``."""
-        assert re.match(re_, value, flags), (
-            f"Matching with re.match('{re_}', '{value}') is None"
-        )
+        if not re.match(re_, value, flags):
+            raise ValueError(f"Matching with re.match('{re_}', '{value}') is None")
 
     @function
     def model(self, value, model_cls: type[Model]):
@@ -378,22 +377,26 @@ class Field[T]:
     @function
     def search(self, value, re_: str, flags=0):
         """Search value with with regular expression string ``re_``."""
-        assert re.search(re_, value, flags), (
-            f"Searching with re.search('{re_}', '{value}') is None"
-        )
+        if not re.search(re_, value, flags):
+            raise ValueError(f"Searching with re.search('{re_}', '{value}') is None")
 
     @function
     def verify(self, value, func, message=None):
-        """Designed to use with ``lambda`` for simple syntax since ``lambda``
-        can't use ``assert`` statement.
+        """Use a predicate-style callable for validation.
 
-        The callable must return ``True`` or ``False``.
-
-        If return ``False``, It will be raised as ``AssertionError``.
+        The callable may raise its own exception or return a truthy value.
+        Falsy return values raise ``ValueError`` and are surfaced as
+        ``Field.VerifyError`` during assignment.
         """
-        assert func(value), message
+        if not func(value):
+            raise ValueError(message or "Validation failed")
 
     @function
     def func(self, value, fn):
-        """Use callable function to validate value."""
-        fn(value)
+        """Use a callable to transform or validate ``value``.
+
+        If the callable returns a value, that value replaces the field value.
+        If it raises an exception, validation fails and assignment raises
+        ``Field.VerifyError``.
+        """
+        return fn(value)

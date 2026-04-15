@@ -158,7 +158,10 @@ For `Model` classes, you can often use `Money` directly in the annotation instea
 
 ### `verify(func, message=None)`
 
-Use a callable that returns `True` or `False`.
+Use a predicate-style callable for validation.
+
+The callable may raise its own exception or return a truthy value. Falsy
+return values fail validation and surface as `Field.VerifyError`.
 
 ```python
 age = Field().instance(int).verify(
@@ -169,7 +172,10 @@ age = Field().instance(int).verify(
 
 ### `func(fn)`
 
-Use a callable that raises an exception when the value is invalid.
+Use a callable to transform or validate the value.
+
+If the callable returns a value, that value becomes the field value. If it
+raises an exception, validation fails and surfaces as `Field.VerifyError`.
 
 ```python
 from datetime import datetime

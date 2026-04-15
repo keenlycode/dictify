@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "dictify"
-version = "4.0.1"
+version = "4.0.2"
 description = "Documents schema and data validation"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -24,6 +24,9 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://keenlycode.github.io/dictify/"
+Documentation = "https://keenlycode.github.io/dictify/"
+Source = "https://github.com/keenlycode/dictify"
+Changelog = "https://github.com/keenlycode/dictify/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/keenlycode/dictify/issues"
 
 [project.scripts]
@@ -33,6 +36,7 @@ dictify = "dictify.cli.dictify:main"
 dev = [
     "pytest>=8.4",
     "ruff",
+    "twine>=6.1",
     "ty",
 ]
 docs = [

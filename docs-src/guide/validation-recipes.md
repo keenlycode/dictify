@@ -51,6 +51,7 @@ Field().instance(str).match(r".+@.+")
 from datetime import datetime
 
 Field().instance(str).func(datetime.fromisoformat)
+# parses the string and stores the resulting datetime
 ```
 
 ## UUID String

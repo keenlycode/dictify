@@ -107,6 +107,28 @@ The installer prompts for the exact destination folder and defaults to:
 
 If the destination already exists, `dictify` asks before overwriting it.
 
+## Development CLI
+
+Repository-local maintenance commands live under `dev/cli`.
+
+Run them from the repo root with:
+
+```shell
+uv run python -m dev.cli --help
+```
+
+Examples:
+
+```shell
+uv run python -m dev.cli docs build
+uv run python -m dev.cli docs dev
+uv run python -m dev.cli ai skill-ref
+uv run python -m dev.cli build
+uv run python -m dev.cli release-check
+```
+
+See [`dev/README.md`](dev/README.md) for the command summary.
+
 ## Typing Status
 
 The annotation-first model API is fully supported at runtime.

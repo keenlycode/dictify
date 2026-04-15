@@ -352,10 +352,14 @@ def test_field_reset():
 
 
 def test_field_func():
-    field = Field().func(uuid4_verify)
-    field.value = str(uuid.uuid4())
+    field = Field().instance(str).func(datetime.fromisoformat)
+    field.value = "2024-01-02T03:04:05"
+    assert field.value == datetime.fromisoformat("2024-01-02T03:04:05")
+
     with pytest.raises(Field.VerifyError):
         field.value = 1
+
+    assert field.value == datetime.fromisoformat("2024-01-02T03:04:05")
 
 
 def test_field_instance():
