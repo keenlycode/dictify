@@ -142,4 +142,4 @@ Static type checker support for declarations like `email: str = Field(...)` is s
 - AI Skill: https://keenlycode.github.io/dictify/guide/ai-skill/
 - Field API: https://keenlycode.github.io/dictify/guide/field-api/
 - Validation Recipes: https://keenlycode.github.io/dictify/guide/validation-recipes/
-- Changelog: https://github.com/keenlycode/dictify/blob/dev/CHANGELOG.md
+- Changelog: https://github.com/keenlycode/dictify/blob/main/CHANGELOG.md
