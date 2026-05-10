@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.3
+
+- Refreshed packaged AI skill guidance to prefer direct annotation-first model declarations.
+- Simplified AI skill reference sync to copy guide documentation from `docs-src/guide/`.
+- Moved the AI skill docs page and MkDocs overrides under `docs-src/`.
+
 ## 4.0.2
 
 - Clarified `Field.verify()` and `Field.func()` behavior in docs and docstrings.
