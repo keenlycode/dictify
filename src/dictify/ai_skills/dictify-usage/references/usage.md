@@ -92,7 +92,7 @@ class User(Model):
 
 `dictify` uses `str` as the runtime field type and ignores the extra metadata.
 
-Runtime support for declarations like `email: str = Field(...)` is complete. Static type checker support for that pattern is still limited and may require `cast(Any, Field(...))` depending on the checker.
+Runtime support for declarations like `email: str = Field(...)` is complete. Static type checker support for that pattern may vary. Treat direct annotation-first declarations as the canonical Dictify style, and only add `cast(Any, ...)` as a project-specific workaround.
 
 Do not declare a second `Field(...)` inside `Annotated[...]` when the class attribute is already assigned to `Field(...)`.
 
@@ -151,7 +151,7 @@ dictify ai-skill-install
 
 The installer prompts for the destination folder and defaults to `./.agents/skills/dictify-usage`.
 
-See [AI Skill](ai-skill.md).
+See [AI Skill](../ai-skill.md).
 
 ## Post Validation
 

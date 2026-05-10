@@ -27,9 +27,10 @@ Use Dictify in the way this repository documents and tests today. Prefer the pub
 5. Follow current model style:
    - Prefer annotation-first declarations such as `email: str = Field(required=True)`
    - Use `Field(...)` for defaults, required fields, and extra validators
+   - Do not wrap `Field(...)` with `typing.cast(...)` by default
    - Preserve both attribute access and mapping access semantics
 6. Respect current limitations:
-   - Static type checker support for `email: str = Field(...)` is still limited and may require `cast(Any, Field(...))`
+   - Static type checker support for `email: str = Field(...)` may vary; only add `cast(Any, ...)` as a project-specific workaround
    - `model.dict()` returns native Python structures but does not serialize `datetime` automatically for JSON
 7. Reuse field definitions carefully:
    - `User.email` returns the shared class-level `Field` definition
@@ -38,6 +39,37 @@ Use Dictify in the way this repository documents and tests today. Prefer the pub
    - `uv run pytest`
    - `uv run ruff check src tests`
    - `uv run ty check`
+
+## Preferred Model Style
+
+Prefer direct annotation-first model declarations.
+
+```python
+from dictify import Field, Model
+
+
+class User(Model):
+    email: str = Field(required=True).match(r".+@.+")
+    name: str = Field()
+```
+
+Do not wrap `Field(...)` with `typing.cast(...)` by default.
+
+Some static type checkers may report assignment issues for declarations like:
+
+```python
+email: str = Field(required=True)
+```
+
+This is an accepted Dictify model declaration style. Prefer keeping the readable Dictify syntax unless the task is specifically to satisfy a strict static type checker.
+
+If a project requires the workaround, use it locally and explain why:
+
+```python
+from typing import Any, cast
+
+email: str = cast(Any, Field(required=True))
+```
 
 ## Preferred Patterns
 
@@ -53,30 +85,26 @@ email.value = "user@example.com"
 ### Annotation-first model
 
 ```python
-from typing import Any, cast
-
 from dictify import Field, Model
 
 
 class User(Model):
-    email: str = cast(Any, Field(required=True).match(r".+@.+"))
+    email: str = Field(required=True).match(r".+@.+")
 ```
 
 ### Nested mapping model
 
 ```python
-from typing import Any, cast
-
 from dictify import Field, Model
 
 
 class User(Model):
-    name: str = cast(Any, Field(required=True))
+    name: str = Field(required=True)
 
 
 class Note(Model):
-    title: str = cast(Any, Field(required=True))
-    user: User = cast(Any, Field(required=True))
+    title: str = Field(required=True)
+    user: User = Field(required=True)
 ```
 
 ## Avoid

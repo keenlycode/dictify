@@ -11,16 +11,10 @@ from .common import ROOT
 app = cyclopts.App(help="Generate packaged AI skill assets.")
 
 DOCS_DIR = ROOT / "docs-src"
+GUIDE_DIR = DOCS_DIR / "guide"
 SKILL_DIR = ROOT / "src" / "dictify" / "ai_skills" / "dictify-usage"
 REFERENCES_DIR = SKILL_DIR / "references"
 GENERATED_HEADER = "<!-- Generated from script, do not edit directly. -->\n\n"
-
-SOURCE_MAP = {
-    DOCS_DIR / "guide" / "usage.md": REFERENCES_DIR / "usage.md",
-    DOCS_DIR / "guide" / "field-api.md": REFERENCES_DIR / "field-api.md",
-    DOCS_DIR / "guide" / "validation-recipes.md": REFERENCES_DIR
-    / "validation-recipes.md",
-}
 
 
 def load_text(path: Path) -> str:
@@ -90,10 +84,8 @@ def skill_ref(*, check: bool = False) -> None:
     """Sync packaged Dictify skill references from docs-src."""
 
     ok = True
-    for source, destination in SOURCE_MAP.items():
-        if not source.exists():
-            raise FileNotFoundError(source)
-        ok &= sync_file(destination, build_reference(source), check)
+    for source in sorted(GUIDE_DIR.glob("*.md")):
+        ok &= sync_file(REFERENCES_DIR / source.name, build_reference(source), check)
 
     ok &= sync_file(REFERENCES_DIR / "index.md", build_index_reference(), check)
     if not ok:

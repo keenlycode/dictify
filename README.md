@@ -133,13 +133,13 @@ See [`dev/README.md`](dev/README.md) for the command summary.
 
 The annotation-first model API is fully supported at runtime.
 
-Static type checker support for declarations like `email: str = Field(...)` is still limited and may require `cast(Any, Field(...))` depending on the checker and editor.
+Static type checker support for declarations like `email: str = Field(...)` may vary. Treat direct annotation-first declarations as the canonical Dictify style, and only add `cast(Any, ...)` as a project-specific workaround.
 
 ## Documentation
 
 - Docs: https://keenlycode.github.io/dictify/
 - Usage: https://keenlycode.github.io/dictify/guide/usage/
-- AI Skill: https://keenlycode.github.io/dictify/guide/ai-skill/
+- AI Skill: https://keenlycode.github.io/dictify/ai-skill/
 - Field API: https://keenlycode.github.io/dictify/guide/field-api/
 - Validation Recipes: https://keenlycode.github.io/dictify/guide/validation-recipes/
 - Changelog: https://github.com/keenlycode/dictify/blob/main/CHANGELOG.md

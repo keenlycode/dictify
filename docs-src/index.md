@@ -82,7 +82,7 @@ note_json = json.dumps(note.dict())
 
 ## Guides
 
-- [AI Skill](guide/ai-skill.md)
+- [AI Skill](ai-skill.md)
 - [Usage](guide/usage.md)
 - [Field API](guide/field-api.md)
 - [Validation Recipes](guide/validation-recipes.md)

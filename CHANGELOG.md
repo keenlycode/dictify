@@ -19,4 +19,4 @@
 - Declared model fields support descriptor-style attribute access alongside mapping access.
 - Undeclared public attributes now follow `strict` in the same way as undeclared keys.
 - The minimum supported Python version is now `3.12`.
-- Runtime support for annotated `Field(...)` model declarations is complete, but static type checker support is still limited and may require `cast(Any, Field(...))` depending on the checker.
+- Runtime support for annotated `Field(...)` model declarations is complete. Static type checker support may vary, but direct annotation-first declarations are the canonical Dictify style.
