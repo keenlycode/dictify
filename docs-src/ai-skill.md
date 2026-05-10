@@ -11,7 +11,7 @@ dictify ai-skill-install
 The command prompts for the exact destination folder and defaults to:
 
 ```text
-./.agents/skills/dictify-usage
+.agents/skills/dictify-usage
 ```
 
 If the destination already exists, `dictify` asks before overwriting it.

@@ -15,6 +15,10 @@ Use Dictify in the way this repository documents and tests today. Prefer the pub
    - `references/index.md`
    - `references/usage.md`
    - `references/field-api.md`
+   - `references/field-options.md`
+   - `references/field-validators.md`
+   - `references/field-state.md`
+   - `references/listof.md`
    - `references/validation-recipes.md`
 2. If behavior is still unclear, read `tests/test_dictify.py` and the package code under `src/dictify/`.
 3. Prefer the public import surface:

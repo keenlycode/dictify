@@ -33,5 +33,10 @@ nav:
   - Dictify: index.md
   - AI Skill: ai-skill.md
   - Usage: guide/usage.md
-  - Field API: guide/field-api.md
+  - Field API:
+      - Overview: guide/field-api.md
+      - Options: guide/field-options.md
+      - Validators: guide/field-validators.md
+      - State: guide/field-state.md
+      - ListOf: guide/listof.md
   - Validation Recipes: guide/validation-recipes.md

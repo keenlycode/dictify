@@ -149,7 +149,7 @@ User.email.value = "user@example.com"
 dictify ai-skill-install
 ```
 
-The installer prompts for the destination folder and defaults to `./.agents/skills/dictify-usage`.
+The installer prompts for the destination folder and defaults to `.agents/skills/dictify-usage`.
 
 See [AI Skill](../ai-skill.md).
 

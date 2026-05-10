@@ -10,7 +10,7 @@ import cyclopts
 
 app = cyclopts.App(help="Dictify command-line tools.")
 
-DEFAULT_SKILL_DESTINATION = Path("./.agents/skills/dictify-usage")
+DEFAULT_SKILL_DESTINATION = Path(".agents/skills/dictify-usage")
 
 
 def _prompt_destination() -> Path:

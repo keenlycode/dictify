@@ -36,7 +36,7 @@ def function(func: Validator):
     def wrapper(self, *args, **kw):
         # Test default value.
         if self.has_default:
-            default = self.get_default()
+            default = self.default
             try:
                 func(self, default, *args, **kw)
             except Exception as error:
@@ -238,7 +238,7 @@ class Field[T]:
     def _ensure_default_matches_type_spec(self, type_spec):
         if self.has_default is False:
             return
-        default = self.get_default()
+        default = self.default
         try:
             _validate_type_spec(default, type_spec)
         except Exception as error:
@@ -247,13 +247,22 @@ class Field[T]:
                 error,
             ) from error
 
-    def get_default(self):
-        """Return the configured default value."""
+    @property
+    def default(self):
+        """Return the materialized default value."""
 
         if callable(self._default):
             default_factory = cast(DefaultFactory, self._default)
             return default_factory()
         return self._default
+
+    def get_default(self):
+        """Return the materialized default value.
+
+        Kept as a compatibility alias for ``default``.
+        """
+
+        return self.default
 
     @property
     def has_default(self):
@@ -284,11 +293,6 @@ class Field[T]:
         if errors:
             raise Field.VerifyError(errors)
         return value
-
-    @property
-    def default(self):
-        """Field's default value"""
-        return self.get_default()
 
     @property
     def value(self) -> T:
@@ -340,7 +344,7 @@ class Field[T]:
 
     def reset(self):
         """Reset ``Field().value`` to default or ``UNDEF``"""
-        self._value = self.get_default()
+        self._value = self.default
 
     def instance(self, type_: type):
         """Verify that ``value`` is instance to ``type_``

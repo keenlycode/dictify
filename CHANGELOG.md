@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.0.4
+
+- Split Field API documentation into focused pages for options, validators, state, and `ListOf`.
+- Made `Field.default` the primary implementation for materialized defaults while keeping `get_default()` as a compatibility alias.
+- Updated the AI skill install default path to `.agents/skills/dictify-usage`.
+
 ## 4.0.3
 
 - Refreshed packaged AI skill guidance to prefer direct annotation-first model declarations.
