@@ -13,7 +13,10 @@ Use Dictify in the way this repository documents and tests today. Prefer the pub
 
 1. Read the skill references first:
    - `references/index.md`
-   - `references/usage.md`
+   - `references/usage/index.md`
+   - `references/usage/model.md`
+   - `references/usage/declaration-styles.md`
+   - `references/usage/partial-validation.md`
    - `references/field-api.md`
    - `references/field-options.md`
    - `references/field-validators.md`
@@ -29,12 +32,13 @@ Use Dictify in the way this repository documents and tests today. Prefer the pub
    - Use `Model` for mapping-shaped documents
    - Use `ListOf` only when working with validated list values returned by Dictify
 5. Follow current model style:
-   - Prefer annotation-first declarations such as `email: str = Field(required=True)`
+   - Prefer type-checker-friendly declarations such as `email: Annotated[str, Field(required=True)]`
+   - Keep direct assignment declarations such as `email: str = Field(required=True)` when matching existing code
    - Use `Field(...)` for defaults, required fields, and extra validators
    - Do not wrap `Field(...)` with `typing.cast(...)` by default
    - Preserve both attribute access and mapping access semantics
 6. Respect current limitations:
-   - Static type checker support for `email: str = Field(...)` may vary; only add `cast(Any, ...)` as a project-specific workaround
+   - Static type checker support for `email: str = Field(...)` may vary; prefer `Annotated[str, Field(...)]` for strict type checking
    - `model.dict()` returns native Python structures but does not serialize `datetime` automatically for JSON
 7. Reuse field definitions carefully:
    - `User.email` returns the shared class-level `Field` definition
@@ -46,26 +50,28 @@ Use Dictify in the way this repository documents and tests today. Prefer the pub
 
 ## Preferred Model Style
 
-Prefer direct annotation-first model declarations.
+Prefer `Annotated[..., Field(...)]` when writing new type-checker-friendly model declarations.
 
 ```python
+from typing import Annotated
+
 from dictify import Field, Model
 
 
 class User(Model):
-    email: str = Field(required=True).match(r".+@.+")
-    name: str = Field()
+    email: Annotated[str, Field(required=True).match(r".+@.+")]
+    name: Annotated[str, Field()]
 ```
 
 Do not wrap `Field(...)` with `typing.cast(...)` by default.
 
-Some static type checkers may report assignment issues for declarations like:
+Direct assignment declarations remain supported at runtime:
 
 ```python
 email: str = Field(required=True)
 ```
 
-This is an accepted Dictify model declaration style. Prefer keeping the readable Dictify syntax unless the task is specifically to satisfy a strict static type checker.
+Some static type checkers may report assignment issues for that style. Prefer the `Annotated` style for strict type checking.
 
 If a project requires the workaround, use it locally and explain why:
 
@@ -89,26 +95,30 @@ email.value = "user@example.com"
 ### Annotation-first model
 
 ```python
+from typing import Annotated
+
 from dictify import Field, Model
 
 
 class User(Model):
-    email: str = Field(required=True).match(r".+@.+")
+    email: Annotated[str, Field(required=True).match(r".+@.+")]
 ```
 
 ### Nested mapping model
 
 ```python
+from typing import Annotated
+
 from dictify import Field, Model
 
 
 class User(Model):
-    name: str = Field(required=True)
+    name: Annotated[str, Field(required=True)]
 
 
 class Note(Model):
-    title: str = Field(required=True)
-    user: User = Field(required=True)
+    title: Annotated[str, Field(required=True)]
+    user: Annotated[User, Field(required=True)]
 ```
 
 ## Avoid

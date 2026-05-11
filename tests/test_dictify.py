@@ -72,6 +72,16 @@ class NoteJSON(Model):
     comments: list[CommentJSON] = cast(Any, Field())
 
 
+class AnnotatedOnlyContact(Model):
+    kind: Annotated[str, Field(required=True)]
+    value: Annotated[str, Field(required=True)]
+
+
+class AnnotatedOnlyProfile(Model):
+    username: Annotated[str, Field(required=True)]
+    contacts: Annotated[list[AnnotatedOnlyContact], Field(default=list)]
+
+
 def test_model_descriptor_attribute_access():
     user = User({"name": "first"})
 
@@ -125,6 +135,48 @@ def test_annotated_field_metadata_on_rhs_field_is_rejected():
 
         class InvalidAnnotatedUser(Model):
             name: Annotated[str, Field(required=True)] = cast(Any, Field())
+
+
+def test_annotated_field_metadata_defines_model_field():
+    class AnnotatedOnlyUser(Model):
+        name: Annotated[str, Field(required=True).match(r"[a-z]+")]
+        age: Annotated[int | None, Field(default=None)]
+
+    user = AnnotatedOnlyUser({"name": "ada"})
+
+    assert isinstance(cast(Any, AnnotatedOnlyUser.name), Field)
+    assert user.name == "ada"
+    assert user["name"] == "ada"
+    assert user.age is None
+
+    user.name = "grace"
+    assert user["name"] == "grace"
+
+    with pytest.raises(Model.Error):
+        AnnotatedOnlyUser({})
+
+    with pytest.raises(Model.Error):
+        AnnotatedOnlyUser({"name": "Ada"})
+
+
+def test_annotated_field_metadata_supports_nested_models_and_lists():
+    profile = AnnotatedOnlyProfile(
+        {
+            "username": "ada",
+            "contacts": [{"kind": "email", "value": "ada@example.com"}],
+        }
+    )
+
+    assert isinstance(profile.contacts[0], AnnotatedOnlyContact)
+    assert profile.contacts[0].value == "ada@example.com"
+    assert AnnotatedOnlyProfile({"username": "grace"}).contacts == []
+
+
+def test_annotated_field_metadata_with_class_value_is_rejected():
+    with pytest.raises(Field.DefineError):
+
+        class InvalidAnnotatedValueUser(Model):
+            name: Annotated[str, Field(required=True)] = "user"
 
 
 def test_strict_false_extra_attributes_are_model_data():

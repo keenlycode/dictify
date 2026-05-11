@@ -8,7 +8,11 @@ from typing import Any, get_type_hints
 from ._field import Field, ListOf
 from ._sentinel import UNDEF
 from ._types import FieldMap, FieldTypeMap
-from ._utils import _normalize_simple_type_spec, _resolve_field_annotation
+from ._utils import (
+    _normalize_simple_type_spec,
+    _resolve_annotated_field,
+    _resolve_field_annotation,
+)
 
 
 class BoundField:
@@ -66,6 +70,38 @@ class Model(MutableMapping[str, Any]):
 
         pass
 
+    @classmethod
+    def _register_field(
+        cls,
+        fields: FieldMap,
+        field_types: FieldTypeMap,
+        key: str,
+        field: Field,
+        annotation=UNDEF,
+    ) -> None:
+        """Register one Field definition on a model class."""
+
+        field._name = key
+        fields[key] = field
+        if annotation is UNDEF:
+            return
+
+        field_types[key] = annotation
+        normalized_annotation = _normalize_simple_type_spec(annotation)
+        normalized_instance = _normalize_simple_type_spec(field._instance_type)
+        if (
+            normalized_annotation is not None
+            and normalized_instance is not None
+            and normalized_annotation != normalized_instance
+        ):
+            raise Field.DefineError(
+                f"{cls.__name__}.{key}: annotation {annotation!r} "
+                f"conflicts with instance({field._instance_type!r})"
+            )
+        field._annotation_type = annotation
+        if field._instance_type is UNDEF:
+            field._ensure_default_matches_type_spec(annotation)
+
     def __init_subclass__(cls, **kwargs):
         """Collect class-declared Field definitions into ``cls.__fields__``.
 
@@ -78,32 +114,29 @@ class Model(MutableMapping[str, Any]):
         fields = {}
         field_types = {}
         type_hints = get_type_hints(cls, include_extras=True)
+        annotations = cls.__dict__.get("__annotations__", {})
         for base in reversed(cls.__mro__[1:]):
             fields.update(getattr(base, "__fields__", {}))
             field_types.update(getattr(base, "__field_types__", {}))
         for key, value in vars(cls).items():
             if isinstance(value, Field):
-                value._name = key
-                fields[key] = value
+                annotation = UNDEF
                 if key in type_hints:
                     annotation = _resolve_field_annotation(type_hints[key])
-                    field_types[key] = annotation
-                    normalized_annotation = _normalize_simple_type_spec(annotation)
-                    normalized_instance = _normalize_simple_type_spec(
-                        value._instance_type
-                    )
-                    if (
-                        normalized_annotation is not None
-                        and normalized_instance is not None
-                        and normalized_annotation != normalized_instance
-                    ):
-                        raise Field.DefineError(
-                            f"{cls.__name__}.{key}: annotation {annotation!r} "
-                            f"conflicts with instance({value._instance_type!r})"
-                        )
-                    value._annotation_type = annotation
-                    if value._instance_type is UNDEF:
-                        value._ensure_default_matches_type_spec(annotation)
+                cls._register_field(fields, field_types, key, value, annotation)
+        for key in annotations:
+            if key not in type_hints:
+                continue
+            annotation, field = _resolve_annotated_field(type_hints[key])
+            if field is None:
+                continue
+            if key in vars(cls):
+                raise Field.DefineError(
+                    f"{cls.__name__}.{key}: Field metadata inside Annotated[...] "
+                    "cannot be combined with a class attribute value"
+                )
+            cls._register_field(fields, field_types, key, field, annotation)
+            setattr(cls, key, field)
         cls.__fields__ = fields
         cls.__field_types__ = field_types
 

@@ -17,23 +17,40 @@ def _strip_annotated_type(type_spec: Any):
     return type_spec
 
 
-def _resolve_field_annotation(annotation: Any):
-    """Return the runtime type for a field annotation.
-
-    Annotated metadata is ignored for runtime typing, except that Field metadata
-    is rejected to avoid ambiguous double-field declarations.
-    """
+def _resolve_annotated_field(annotation: Any):
+    """Return the runtime type and optional Field metadata from an annotation."""
 
     from ._field import Field
 
+    fields = []
     while get_origin(annotation) is Annotated:
         base, *metadata = get_args(annotation)
-        if any(isinstance(item, Field) for item in metadata):
-            raise Field.DefineError(
-                "Field metadata inside Annotated[...] is ambiguous when the "
-                "class attribute is also assigned to Field(...)"
-            )
+        fields.extend(item for item in metadata if isinstance(item, Field))
         annotation = base
+
+    if len(fields) > 1:
+        raise Field.DefineError(
+            "Only one Field metadata item is allowed inside Annotated[...]"
+        )
+    if fields:
+        return annotation, fields[0]
+    return annotation, None
+
+
+def _resolve_field_annotation(annotation: Any):
+    """Return the runtime type for an assigned field annotation.
+
+    Annotated metadata is ignored for runtime typing, except that Field metadata
+    is rejected to avoid ambiguous double-field declarations when the class
+    attribute is also assigned to Field(...).
+    """
+
+    annotation, field = _resolve_annotated_field(annotation)
+    if field is not None:
+        raise type(field).DefineError(
+            "Field metadata inside Annotated[...] is ambiguous when the "
+            "class attribute is also assigned to Field(...)"
+        )
     return annotation
 
 

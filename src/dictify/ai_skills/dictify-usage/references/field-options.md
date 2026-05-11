@@ -32,6 +32,8 @@ Defaults are applied when:
 3. A `Model` is created without a value for that field.
 4. A model field with a default is deleted.
 
+Use `has_default` when you need to know whether a default was configured. `Field(default=None).has_default` is `True`.
+
 ## Granted Values
 
 Granted values always pass validation, even if later validators would reject them.
@@ -52,8 +54,21 @@ from dictify import Field, Model
 
 
 class User(Model):
-    email: Annotated[str, "primary email"] = Field(required=True).match(r".+@.+")
-    age: int | None = Field(default=None)
+    email: Annotated[
+        str,
+        "primary email",
+        Field(required=True).match(r".+@.+"),
+    ]
+    age: Annotated[int | None, Field(default=None)]
 ```
 
-`Annotated[...]` metadata is ignored for runtime typing unless it contains a `Field(...)`, which is rejected as ambiguous when the class attribute is also assigned to `Field(...)`.
+When `Field(...)` is provided inside `Annotated[...]`, it defines the model field without assigning a class value. Other metadata is ignored for runtime typing.
+
+Direct assignment style remains supported for compatibility:
+
+```python
+class User(Model):
+    email: str = Field(required=True).match(r".+@.+")
+```
+
+This style is fully supported at runtime. For strict static type checking, prefer `Annotated[str, Field(...)]`. Do not combine both forms for the same field.

@@ -49,6 +49,19 @@ assert isinstance(created_at.default, datetime)
 
 `get_default()` is kept as a compatibility alias for `default`.
 
+## `has_default`
+
+Return whether the field was configured with a default. `None` counts as a
+configured default.
+
+```python
+required_name = Field(required=True)
+optional_note = Field(default=None)
+
+assert required_name.has_default is False
+assert optional_note.has_default is True
+```
+
 ## `validate(value)`
 
 Validate a value without assigning it to the field. The returned value is the

@@ -30,14 +30,19 @@ from dictify import Field, Model
 
 
 class Note(Model):
-    title: str = Field(required=True).verify(
-        lambda value: len(value) <= 300,
-        "Title must be 300 characters or fewer",
-    )
-    content: str = Field()
-    timestamp: Annotated[datetime, "creation time"] = Field(
-        default=lambda: datetime.now(UTC)
-    )
+    title: Annotated[
+        str,
+        Field(required=True).verify(
+            lambda value: len(value) <= 300,
+            "Title must be 300 characters or fewer",
+        ),
+    ]
+    content: Annotated[str, Field()]
+    timestamp: Annotated[
+        datetime,
+        "creation time",
+        Field(default=lambda: datetime.now(UTC)),
+    ]
 ```
 
 Create and update validated data:
@@ -83,6 +88,6 @@ note_json = json.dumps(note.dict())
 ## Guides
 
 - [AI Skill](ai-skill.md)
-- [Usage](guide/usage.md)
+- [Usage](guide/usage/index.md)
 - [Field API](guide/field-api.md)
 - [Validation Recipes](guide/validation-recipes.md)

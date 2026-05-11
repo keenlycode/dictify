@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.1.0
+
+- Added type-checker-friendly `Annotated[..., Field(...)]` model field declarations.
+- Documented direct assignment declarations as a runtime-supported compatibility style.
+- Split Usage documentation into focused pages for overview, model behavior, declaration styles, and partial validation.
+- Documented `Field.has_default` for checking whether a field has a configured default.
+- Updated packaged AI skill reference generation to copy nested guide markdown from `docs-src/guide/**/*.md`.
+
 ## 4.0.4
 
 - Split Field API documentation into focused pages for options, validators, state, and `ListOf`.

@@ -44,7 +44,7 @@ def build_index_reference() -> str:
 
     source = load_text(DOCS_DIR / "index.md")
     body = remove_home_hero(source)
-    body = body.replace("(guide/usage.md)", "(usage.md)")
+    body = body.replace("(guide/usage/index.md)", "(usage/index.md)")
     body = body.replace("(guide/field-api.md)", "(field-api.md)")
     body = body.replace("(guide/validation-recipes.md)", "(validation-recipes.md)")
     return GENERATED_HEADER + body
@@ -79,14 +79,36 @@ def sync_file(path: Path, content: str, check: bool) -> bool:
     return True
 
 
+def remove_stale_references(expected: set[Path], check: bool) -> bool:
+    """Remove generated reference files that no longer have source docs."""
+
+    ok = True
+    for path in sorted(REFERENCES_DIR.rglob("*.md")):
+        if path in expected:
+            continue
+        if not path.read_text(encoding="utf-8").startswith(GENERATED_HEADER):
+            continue
+        if check:
+            print(f"stale: {path.relative_to(ROOT)}")
+            ok = False
+            continue
+        path.unlink()
+        print(f"removed: {path.relative_to(ROOT)}")
+    return ok
+
+
 @app.command(name="skill-ref")
 def skill_ref(*, check: bool = False) -> None:
     """Sync packaged Dictify skill references from docs-src."""
 
     ok = True
-    for source in sorted(GUIDE_DIR.glob("*.md")):
-        ok &= sync_file(REFERENCES_DIR / source.name, build_reference(source), check)
+    expected = {REFERENCES_DIR / "index.md"}
+    for source in sorted(GUIDE_DIR.rglob("*.md")):
+        target = REFERENCES_DIR / source.relative_to(GUIDE_DIR)
+        expected.add(target)
+        ok &= sync_file(target, build_reference(source), check)
 
     ok &= sync_file(REFERENCES_DIR / "index.md", build_index_reference(), check)
+    ok &= remove_stale_references(expected, check)
     if not ok:
         raise SystemExit(1)

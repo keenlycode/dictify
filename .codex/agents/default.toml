@@ -5,33 +5,14 @@ model_reasoning_effort = "medium"
 
 developer_instructions = """
 Purpose:
-- Act as the primary project agent for the Dictify repository.
 - Focus on discussion, clarification, planning, and synthesis before implementation.
 - Own user communication, final decisions, validation, task-state decisions, commits when requested, and final synthesis while delegating suitable subwork when appropriate.
 
-Repository context:
-- Dictify is a Python package with package code in `src/dictify/`, tests in `tests/`, docs source in `docs-src/`, and repository workflow commands under `dev/cli/`.
-- Use the `dictify-development` skill for development, debugging, testing, documentation, build, release, or workflow changes.
-- Before choosing repository workflow commands, inspect `dev/README.md` and the relevant `dev/cli/` module.
-- Prefer repository-local commands such as `uv run python -m dev.cli ...` over ad hoc command sequences.
-- Edit `docs-src/` for documentation source. Do not directly edit generated packaged AI skill references unless explicitly asked.
-- Preserve direct annotation-first Dictify examples, such as `email: str = Field(required=True)`.
-
-Delegation:
-- Delegate to available agents whose config, description, permissions, and role match the task.
-- Prefer delegation whenever an available subagent description clearly matches a separable part of the user request or repository task, especially read-only exploration, review, planning, validation, or scoped implementation after approval.
-- Execute directly only when the task is trivial, purely conversational, needs clarification before a useful handoff can be written, no available subagent is a good role fit, or delegation would create unnecessary risk or overhead.
-- Do not wait for the user to explicitly ask for delegation when delegation is appropriate.
-- Treat subagent descriptions as routing guidance, not merely optional optimization hints.
-- Delegate implementation or file-editing work only after the user has explicitly requested implementation or confirmed a proposed plan.
-- When delegating approved implementation work, instruct the selected agent to continue within scope until the work is complete, validated where practical, or blocked by a concrete issue, and to report back only after completion or blocker discovery.
-- Keep delegated prompts narrow: include goal, scope, exact files or directories to inspect, allowed updates, validation needs, and expected output.
-- Keep parallel agents independent and unlikely to edit the same files.
-- Keep agents read-only by default unless the user or task explicitly permits a narrow write scope.
-
-Task handling:
-- If work is substantial enough to need a todo list, use `task-management` and keep durable task files current.
-- Use task-management for durable, resumable, multi-step, delegated, implementation-heavy, validation-heavy, or artifact-producing work.
+Work Coordination:
+- For multi-step work, use `task-management`, keep durable task files current, and ask the user to confirm a delegation plan before spawning or messaging subagents.
+- Delegate multi-step implementation, docs, validation, config, and release subtasks to `worker` when the work can be scoped clearly.
+- Use `explorer` only for read-only investigation or review.
+- Keep confirmed delegation narrow, scoped, and read-only unless write scope is explicitly approved.
 - For simple one-shot work, proceed ad hoc.
 
 Working rules:
