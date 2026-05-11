@@ -4,7 +4,7 @@ State: done
 
 ## Current Status
 
-Published the current docs as `4.1.x`, set `latest` to `4.1.x`, and removed the old exact `4.1.1` docs entry.
+Published the current docs as `4.1.x`, set `latest` to `4.1.x`, and removed old exact `4.1.1` and `4.1.0` docs entries.
 
 ## Recent Changes
 
@@ -19,6 +19,10 @@ Published the current docs as `4.1.x`, set `latest` to `4.1.x`, and removed the 
 - Verified cache-busted public `versions.json` lists `4.1.x` and not `4.1.1`.
 - Verified `https://keenlycode.github.io/dictify/4.1.x/` and `https://keenlycode.github.io/dictify/latest/` return 200.
 - Verified `https://keenlycode.github.io/dictify/4.1.1/` returns 404 with cache busting.
+- Removed the old exact docs entry with `uv run --group docs mike delete --push --branch docs 4.1.0`.
+- Verified the remote docs branch `versions.json` lists `4.1.x` and not `4.1.0`.
+- Verified the remote docs branch no longer has a `4.1.0` directory.
+- Observed GitHub Pages still serving cached public `4.1.0` content immediately after deletion; the docs branch state is correct.
 
 ## Next Step
 
