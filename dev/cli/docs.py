@@ -2,11 +2,26 @@
 
 from __future__ import annotations
 
+import re
+
 import cyclopts
 
 from .common import run_command
 
 app = cyclopts.App(help="Build or serve the documentation site.")
+
+PATCH_VERSION_RE = re.compile(
+    r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)$"
+)
+
+
+def docs_version_line(version: str) -> str:
+    """Return the docs version label for a package version."""
+
+    match = PATCH_VERSION_RE.fullmatch(version)
+    if match is None:
+        return version
+    return f"{match.group('major')}.{match.group('minor')}.x"
 
 
 @app.command(name="build")
@@ -36,7 +51,9 @@ def docs_dev(host: str = "127.0.0.1", port: int = 8000) -> None:
 
 @app.command(name="publish")
 def docs_publish(version: str, alias: str = "latest", branch: str = "docs") -> None:
-    """Publish versioned docs with mike and update the default alias."""
+    """Publish minor-line docs with mike and update the default alias."""
+
+    docs_version = docs_version_line(version)
 
     run_command(
         [
@@ -50,7 +67,7 @@ def docs_publish(version: str, alias: str = "latest", branch: str = "docs") -> N
             "--branch",
             branch,
             "--update-aliases",
-            version,
+            docs_version,
             alias,
         ]
     )

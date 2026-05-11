@@ -132,7 +132,7 @@ uv run python -m dev.cli build
 uv run python -m dev.cli release-check
 ```
 
-See [`dev/README.md`](dev/README.md) for the command summary.
+See [`dev/README.md`](dev/README.md) for the command summary and docs versioning policy.
 
 ## Typing Status
 
