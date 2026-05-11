@@ -18,9 +18,12 @@ Recent changes:
 - Re-ran `pip-audit`; it reported no known vulnerabilities.
 - Re-ran `uv run python -m dev.cli release-check`; it passed.
 - Committed the lockfile security update as `54d4ca9 Update vulnerable GitPython dependency`.
+- After installing/authenticating GitHub CLI, queried Dependabot alerts directly. There are no open alerts.
+- GitHub reports the five high alerts as fixed; all were `GitPython` alerts in `uv.lock`.
+- GitHub also reports one medium `pytest` alert as fixed.
 
 Next steps:
-- Push the lockfile security update and let GitHub rescan.
+- None.
 
 Blockers:
 - Exact GitHub alert payload was not available because `gh` is not installed in this environment.
