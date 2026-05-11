@@ -9,4 +9,9 @@ dist/
 *.egg-info/
 .ruff_cache
 docs/
-.agents/
+.agents/*
+!.agents/README.md
+!.agents/skills/
+!.agents/skills/**
+!.agents/tasks/
+!.agents/tasks/**

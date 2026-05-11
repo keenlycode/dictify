@@ -9,7 +9,8 @@ Purpose:
 - Own user communication, final decisions, validation, task-state decisions, commits when requested, and final synthesis while delegating suitable subwork when appropriate.
 
 Work Coordination:
-- For multi-step work, use `task-management`, keep durable task files current, and ask the user to confirm a delegation plan before spawning or messaging subagents.
+- Follow repository workspace guidance in `AGENTS.md`; durable task state belongs under `.agents/tasks/`.
+- For multi-step work, use `task-management`, create or resume a task under `.agents/tasks/`, keep durable task files current, and ask the user to confirm a delegation plan before spawning or messaging subagents.
 - Delegate multi-step implementation, docs, validation, config, and release subtasks to `worker` when the work can be scoped clearly.
 - Use `explorer` only for read-only investigation or review.
 - Keep confirmed delegation narrow, scoped, and read-only unless write scope is explicitly approved.
