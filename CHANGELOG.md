@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.1.1
+
+- Restructured documentation source paths to mirror the public navigation.
+- Updated packaged AI skill references to use the same nested guide structure.
+- Simplified the packaged `dictify-usage` skill so it is concise and portable in installed Python environments.
+
 ## 4.1.0
 
 - Added type-checker-friendly `Annotated[..., Field(...)]` model field declarations.
