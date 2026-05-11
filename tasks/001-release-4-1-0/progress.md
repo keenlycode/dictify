@@ -1,6 +1,6 @@
 # Progress
 
-State: doing
+State: done
 
 ## Current Status
 
@@ -19,14 +19,18 @@ Release prep has started and the local release gate passed for `4.1.0`.
 - Delegated final read-only pre-publish verification to a worker.
 - Completed delegated worker pre-publish verification; no stale usage reference paths were found and release artifacts exist.
 - Created release commit with message `Release 4.1.0`.
+- Created and pushed git tag `v4.1.0`.
+- Published `dictify==4.1.0` to PyPI.
+- Published docs for `4.1.0` with `latest` alias.
+- Verified PyPI reports version `4.1.0` with wheel and source distribution.
+- Verified docs URLs return HTTP 200:
+  - `https://keenlycode.github.io/dictify/4.1.0/guide/usage/`
+  - `https://keenlycode.github.io/dictify/latest/guide/usage/`
 
 ## Next Steps
 
-1. Create tag `v4.1.0`.
-2. Publish package.
-3. Publish docs.
-4. Verify release.
+None.
 
 ## Blockers
 
-Commit, tag, package publish, and docs publish were explicitly requested by the user for release `4.1.0`.
+None.

@@ -8,11 +8,11 @@
 - [x] Complete delegated read-only release readiness audit.
 - [x] Complete delegated worker pre-publish verification.
 - [x] Commit release changes.
-- [ ] Create git tag `v4.1.0`.
-- [ ] Publish package to PyPI.
-- [ ] Publish docs for `4.1.0` with `latest` alias.
-- [ ] Verify published package and docs.
+- [x] Create git tag `v4.1.0`.
+- [x] Publish package to PyPI.
+- [x] Publish docs for `4.1.0` with `latest` alias.
+- [x] Verify published package and docs.
 
 ## Blockers
 
-- Waiting for explicit user confirmation before commit, tag, package publish, and docs publish.
+- None.
