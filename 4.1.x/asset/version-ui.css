@@ -1,0 +1,39 @@
+#version-selector {
+  align-items: center;
+}
+
+.version-select {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  height: 2rem;
+  min-width: 6.5rem;
+  padding: 0 2rem 0 0.75rem;
+}
+
+.version-banner {
+  align-items: center;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-foreground) 12%, var(--border));
+  border-radius: var(--radius);
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.version-banner a {
+  color: var(--foreground);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+@media (max-width: 1023px) {
+  .version-banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
