@@ -1,0 +1,64 @@
+.home-hero {
+  margin: 0 0 2rem;
+  padding: 3rem 1.25rem;
+  border-radius: 1.5rem;
+  background: url("dictify-bg.jpg") center/cover no-repeat;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+}
+
+.home-hero__content {
+  max-width: 44rem;
+  padding: 1.25rem 1.25rem 1.1rem;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+}
+
+.home-hero__title {
+  margin: 0 0 1rem;
+  font-size: clamp(2.75rem, 7vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.home-hero__lead {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: color-mix(in srgb, currentColor 82%, transparent);
+}
+
+.home-hero__list {
+  margin: 1.25rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.home-hero__list li + li {
+  margin-top: 0.45rem;
+}
+
+article:has(.home-hero) #page-header {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .home-hero {
+    padding: 4.5rem 3rem;
+  }
+
+  .home-hero__content {
+    padding: 1.5rem 1.5rem 1.35rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-hero {
+    margin-bottom: 1.5rem;
+    padding: 2.25rem 1rem;
+    border-radius: 1.25rem;
+  }
+
+  .home-hero__lead {
+    font-size: 1rem;
+  }
+}
