@@ -45,8 +45,10 @@ def build_index_reference() -> str:
     source = load_text(DOCS_DIR / "index.md")
     body = remove_home_hero(source)
     body = body.replace("(guide/usage/index.md)", "(usage/index.md)")
-    body = body.replace("(guide/field-api.md)", "(field-api.md)")
-    body = body.replace("(guide/validation-recipes.md)", "(validation-recipes.md)")
+    body = body.replace("(guide/field-api/index.md)", "(field-api/index.md)")
+    body = body.replace(
+        "(guide/validation-recipes/index.md)", "(validation-recipes/index.md)"
+    )
     return GENERATED_HEADER + body
 
 

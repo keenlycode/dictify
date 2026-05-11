@@ -38,10 +38,10 @@ nav:
       - Declaration Styles: guide/usage/declaration-styles.md
       - Partial Validation: guide/usage/partial-validation.md
   - Validation Recipes:
-      - Overview: guide/validation-recipes.md
+      - Overview: guide/validation-recipes/index.md
   - Field API:
-      - Overview: guide/field-api.md
-      - Options: guide/field-options.md
-      - Validators: guide/field-validators.md
-      - State: guide/field-state.md
-      - ListOf: guide/listof.md
+      - Overview: guide/field-api/index.md
+      - Options: guide/field-api/options.md
+      - Validators: guide/field-api/validators.md
+      - State: guide/field-api/state.md
+      - ListOf: guide/field-api/listof.md
