@@ -28,18 +28,25 @@ from dictify import Field, Model
 
 
 class Contact(Model):
-    type: str = Field(required=True).verify(
-        lambda value: value in ["phone", "email", "address"]
-    )
-    note: str = Field().verify(lambda value: len(value) <= 250)
-    value: str = Field(required=True).verify(lambda value: len(value) <= 1000)
+    type: Annotated[
+        str,
+        Field(required=True).verify(
+            lambda value: value in ["phone", "email", "address"]
+        ),
+    ]
+    note: Annotated[str, Field().verify(lambda value: len(value) <= 250)]
+    value: Annotated[str, Field(required=True).verify(lambda value: len(value) <= 1000)]
 
 
 class User(Model):
-    username: str = Field(required=True).match(r"[a-zA-Z0-9 ._-]+$")
-    email: Annotated[str, "primary email"] = Field(required=True).match(r".+@.+")
-    contacts: list[Contact] = Field()
-    created_at: datetime = Field(default=lambda: datetime.now(UTC))
+    username: Annotated[str, Field(required=True).match(r"[a-zA-Z0-9 ._-]+$")]
+    email: Annotated[
+        str,
+        "primary email",
+        Field(required=True).match(r".+@.+"),
+    ]
+    contacts: Annotated[list[Contact], Field()]
+    created_at: Annotated[datetime, Field(default=lambda: datetime.now(UTC))]
 ```
 
 ## Attribute Access
@@ -78,19 +85,26 @@ With `strict=True`, both `user["age"] = 30` and `user.age = 30` are rejected.
 
 ## Annotated
 
-`Annotated[...]` metadata is allowed on model field annotations.
+`Annotated[...]` metadata can declare a model field without assigning a class value.
 
 ```python
 from typing import Annotated
 
 
 class User(Model):
-    email: Annotated[str, "primary email"] = Field(required=True)
+    email: Annotated[str, Field(required=True).match(r".+@.+")]
 ```
 
-`dictify` uses `str` as the runtime field type and ignores the extra metadata.
+`dictify` uses `str` as the runtime field type and uses `Field(...)` as the field definition. This style is friendly to static type checkers because the model attribute is annotated as `str` without assigning a `Field` object to it.
 
-Runtime support for declarations like `email: str = Field(...)` is complete. Static type checker support for that pattern may vary. Treat direct annotation-first declarations as the canonical Dictify style, and only add `cast(Any, ...)` as a project-specific workaround.
+Additional `Annotated[...]` metadata is allowed and ignored for runtime typing.
+
+```python
+class User(Model):
+    email: Annotated[str, "primary email", Field(required=True)]
+```
+
+Runtime support for declarations like `email: str = Field(...)` is complete, but static type checker support for that assignment style may vary.
 
 Do not declare a second `Field(...)` inside `Annotated[...]` when the class attribute is already assigned to `Field(...)`.
 

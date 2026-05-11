@@ -52,8 +52,21 @@ from dictify import Field, Model
 
 
 class User(Model):
-    email: Annotated[str, "primary email"] = Field(required=True).match(r".+@.+")
-    age: int | None = Field(default=None)
+    email: Annotated[
+        str,
+        "primary email",
+        Field(required=True).match(r".+@.+"),
+    ]
+    age: Annotated[int | None, Field(default=None)]
 ```
 
-`Annotated[...]` metadata is ignored for runtime typing unless it contains a `Field(...)`, which is rejected as ambiguous when the class attribute is also assigned to `Field(...)`.
+When `Field(...)` is provided inside `Annotated[...]`, it defines the model field without assigning a class value. Other metadata is ignored for runtime typing.
+
+The assignment style remains supported:
+
+```python
+class User(Model):
+    email: str = Field(required=True).match(r".+@.+")
+```
+
+Do not combine both forms for the same field.

@@ -35,14 +35,19 @@ from dictify import Field, Model
 
 
 class Note(Model):
-    title: str = Field(required=True).verify(
-        lambda value: len(value) <= 300,
-        "Title must be 300 characters or fewer",
-    )
-    content: str = Field()
-    timestamp: Annotated[datetime, "creation time"] = Field(
-        default=lambda: datetime.now(UTC)
-    )
+    title: Annotated[
+        str,
+        Field(required=True).verify(
+            lambda value: len(value) <= 300,
+            "Title must be 300 characters or fewer",
+        ),
+    ]
+    content: Annotated[str, Field()]
+    timestamp: Annotated[
+        datetime,
+        "creation time",
+        Field(default=lambda: datetime.now(UTC)),
+    ]
 
 
 note = Note({"title": "Dictify", "content": "dictify is easy"})
@@ -133,7 +138,7 @@ See [`dev/README.md`](dev/README.md) for the command summary.
 
 The annotation-first model API is fully supported at runtime.
 
-Static type checker support for declarations like `email: str = Field(...)` may vary. Treat direct annotation-first declarations as the canonical Dictify style, and only add `cast(Any, ...)` as a project-specific workaround.
+For static type checkers, prefer `Annotated[str, Field(...)]` without assigning `Field(...)` as the class value. Declarations like `email: str = Field(...)` remain supported at runtime, but static type checker support for that assignment style may vary.
 
 ## Documentation
 
