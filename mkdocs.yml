@@ -32,11 +32,16 @@ markdown_extensions:
 nav:
   - Dictify: index.md
   - AI Skill: ai-skill.md
-  - Usage: guide/usage.md
+  - Usage:
+      - Overview: guide/usage/index.md
+      - Model Behavior: guide/usage/model.md
+      - Declaration Styles: guide/usage/declaration-styles.md
+      - Partial Validation: guide/usage/partial-validation.md
+  - Validation Recipes:
+      - Overview: guide/validation-recipes.md
   - Field API:
       - Overview: guide/field-api.md
       - Options: guide/field-options.md
       - Validators: guide/field-validators.md
       - State: guide/field-state.md
       - ListOf: guide/listof.md
-  - Validation Recipes: guide/validation-recipes.md

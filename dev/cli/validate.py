@@ -67,7 +67,8 @@ def _smoke_test_artifact(artifact: Path) -> None:
                     "skill = root.joinpath('dictify-usage'); "
                     "assert skill.joinpath('SKILL.md').is_file(); "
                     "refs = skill.joinpath('references'); "
-                    "assert refs.joinpath('field-api.md').is_file()"
+                    "assert refs.joinpath('field-api.md').is_file(); "
+                    "assert refs.joinpath('usage', 'index.md').is_file()"
                 ),
             ],
             cwd=ROOT,

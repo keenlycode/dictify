@@ -30,6 +30,8 @@ Defaults are applied when:
 3. A `Model` is created without a value for that field.
 4. A model field with a default is deleted.
 
+Use `has_default` when you need to know whether a default was configured. `Field(default=None).has_default` is `True`.
+
 ## Granted Values
 
 Granted values always pass validation, even if later validators would reject them.
@@ -60,11 +62,11 @@ class User(Model):
 
 When `Field(...)` is provided inside `Annotated[...]`, it defines the model field without assigning a class value. Other metadata is ignored for runtime typing.
 
-The assignment style remains supported:
+Direct assignment style remains supported for compatibility:
 
 ```python
 class User(Model):
     email: str = Field(required=True).match(r".+@.+")
 ```
 
-Do not combine both forms for the same field.
+This style is fully supported at runtime. For strict static type checking, prefer `Annotated[str, Field(...)]`. Do not combine both forms for the same field.

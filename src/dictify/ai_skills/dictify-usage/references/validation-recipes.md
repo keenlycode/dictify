@@ -67,17 +67,22 @@ Field().instance(str).verify(lambda value: uuid.UUID(value))
 ## Nested Model
 
 ```python
+from typing import Annotated
+
 from dictify import Field, Model
 
 
 class Money(Model):
-    unit: str = Field(required=True).verify(lambda value: value in ["USD", "GBP"])
-    amount: int | float = Field(required=True)
+    unit: Annotated[
+        str,
+        Field(required=True).verify(lambda value: value in ["USD", "GBP"]),
+    ]
+    amount: Annotated[int | float, Field(required=True)]
 
 
 class Payment(Model):
-    id: str = Field(required=True)
-    money: Money = Field(required=True)
+    id: Annotated[str, Field(required=True)]
+    money: Annotated[Money, Field(required=True)]
 
 
 payment = Payment(
@@ -91,12 +96,14 @@ payment = Payment(
 ## List of Models
 
 ```python
+from typing import Annotated
+
 from dictify import Field, Model
 
 
 class Contact(Model):
-    type: str = Field(required=True)
-    value: str = Field(required=True)
+    type: Annotated[str, Field(required=True)]
+    value: Annotated[str, Field(required=True)]
 
 
 contacts = Field().listof(Contact)

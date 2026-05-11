@@ -13,7 +13,10 @@ Use Dictify in the way this repository documents and tests today. Prefer the pub
 
 1. Read the skill references first:
    - `references/index.md`
-   - `references/usage.md`
+   - `references/usage/index.md`
+   - `references/usage/model.md`
+   - `references/usage/declaration-styles.md`
+   - `references/usage/partial-validation.md`
    - `references/field-api.md`
    - `references/field-options.md`
    - `references/field-validators.md`

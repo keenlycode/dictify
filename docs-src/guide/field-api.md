@@ -10,14 +10,16 @@ Field(
 )
 ```
 
-For `Model` classes, prefer Python annotations for the base field type:
+For `Model` classes, prefer `Annotated[..., Field(...)]` for type-checker-friendly field declarations:
 
 ```python
+from typing import Annotated
+
 from dictify import Field, Model
 
 
 class User(Model):
-    email: str = Field(required=True)
+    email: Annotated[str, Field(required=True)]
 ```
 
 Use `Field(...)` to add options, standalone state, and validation methods.
@@ -26,5 +28,5 @@ Use `Field(...)` to add options, standalone state, and validation methods.
 
 - [Field Options](field-options.md): `required`, `default`, `grant`, and model field typing.
 - [Field Validators](field-validators.md): `instance()`, `listof()`, `match()`, `search()`, `model()`, `verify()`, and `func()`.
-- [Field State](field-state.md): `value`, `reset()`, `default`, `validate()`, and `clone()`.
+- [Field State](field-state.md): `value`, `reset()`, `default`, `has_default`, `validate()`, and `clone()`.
 - [ListOf](listof.md): list values returned by `Field.listof(...)`.

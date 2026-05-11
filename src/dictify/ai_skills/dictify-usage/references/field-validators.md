@@ -67,12 +67,17 @@ text = Field().instance(str).search(r"dictify")
 Validate nested document data through another `Model`.
 
 ```python
+from typing import Annotated
+
 from dictify import Field, Model
 
 
 class Money(Model):
-    unit: str = Field(required=True).verify(lambda value: value in ["USD", "GBP"])
-    amount: int | float = Field(required=True)
+    unit: Annotated[
+        str,
+        Field(required=True).verify(lambda value: value in ["USD", "GBP"]),
+    ]
+    amount: Annotated[int | float, Field(required=True)]
 
 
 payment = Field().model(Money)
