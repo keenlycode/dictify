@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import re
 import uuid
@@ -9,6 +10,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any, cast
 
 import pytest
+from cyclopts import App
 
 from dictify import UNDEF, Field, ListOf, Model
 
@@ -80,6 +82,11 @@ class AnnotatedOnlyContact(Model):
 class AnnotatedOnlyProfile(Model):
     username: Annotated[str, Field(required=True)]
     contacts: Annotated[list[AnnotatedOnlyContact], Field(default=list)]
+
+
+class CycloptsData(Model):
+    name: Annotated[str, Field(required=True)]
+    lname: Annotated[str, Field(required=True)]
 
 
 def test_model_descriptor_attribute_access():
@@ -180,7 +187,7 @@ def test_annotated_field_metadata_with_class_value_is_rejected():
 
 
 def test_strict_false_extra_attributes_are_model_data():
-    user = User({"name": "user1"}, strict=False)
+    user = User({"name": "user1"}, _strict=False)
 
     user.nickname = "nick"
 
@@ -260,20 +267,108 @@ def test_model_fields_are_isolated_per_instance():
         cast(Any, User.name).value
 
 
+def test_model_accepts_keyword_data():
+    user = User(name="user1")
+
+    assert user.name == "user1"
+    assert user["name"] == "user1"
+
+
+def test_model_keyword_data_overrides_mapping_data():
+    user = User({"name": "mapping"}, name="keyword")
+
+    assert user.name == "keyword"
+
+
+def test_model_strict_is_model_data_with_strict_config_underscore():
+    class StrictData(Model):
+        strict: Annotated[str, Field(required=True)]
+
+    data = StrictData(strict="field value")
+
+    assert data.strict == "field value"
+    assert data["strict"] == "field value"
+
+    relaxed = StrictData(strict="field value", extra=True, _strict=False)
+    assert relaxed["extra"] is True
+
+
+def test_model_data_is_model_data_when_passed_as_keyword():
+    class Payload(Model):
+        data: Annotated[str, Field(required=True)]
+
+    payload = Payload(data="field value")
+
+    assert payload.data == "field value"
+
+
+def test_model_registers_eager_annotations_without_future_annotations():
+    namespace = {
+        "__name__": __name__,
+        "Annotated": Annotated,
+        "Field": Field,
+        "Model": Model,
+    }
+
+    exec(
+        "class EagerData(Model):\n"
+        "    name: Annotated[str, Field(required=True)]\n",
+        namespace,
+    )
+    eager_data = cast(Any, namespace["EagerData"])
+
+    assert eager_data(name="user1").name == "user1"
+
+
+def test_model_exposes_keyword_constructor_signature():
+    class SignatureData(Model):
+        name: Annotated[str, Field(required=True)]
+        lname: Annotated[str, Field(default="example")]
+        nickname: Annotated[str, Field()]
+
+    signature = inspect.signature(SignatureData)
+    parameters = signature.parameters
+
+    assert list(parameters) == ["name", "lname", "nickname", "_strict"]
+    assert parameters["name"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert parameters["name"].default is inspect.Parameter.empty
+    assert parameters["name"].annotation is str
+    assert parameters["lname"].default == "example"
+    assert parameters["nickname"].default is None
+    assert parameters["_strict"].annotation is bool
+    assert parameters["_strict"].default is True
+
+
+def test_model_signature_supports_cyclopts_nested_cli_options():
+    app = App()
+
+    @app.default
+    def main(data: CycloptsData):
+        return data
+
+    result = app(
+        ["--data.name", "name", "--data.lname", "lname"],
+        exit_on_error=False,
+        result_action="return_value",
+    )
+
+    assert result == {"name": "name", "lname": "lname"}
+
+
 def test_strict(note):
     strict_note = dict(note)
     strict_note["undefined_key"] = 1
     with pytest.raises(Model.Error):
-        Note(strict_note, strict=True)
+        Note(strict_note, _strict=True)
 
     del strict_note["undefined_key"]
-    strict_model = Note(strict_note, strict=True)
+    strict_model = Note(strict_note, _strict=True)
     with pytest.raises(Model.Error):
         strict_model["undefined_key"] = 1
 
     relaxed_note = dict(note)
     relaxed_note["undefined_key"] = 1
-    relaxed_model = Note(relaxed_note, strict=False)
+    relaxed_model = Note(relaxed_note, _strict=False)
     assert relaxed_model["undefined_key"] == 1
 
     del relaxed_model["undefined_key"]
@@ -345,13 +440,13 @@ def test_setdefault():
     assert note["content"] == "New Note"
 
     relaxed = Note(
-        {"title": "Title", "user": User({"name": "user example"})}, strict=False
+        {"title": "Title", "user": User({"name": "user example"})}, _strict=False
     )
     assert relaxed.setdefault("extra", 1) == 1
     assert relaxed["extra"] == 1
 
     strict = Note(
-        {"title": "Title", "user": User({"name": "user example"})}, strict=True
+        {"title": "Title", "user": User({"name": "user example"})}, _strict=True
     )
     with pytest.raises(Model.Error):
         strict.setdefault("extra", 1)

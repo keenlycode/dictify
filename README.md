@@ -2,22 +2,13 @@
 
 Lightweight validation for Python mappings and JSON-like documents.
 
-`dictify` is a lightweight validation library for standalone fields and mapping-shaped models.
-
-It is designed for small schema layers, partial validation, and annotation-first models with explicit dict-like behavior.
+Dictify provides standalone field validation and annotation-first `Model` classes for dict-shaped data. It keeps mapping access and attribute access together, validates assignments, supports strict or permissive unknown-key handling, and converts models back to plain Python data.
 
 - Python `3.12+`
-- Use `Field(...)` for defaults, required fields, and extra validators
-- Use Python annotations to declare `Model` field types
-- Access model data with either attributes or mapping syntax
-
-## Why Dictify?
-
-- Validate a single value with `Field(...)` without defining a full model
-- Define annotation-first `Model` classes for dict-shaped documents
-- Keep mapping access and attribute access together
-- Handle unknown keys and public attributes explicitly with `strict`
-- Convert back to plain Python data with `dict(model)` and `model.dict()`
+- `Field(...)` for defaults, required fields, and validators
+- `Model` for mapping-shaped schemas
+- `dict(model)` for shallow conversion, `model.dict()` for recursive conversion
+- Inspectable model signatures for CLI/data-binding tools such as Cyclopts
 
 ## Install
 
@@ -25,7 +16,7 @@ It is designed for small schema layers, partial validation, and annotation-first
 pip install dictify
 ```
 
-## Quick Example
+## Example
 
 ```python
 from datetime import UTC, datetime
@@ -43,53 +34,28 @@ class Note(Model):
         ),
     ]
     content: Annotated[str, Field()]
-    timestamp: Annotated[
-        datetime,
-        "creation time",
-        Field(default=lambda: datetime.now(UTC)),
-    ]
+    timestamp: Annotated[datetime, Field(default=lambda: datetime.now(UTC))]
 
 
-note = Note({"title": "Dictify", "content": "dictify is easy"})
+note = Note(title="Dictify", content="dictify is easy")
 
 note.content = "Updated content"
 note["content"] = "Updated again"
 
-# These raise Model.Error.
-note.title = 0
-note["title"] = 0
+assert note["content"] == "Updated again"
+assert isinstance(note.dict()["timestamp"], datetime)
 ```
 
-## Strict Mode
-
-`Model` is strict by default.
-
-- `strict=True` rejects undeclared keys and undeclared public attributes
-- `strict=False` stores undeclared keys and attributes as extra model data
+`Model` is strict by default. Pass `_strict=False` to keep undeclared keys as extra model data:
 
 ```python
-note = Note({"title": "Dictify"}, strict=False)
-
+note = Note({"title": "Dictify"}, _strict=False)
 note.category = "docs"
+
 assert note["category"] == "docs"
-assert dict(note)["category"] == "docs"
 ```
 
-## Native Conversion
-
-Use explicit conversion when you need plain Python data.
-
-```python
-import json
-
-note_dict = dict(note)        # shallow dict conversion
-note_native = note.dict()     # recursive dict/list conversion
-note_json = json.dumps(note.dict())
-```
-
-## Standalone Fields
-
-`Field.instance(...)` still works well for standalone validation.
+Standalone fields work without a model:
 
 ```python
 email = Field(required=True).instance(str).match(r".+@.+")
@@ -98,53 +64,24 @@ email.value = "user@example.com"
 
 ## AI Skill
 
-`dictify` ships with an installed CLI for the packaged AI skill.
+Dictify ships with an optional packaged AI skill installer:
 
 ```shell
 dictify ai-skill-install
 ```
 
-The installer prompts for the exact destination folder and defaults to:
+## Development
 
-```text
-.agents/skills/dictify-usage
-```
-
-If the destination already exists, `dictify` asks before overwriting it.
-
-## Development CLI
-
-Repository-local maintenance commands live under `dev/cli`.
-
-Run them from the repo root with:
+Repository-local maintenance commands live under `dev/cli`:
 
 ```shell
 uv run python -m dev.cli --help
-```
-
-Examples:
-
-```shell
-uv run python -m dev.cli docs build
-uv run python -m dev.cli docs dev
-uv run python -m dev.cli ai skill-ref
-uv run python -m dev.cli build
 uv run python -m dev.cli release-check
 ```
 
-See [`dev/README.md`](dev/README.md) for the command summary and docs versioning policy.
-
-## Typing Status
-
-The annotation-first model API is fully supported at runtime.
-
-For static type checkers, prefer `Annotated[str, Field(...)]` without assigning `Field(...)` as the class value. Declarations like `email: str = Field(...)` remain supported at runtime, but static type checker support for that assignment style may vary.
+See [`dev/README.md`](dev/README.md) for the command summary and release workflow.
 
 ## Documentation
 
 - Docs: https://keenlycode.github.io/dictify/
-- Usage: https://keenlycode.github.io/dictify/guide/usage/
-- AI Skill: https://keenlycode.github.io/dictify/ai-skill/
-- Field API: https://keenlycode.github.io/dictify/guide/field-api/
-- Validation Recipes: https://keenlycode.github.io/dictify/guide/validation-recipes/
 - Changelog: https://github.com/keenlycode/dictify/blob/main/CHANGELOG.md

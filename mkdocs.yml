@@ -36,6 +36,7 @@ nav:
       - Overview: guide/usage/index.md
       - Model Behavior: guide/usage/model.md
       - Declaration Styles: guide/usage/declaration-styles.md
+      - CLI and AI Agent Inputs: guide/usage/cli-inputs.md
       - Partial Validation: guide/usage/partial-validation.md
   - Validation Recipes:
       - Overview: guide/validation-recipes/index.md
