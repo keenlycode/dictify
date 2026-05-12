@@ -1,8 +1,8 @@
 # Progress
 
-State: done
+State: doing
 
-Current status: CLI and AI agent input schema docs are added and validated.
+Current status: preparing final 5.0.0 release, merge, tag, push, and publish.
 
 Recent changes:
 - Created task state for v5 keyword constructor work.
@@ -28,6 +28,6 @@ Recent changes:
 - Validation passed: AI skill reference check, MkDocs build, and full pytest suite.
 
 Next steps:
-- Review docs in the running local server, then commit when ready.
+- Finalize version metadata, validate, merge to main, tag, push, publish package, and publish docs.
 
 Blockers: none.
