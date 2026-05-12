@@ -10,6 +10,7 @@ It is designed for small schema layers, partial validation, and annotation-first
 - Use `Field(...)` for defaults, required fields, and extra validators
 - Use Python annotations to declare `Model` field types
 - Access model data with either attributes or mapping syntax
+- Expose model signatures for CLI/data-binding tools such as Cyclopts
 
 ## Why Dictify?
 
@@ -17,6 +18,7 @@ It is designed for small schema layers, partial validation, and annotation-first
 - Define annotation-first `Model` classes for dict-shaped documents
 - Keep mapping access and attribute access together
 - Handle unknown keys and public attributes explicitly with `_strict`
+- Use validated models as CLI and AI agent input schemas
 - Convert back to plain Python data with `dict(model)` and `model.dict()`
 
 ## Install

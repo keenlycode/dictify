@@ -65,7 +65,7 @@ User({"username": "user", "email": "user@example.com"})
 User(username="user", email="user@example.com")
 ```
 
-`Model` subclasses also expose an inspectable keyword constructor signature for tools that use `inspect.signature()`, including CLI libraries such as Cyclopts.
+`Model` subclasses also expose an inspectable keyword constructor signature for tools that use `inspect.signature()`, including CLI libraries such as Cyclopts. See [CLI and AI Agent Inputs](cli-inputs.md) for a full example.
 
 ```python
 import inspect

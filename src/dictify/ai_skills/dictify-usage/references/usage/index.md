@@ -67,4 +67,5 @@ assert user["email"] == "new@example.com"
 
 - [Model Behavior](model.md)
 - [Field Declaration Styles](declaration-styles.md)
+- [CLI and AI Agent Inputs](cli-inputs.md)
 - [Partial Validation](partial-validation.md)

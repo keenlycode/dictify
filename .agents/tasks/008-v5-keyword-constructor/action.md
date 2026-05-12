@@ -10,3 +10,4 @@
 - [x] Explore Cyclopts behavior with current Dictify model constructor.
 - [x] Add generic introspection support if needed.
 - [x] Validate Cyclopts/introspection behavior before release.
+- [x] Document CLI and AI agent input schemas as a v5 feature.

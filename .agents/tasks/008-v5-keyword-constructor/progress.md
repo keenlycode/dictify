@@ -2,7 +2,7 @@
 
 State: done
 
-Current status: v5 dev work now includes Cyclopts-compatible model introspection and passes validation.
+Current status: CLI and AI agent input schema docs are added and validated.
 
 Recent changes:
 - Created task state for v5 keyword constructor work.
@@ -20,8 +20,14 @@ Recent changes:
 - Fixed eager-annotation model registration for Python 3.14 annotation behavior by using `inspect.get_annotations()` for class-local annotation keys.
 - Updated docs/changelog and regenerated packaged skill references.
 - Validation passed: all tests, Ruff, AI skill reference check, and full `dev.cli release-check`.
+- Reopened task to document CLI / AI agent input schema use as a core v5 feature.
+- Added `guide/usage/cli-inputs.md` with signature, Cyclopts, and AI-agent CLI input examples.
+- Added the new page to MkDocs navigation and Usage index.
+- Updated README feature bullets and linked the model behavior page to the dedicated CLI inputs guide.
+- Regenerated packaged AI skill references, including the new CLI inputs reference.
+- Validation passed: AI skill reference check, MkDocs build, and full pytest suite.
 
 Next steps:
-- Commit the new Cyclopts/introspection follow-up changes when ready.
+- Review docs in the running local server, then commit when ready.
 
 Blockers: none.
