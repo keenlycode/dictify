@@ -67,6 +67,14 @@ User({"username": "user", "email": "user@example.com"})
 User(username="user", email="user@example.com")
 ```
 
+`Model` subclasses also expose an inspectable keyword constructor signature for tools that use `inspect.signature()`, including CLI libraries such as Cyclopts.
+
+```python
+import inspect
+
+assert str(inspect.signature(User)) == "(*, username: str, email: str, _strict: bool = True)"
+```
+
 ## Post Validation
 
 Override `post_validate()` when validation depends on multiple fields.

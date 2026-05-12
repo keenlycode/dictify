@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import re
 import uuid
@@ -9,6 +10,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any, cast
 
 import pytest
+from cyclopts import App
 
 from dictify import UNDEF, Field, ListOf, Model
 
@@ -80,6 +82,11 @@ class AnnotatedOnlyContact(Model):
 class AnnotatedOnlyProfile(Model):
     username: Annotated[str, Field(required=True)]
     contacts: Annotated[list[AnnotatedOnlyContact], Field(default=list)]
+
+
+class CycloptsData(Model):
+    name: Annotated[str, Field(required=True)]
+    lname: Annotated[str, Field(required=True)]
 
 
 def test_model_descriptor_attribute_access():
@@ -293,6 +300,59 @@ def test_model_data_is_model_data_when_passed_as_keyword():
     payload = Payload(data="field value")
 
     assert payload.data == "field value"
+
+
+def test_model_registers_eager_annotations_without_future_annotations():
+    namespace = {
+        "__name__": __name__,
+        "Annotated": Annotated,
+        "Field": Field,
+        "Model": Model,
+    }
+
+    exec(
+        "class EagerData(Model):\n"
+        "    name: Annotated[str, Field(required=True)]\n",
+        namespace,
+    )
+    eager_data = cast(Any, namespace["EagerData"])
+
+    assert eager_data(name="user1").name == "user1"
+
+
+def test_model_exposes_keyword_constructor_signature():
+    class SignatureData(Model):
+        name: Annotated[str, Field(required=True)]
+        lname: Annotated[str, Field(default="example")]
+        nickname: Annotated[str, Field()]
+
+    signature = inspect.signature(SignatureData)
+    parameters = signature.parameters
+
+    assert list(parameters) == ["name", "lname", "nickname", "_strict"]
+    assert parameters["name"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert parameters["name"].default is inspect.Parameter.empty
+    assert parameters["name"].annotation is str
+    assert parameters["lname"].default == "example"
+    assert parameters["nickname"].default is None
+    assert parameters["_strict"].annotation is bool
+    assert parameters["_strict"].default is True
+
+
+def test_model_signature_supports_cyclopts_nested_cli_options():
+    app = App()
+
+    @app.default
+    def main(data: CycloptsData):
+        return data
+
+    result = app(
+        ["--data.name", "name", "--data.lname", "lname"],
+        exit_on_error=False,
+        result_action="return_value",
+    )
+
+    assert result == {"name": "name", "lname": "lname"}
 
 
 def test_strict(note):

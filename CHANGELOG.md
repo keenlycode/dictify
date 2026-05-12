@@ -4,6 +4,7 @@
 
 - Added keyword-data model construction, such as `User(name="Ada")`, alongside mapping input.
 - Replaced the `strict=` constructor option with `_strict=` so `strict` can be used as normal model data.
+- Added inspectable model constructor signatures for tools such as Cyclopts.
 - Documented mapping input for JSON-like data and keyword input for Python object-style construction.
 
 ## 4.1.1

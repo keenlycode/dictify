@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
-from typing import Any, get_type_hints
+from inspect import Parameter, Signature, get_annotations
+from typing import Any, cast, get_type_hints
 
 from ._field import Field, ListOf
 from ._sentinel import UNDEF
@@ -71,6 +72,50 @@ class Model(MutableMapping[str, Any]):
         pass
 
     @classmethod
+    def _signature_default(cls, field: Field):
+        """Return the constructor-signature default for a field definition."""
+
+        if field.required and field.has_default is False:
+            return Parameter.empty
+        if field.has_default:
+            return field._default
+        return None
+
+    @classmethod
+    def _build_signature(cls) -> Signature:
+        """Build the inspectable keyword constructor signature for a model."""
+
+        parameters = []
+        for key, field in cls.__fields__.items():
+            parameters.append(
+                Parameter(
+                    key,
+                    Parameter.KEYWORD_ONLY,
+                    annotation=cls.__field_types__.get(key, Any),
+                    default=cls._signature_default(field),
+                )
+            )
+        parameters.append(
+            Parameter(
+                "_strict",
+                Parameter.KEYWORD_ONLY,
+                annotation=bool,
+                default=True,
+            )
+        )
+        return Signature(parameters)
+
+    @classmethod
+    def _install_subclass_init(cls, signature: Signature) -> None:
+        """Install a per-subclass init wrapper for introspection tools."""
+
+        def __init__(self, data: Mapping[str, Any] | None = None, /, **kwargs: Any):
+            Model.__init__(self, data, **kwargs)
+
+        setattr(__init__, "__signature__", signature)
+        setattr(cls, "__init__", cast(Any, __init__))
+
+    @classmethod
     def _register_field(
         cls,
         fields: FieldMap,
@@ -114,7 +159,8 @@ class Model(MutableMapping[str, Any]):
         fields = {}
         field_types = {}
         type_hints = get_type_hints(cls, include_extras=True)
-        annotations = cls.__dict__.get("__annotations__", {})
+        annotations = get_annotations(cls)
+        has_custom_init = "__init__" in cls.__dict__
         for base in reversed(cls.__mro__[1:]):
             fields.update(getattr(base, "__fields__", {}))
             field_types.update(getattr(base, "__field_types__", {}))
@@ -139,6 +185,10 @@ class Model(MutableMapping[str, Any]):
             setattr(cls, key, field)
         cls.__fields__ = fields
         cls.__field_types__ = field_types
+        signature = cls._build_signature()
+        setattr(cls, "__signature__", signature)
+        if has_custom_init is False:
+            cls._install_subclass_init(signature)
 
     def __init__(
         self,
