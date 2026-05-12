@@ -1,8 +1,8 @@
 # Progress
 
-State: doing
+State: done
 
-Current status: preparing final 5.0.0 release, merge, tag, push, and publish.
+Current status: Dictify 5.0.0 is merged, tagged, pushed, published to PyPI, and docs are published.
 
 Recent changes:
 - Created task state for v5 keyword constructor work.
@@ -26,8 +26,14 @@ Recent changes:
 - Updated README feature bullets and linked the model behavior page to the dedicated CLI inputs guide.
 - Regenerated packaged AI skill references, including the new CLI inputs reference.
 - Validation passed: AI skill reference check, MkDocs build, and full pytest suite.
+- Bumped package metadata from `5.0.0.dev0` to final `5.0.0` and updated `uv.lock`.
+- Validation passed on `v5-dev` and again after merging to `main`: `uv run python -m dev.cli release-check`.
+- Merged `v5-dev` to `main` with merge commit `1f556a0` and tagged `v5.0.0`.
+- Pushed `main` and `v5.0.0` to origin.
+- Published `dictify==5.0.0` to PyPI and verified the PyPI release JSON.
+- Published versioned docs for `5.0.x` with `latest` pointing to the 5.0 docs line.
 
 Next steps:
-- Finalize version metadata, validate, merge to main, tag, push, publish package, and publish docs.
+- None.
 
 Blockers: none.
