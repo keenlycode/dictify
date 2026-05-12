@@ -180,7 +180,7 @@ def test_annotated_field_metadata_with_class_value_is_rejected():
 
 
 def test_strict_false_extra_attributes_are_model_data():
-    user = User({"name": "user1"}, strict=False)
+    user = User({"name": "user1"}, _strict=False)
 
     user.nickname = "nick"
 
@@ -260,20 +260,55 @@ def test_model_fields_are_isolated_per_instance():
         cast(Any, User.name).value
 
 
+def test_model_accepts_keyword_data():
+    user = User(name="user1")
+
+    assert user.name == "user1"
+    assert user["name"] == "user1"
+
+
+def test_model_keyword_data_overrides_mapping_data():
+    user = User({"name": "mapping"}, name="keyword")
+
+    assert user.name == "keyword"
+
+
+def test_model_strict_is_model_data_with_strict_config_underscore():
+    class StrictData(Model):
+        strict: Annotated[str, Field(required=True)]
+
+    data = StrictData(strict="field value")
+
+    assert data.strict == "field value"
+    assert data["strict"] == "field value"
+
+    relaxed = StrictData(strict="field value", extra=True, _strict=False)
+    assert relaxed["extra"] is True
+
+
+def test_model_data_is_model_data_when_passed_as_keyword():
+    class Payload(Model):
+        data: Annotated[str, Field(required=True)]
+
+    payload = Payload(data="field value")
+
+    assert payload.data == "field value"
+
+
 def test_strict(note):
     strict_note = dict(note)
     strict_note["undefined_key"] = 1
     with pytest.raises(Model.Error):
-        Note(strict_note, strict=True)
+        Note(strict_note, _strict=True)
 
     del strict_note["undefined_key"]
-    strict_model = Note(strict_note, strict=True)
+    strict_model = Note(strict_note, _strict=True)
     with pytest.raises(Model.Error):
         strict_model["undefined_key"] = 1
 
     relaxed_note = dict(note)
     relaxed_note["undefined_key"] = 1
-    relaxed_model = Note(relaxed_note, strict=False)
+    relaxed_model = Note(relaxed_note, _strict=False)
     assert relaxed_model["undefined_key"] == 1
 
     del relaxed_model["undefined_key"]
@@ -345,13 +380,13 @@ def test_setdefault():
     assert note["content"] == "New Note"
 
     relaxed = Note(
-        {"title": "Title", "user": User({"name": "user example"})}, strict=False
+        {"title": "Title", "user": User({"name": "user example"})}, _strict=False
     )
     assert relaxed.setdefault("extra", 1) == 1
     assert relaxed["extra"] == 1
 
     strict = Note(
-        {"title": "Title", "user": User({"name": "user example"})}, strict=True
+        {"title": "Title", "user": User({"name": "user example"})}, _strict=True
     )
     with pytest.raises(Model.Error):
         strict.setdefault("extra", 1)

@@ -45,16 +45,16 @@ class User(Model):
     created_at: Annotated[datetime, Field(default=lambda: datetime.now(UTC))]
 ```
 
-Create and update validated data through either attributes or mapping keys.
+Create validated data from keyword arguments or a mapping, then update it through either attributes or mapping keys.
 
 ```python
 user = User(
-    {
-        "username": "user",
-        "email": "user@example.com",
-        "contacts": [{"type": "email", "value": "user@example.com"}],
-    }
+    username="user",
+    email="user@example.com",
+    contacts=[{"type": "email", "value": "user@example.com"}],
 )
+
+same_user = User({"username": "user", "email": "user@example.com"})
 
 user.username = "new-user"
 user["email"] = "new@example.com"

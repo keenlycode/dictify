@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.0.0
+
+- Added keyword-data model construction, such as `User(name="Ada")`, alongside mapping input.
+- Replaced the `strict=` constructor option with `_strict=` so `strict` can be used as normal model data.
+- Documented mapping input for JSON-like data and keyword input for Python object-style construction.
+
 ## 4.1.1
 
 - Restructured documentation source paths to mirror the public navigation.

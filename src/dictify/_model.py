@@ -140,16 +140,24 @@ class Model(MutableMapping[str, Any]):
         cls.__fields__ = fields
         cls.__field_types__ = field_types
 
-    def __init__(self, data: Mapping[str, Any] | None = None, strict: bool = True):
-        """Create a model instance from mapping data and validate declared fields."""
+    def __init__(
+        self,
+        data: Mapping[str, Any] | None = None,
+        /,
+        *,
+        _strict: bool = True,
+        **kwargs: Any,
+    ):
+        """Create a model instance from mapping and keyword data."""
 
         if data is None:
             data = {}
         assert isinstance(data, Mapping), (
             "Model initial data should be instance of mapping"
         )
-        assert isinstance(strict, bool)
+        assert isinstance(_strict, bool)
         data = dict(data)
+        data.update(kwargs)
         object.__setattr__(
             self,
             "_bound_fields",
@@ -159,7 +167,7 @@ class Model(MutableMapping[str, Any]):
             },
         )
         object.__setattr__(self, "_data", {})
-        object.__setattr__(self, "_strict", strict)
+        object.__setattr__(self, "_strict", _strict)
 
         errors = {}
         for key, field in self.__class__.__fields__.items():

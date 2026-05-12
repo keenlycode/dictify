@@ -16,7 +16,7 @@ It is designed for small schema layers, partial validation, and annotation-first
 - Validate a single value with `Field(...)` without defining a full model
 - Define annotation-first `Model` classes for dict-shaped documents
 - Keep mapping access and attribute access together
-- Handle unknown keys and public attributes explicitly with `strict`
+- Handle unknown keys and public attributes explicitly with `_strict`
 - Convert back to plain Python data with `dict(model)` and `model.dict()`
 
 ## Install
@@ -50,7 +50,7 @@ class Note(Model):
     ]
 
 
-note = Note({"title": "Dictify", "content": "dictify is easy"})
+note = Note(title="Dictify", content="dictify is easy")
 
 note.content = "Updated content"
 note["content"] = "Updated again"
@@ -64,11 +64,11 @@ note["title"] = 0
 
 `Model` is strict by default.
 
-- `strict=True` rejects undeclared keys and undeclared public attributes
-- `strict=False` stores undeclared keys and attributes as extra model data
+- `_strict=True` rejects undeclared keys and undeclared public attributes
+- `_strict=False` stores undeclared keys and attributes as extra model data
 
 ```python
-note = Note({"title": "Dictify"}, strict=False)
+note = Note({"title": "Dictify"}, _strict=False)
 
 note.category = "docs"
 assert note["category"] == "docs"

@@ -17,7 +17,7 @@ class User(Model):
     email: Annotated[str, Field(required=True).match(r".+@.+")]
 
 
-user = User({"username": "user", "email": "user@example.com"})
+user = User(username="user", email="user@example.com")
 
 user.username = "new-user"
 user["email"] = "new@example.com"
@@ -44,11 +44,11 @@ message = json.dumps(user.dict())
 
 `Model` instances are strict by default.
 
-- `strict=True` rejects undeclared keys and undeclared public attributes
-- `strict=False` stores undeclared keys and public attributes as extra model data
+- `_strict=True` rejects undeclared keys and undeclared public attributes
+- `_strict=False` stores undeclared keys and public attributes as extra model data
 
 ```python
-user = User({"username": "user", "email": "user@example.com"}, strict=False)
+user = User(username="user", email="user@example.com", _strict=False)
 
 user.nickname = "nick"
 user["age"] = 30
@@ -58,7 +58,14 @@ assert user["nickname"] == "nick"
 assert dict(user)["age"] == 30
 ```
 
-With `strict=True`, both `user["age"] = 30` and `user.age = 30` are rejected.
+With `_strict=True`, both `user["age"] = 30` and `user.age = 30` are rejected.
+
+Mapping input remains useful for JSON-like data, while keyword input fits Python object construction:
+
+```python
+User({"username": "user", "email": "user@example.com"})
+User(username="user", email="user@example.com")
+```
 
 ## Post Validation
 
