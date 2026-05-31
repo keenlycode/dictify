@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.1
+
+- Restored install/runtime support for Python 3.11 while keeping annotation-first model declarations.
+
 ## 5.0.0
 
 - Added keyword-data model construction, such as `User(name="Ada")`, alongside mapping input.

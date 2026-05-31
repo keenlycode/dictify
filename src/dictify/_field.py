@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Self, cast, overload
+from typing import TYPE_CHECKING, Any, Generic, Self, cast, overload
 
 from ._sentinel import UNDEF
 from ._types import DefaultFactory, T, Validator
@@ -144,7 +144,7 @@ class ListOf(list):
         return data
 
 
-class Field[T]:
+class Field(Generic[T]):
     """Create ``Field()`` object which can validate it's value.
     Can be defined in class ``Model``.
 

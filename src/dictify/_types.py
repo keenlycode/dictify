@@ -19,9 +19,9 @@ DataDict = dict[str, Any]
 
 #: Mapping of field names to declared ``Field`` definitions.
 if TYPE_CHECKING:
-    type FieldMap = dict[str, Field[Any]]
+    FieldMap = dict[str, Field[Any]]
 else:
-    type FieldMap = dict[str, Any]
+    FieldMap = dict[str, Any]
 
 #: Mapping of field names to resolved runtime type annotations.
 FieldTypeMap = dict[str, Any]

@@ -4,7 +4,7 @@ Lightweight validation for Python mappings and JSON-like documents.
 
 Dictify provides standalone field validation and annotation-first `Model` classes for dict-shaped data. It keeps mapping access and attribute access together, validates assignments, supports strict or permissive unknown-key handling, and converts models back to plain Python data.
 
-- Python `3.12+`
+- Python `3.11+`
 - `Field(...)` for defaults, required fields, and validators
 - `Model` for mapping-shaped schemas
 - `dict(model)` for shallow conversion, `model.dict()` for recursive conversion
