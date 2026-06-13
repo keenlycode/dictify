@@ -14,7 +14,6 @@ Before changing code, docs, build behavior, release flow, or validation commands
 3. Prefer repository-local commands exposed by `uv run python -m dev.cli ...`.
 
 Treat `dev/README.md` and `dev/cli/` as the source of truth for workflow details.
-For multi-step Dictify work, use `.agents/tasks/` for durable task state.
 
 ## Working Rules
 

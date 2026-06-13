@@ -95,14 +95,6 @@ class Model(MutableMapping[str, Any]):
                     default=cls._signature_default(field),
                 )
             )
-        parameters.append(
-            Parameter(
-                "_strict",
-                Parameter.KEYWORD_ONLY,
-                annotation=bool,
-                default=True,
-            )
-        )
         return Signature(parameters)
 
     @classmethod

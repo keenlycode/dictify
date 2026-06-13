@@ -10,8 +10,7 @@ dist/
 .ruff_cache
 docs/
 .agents/*
-!.agents/README.md
 !.agents/skills/
 !.agents/skills/**
-!.agents/tasks/
-!.agents/tasks/**
+!.agents/roles/
+!.agents/roles/**

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Hid the advanced `_strict` constructor keyword from generated model signatures while keeping it accepted at runtime.
+
 ## 5.0.1
 
 - Restored install/runtime support for Python 3.11 while keeping annotation-first model declarations.

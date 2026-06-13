@@ -38,10 +38,10 @@ Tools can inspect a model class and discover its fields.
 ```python
 import inspect
 
-assert str(inspect.signature(CreateUser)) == "(*, name: str, email: str, _strict: bool = True)"
+assert str(inspect.signature(CreateUser)) == "(*, name: str, email: str)"
 ```
 
-Required fields appear without defaults. Fields with `Field(default=...)` expose that default in the signature. `_strict` remains the Dictify constructor option for controlling unknown keys and attributes.
+Required fields appear without defaults. Fields with `Field(default=...)` expose that default in the signature. `_strict` remains the Dictify constructor option for controlling unknown keys and attributes, but it is hidden from generated public signatures so signature-driven tools expose declared model fields only.
 
 ## Cyclopts example
 

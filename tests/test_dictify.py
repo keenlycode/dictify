@@ -329,14 +329,48 @@ def test_model_exposes_keyword_constructor_signature():
     signature = inspect.signature(SignatureData)
     parameters = signature.parameters
 
-    assert list(parameters) == ["name", "lname", "nickname", "_strict"]
+    assert list(parameters) == ["name", "lname", "nickname"]
     assert parameters["name"].kind is inspect.Parameter.KEYWORD_ONLY
     assert parameters["name"].default is inspect.Parameter.empty
     assert parameters["name"].annotation is str
     assert parameters["lname"].default == "example"
     assert parameters["nickname"].default is None
-    assert parameters["_strict"].annotation is bool
-    assert parameters["_strict"].default is True
+
+
+def test_model_init_exposes_keyword_constructor_signature():
+    class SignatureData(Model):
+        name: Annotated[str, Field(required=True)]
+        lname: Annotated[str, Field(default="example")]
+        nickname: Annotated[str, Field()]
+
+    signature = inspect.signature(SignatureData.__init__)
+    parameters = signature.parameters
+
+    assert list(parameters) == ["name", "lname", "nickname"]
+    assert parameters["name"].kind is inspect.Parameter.KEYWORD_ONLY
+    assert parameters["name"].default is inspect.Parameter.empty
+    assert parameters["name"].annotation is str
+    assert parameters["lname"].default == "example"
+    assert parameters["nickname"].default is None
+
+
+def test_strict_keyword_still_supported_when_hidden_from_signature():
+    class SignatureData(Model):
+        name: Annotated[str, Field(required=True)]
+
+    data = SignatureData({"name": "Ada", "extra": "ok"}, _strict=False)
+
+    assert data.name == "Ada"
+    assert data.extra == "ok"
+    assert data["extra"] == "ok"
+
+
+def test_strict_default_still_rejects_unknown_keys_when_hidden_from_signature():
+    class SignatureData(Model):
+        name: Annotated[str, Field(required=True)]
+
+    with pytest.raises(Model.Error):
+        SignatureData({"name": "Ada", "extra": "no"})
 
 
 def test_model_signature_supports_cyclopts_nested_cli_options():
@@ -353,6 +387,23 @@ def test_model_signature_supports_cyclopts_nested_cli_options():
     )
 
     assert result == {"name": "name", "lname": "lname"}
+
+
+def test_model_signature_hides_strict_from_cyclopts_help(capsys):
+    app = App()
+
+    @app.default
+    def main(data: CycloptsData):
+        return data
+
+    with pytest.raises(SystemExit) as exc_info:
+        app(["--help"], exit_on_error=False)
+
+    output = capsys.readouterr().out
+
+    assert exc_info.value.code == 0
+    assert "--data.name" in output
+    assert "strict" not in output
 
 
 def test_strict(note):
