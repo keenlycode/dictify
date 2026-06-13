@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import re
+import subprocess
 
 import cyclopts
 
-from .common import run_command
+from .common import ROOT, run_command
 
 app = cyclopts.App(help="Build or serve the documentation site.")
 
@@ -22,6 +23,30 @@ def docs_version_line(version: str) -> str:
     if match is None:
         return version
     return f"{match.group('major')}.{match.group('minor')}.x"
+
+
+def ensure_publish_branch(branch: str) -> None:
+    """Create a local tracking branch when only ``origin/<branch>`` exists."""
+
+    local = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", branch],
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.DEVNULL,
+    )
+    if local.returncode == 0:
+        return
+
+    remote = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"origin/{branch}"],
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.DEVNULL,
+    )
+    if remote.returncode != 0:
+        return
+
+    run_command(["git", "branch", "--track", branch, f"origin/{branch}"])
 
 
 @app.command(name="build")
@@ -54,6 +79,7 @@ def docs_publish(version: str, alias: str = "latest", branch: str = "docs") -> N
     """Publish minor-line docs with mike and update the default alias."""
 
     docs_version = docs_version_line(version)
+    ensure_publish_branch(branch)
 
     run_command(
         [
