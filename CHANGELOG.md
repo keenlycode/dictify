@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 5.0.2
 
 - Hid the advanced `_strict` constructor keyword from generated model signatures while keeping it accepted at runtime.
 
