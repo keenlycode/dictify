@@ -70,8 +70,10 @@ User(username="user", email="user@example.com")
 ```python
 import inspect
 
-assert str(inspect.signature(User)) == "(*, username: str, email: str, _strict: bool = True)"
+assert str(inspect.signature(User)) == "(*, username: str, email: str)"
 ```
+
+The advanced `_strict` constructor keyword remains accepted at runtime, but it is intentionally hidden from generated public signatures so signature-driven tools expose declared model fields only.
 
 ## Post Validation
 

@@ -700,9 +700,10 @@
 <p><code>Model</code> subclasses also expose an inspectable keyword constructor signature for tools that use <code>inspect.signature()</code>, including CLI libraries such as Cyclopts. See <a href="../cli-inputs/">CLI and AI Agent Inputs</a> for a full example.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 
-<span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">User</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;(*, username: str, email: str, _strict: bool = True)&quot;</span>
+<span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">User</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;(*, username: str, email: str)&quot;</span>
 </code></pre></div>
 
+<p>The advanced <code>_strict</code> constructor keyword remains accepted at runtime, but it is intentionally hidden from generated public signatures so signature-driven tools expose declared model fields only.</p>
 <h2 id="post-validation">Post Validation<a class="headerlink" href="#post-validation" title="Permanent link">&para;</a></h2>
 <p>Override <code>post_validate()</code> when validation depends on multiple fields.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>

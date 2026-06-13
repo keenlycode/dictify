@@ -671,10 +671,10 @@
 <p>Tools can inspect a model class and discover its fields.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 
-<span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">CreateUser</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;(*, name: str, email: str, _strict: bool = True)&quot;</span>
+<span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">CreateUser</span><span class="p">))</span> <span class="o">==</span> <span class="s2">&quot;(*, name: str, email: str)&quot;</span>
 </code></pre></div>
 
-<p>Required fields appear without defaults. Fields with <code>Field(default=...)</code> expose that default in the signature. <code>_strict</code> remains the Dictify constructor option for controlling unknown keys and attributes.</p>
+<p>Required fields appear without defaults. Fields with <code>Field(default=...)</code> expose that default in the signature. <code>_strict</code> remains the Dictify constructor option for controlling unknown keys and attributes, but it is hidden from generated public signatures so signature-driven tools expose declared model fields only.</p>
 <h2 id="cyclopts-example">Cyclopts example<a class="headerlink" href="#cyclopts-example" title="Permanent link">&para;</a></h2>
 <p>Use a Dictify model as a structured CLI parameter.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
